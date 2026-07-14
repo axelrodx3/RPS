@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">RPS placeholder logo</title>
+  <rect width="128" height="128" rx="28" fill="#f5f5f3"/>
+  <path d="M39 31h31c19 0 30 10 30 26 0 11-6 20-17 24l21 16H80L61 82v15H39V31Zm22 19v16h10c5 0 8-3 8-8s-3-8-8-8H61Z" fill="#090909"/>
+</svg>

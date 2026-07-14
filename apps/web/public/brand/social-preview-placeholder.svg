@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title">
+  <title id="title">RPS foundation social preview placeholder</title>
+  <rect width="1200" height="630" fill="#090909"/>
+  <circle cx="600" cy="0" r="420" fill="#d7ff43" opacity=".08"/>
+  <text x="100" y="260" fill="#d7ff43" font-family="monospace" font-size="28" font-weight="700">NON-PRODUCTION FOUNDATION</text>
+  <text x="100" y="410" fill="#f5f5f3" font-family="Arial, sans-serif" font-size="150" font-weight="800" letter-spacing="28">RPS</text>
+  <text x="100" y="500" fill="#8d8d88" font-family="Arial, sans-serif" font-size="38">Competitive play. Verifiable rules.</text>
+</svg>
