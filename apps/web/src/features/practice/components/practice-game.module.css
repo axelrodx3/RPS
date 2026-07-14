@@ -261,6 +261,17 @@
   background: rgb(215 255 67 / 4%);
 }
 
+.waitingCpuPanel {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  width: min(100%, 320px);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
 .lockedMoveLabel {
   font-size: 32px;
   text-transform: capitalize;

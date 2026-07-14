@@ -12,6 +12,9 @@ describe("GuidePage branding", () => {
     renderWithProviders(<GuidePage />);
 
     expect(screen.getByLabelText("RPS")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/This guide reflects Prompt 1 architecture/i),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/Brand preview/i)).not.toBeInTheDocument();
     expect(
       screen.queryByText(/Secondary lime branding shown at guide scale/i),

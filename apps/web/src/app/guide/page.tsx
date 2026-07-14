@@ -9,10 +9,6 @@ export default function GuidePage() {
       <header>
         <p className={styles.kicker}>Game Guide</p>
         <h1>Rules, safety, and how to play</h1>
-        <p>
-          This guide reflects Prompt 1 architecture. Wagered modes reuse the
-          same scoring logic with on chain commit reveal when enabled.
-        </p>
       </header>
 
       <div className={styles.brandHero} aria-label="RPS">

@@ -49,9 +49,11 @@
 .wordmark {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-width: 44px;
   min-height: 44px;
-  padding: 5px;
+  padding: 4px;
+  margin-inline-end: var(--space-1);
 }
 
 .desktopNav {

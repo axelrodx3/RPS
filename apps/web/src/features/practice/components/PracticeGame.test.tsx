@@ -55,9 +55,7 @@ describe("PracticeGame", () => {
       await startCommitPhase(user);
 
       await user.click(screen.getByRole("button", { name: `Choose ${label}` }));
-      expect(screen.getAllByText("CPU preparing move…").length).toBeGreaterThan(
-        0,
-      );
+      expect(screen.getAllByText("Move locked").length).toBeGreaterThan(0);
     },
   );
 
@@ -90,7 +88,7 @@ describe("PracticeGame", () => {
   it("updates the score after a resolved round", () => {
     let state = createInitialMatchState();
     state = practiceReducer(state, { type: "START_MATCH" });
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = { ...state, phase: "waiting_cpu", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
     expect(state.playerScore).toBe(1);
     expect(state.cpuScore).toBe(0);
@@ -98,7 +96,7 @@ describe("PracticeGame", () => {
 
   it("does not change the score on a tie", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "waiting_reveal", playerMove: "paper" };
+    state = { ...state, phase: "waiting_cpu", playerMove: "paper" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "paper" });
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
@@ -109,7 +107,7 @@ describe("PracticeGame", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "waiting_reveal",
+      phase: "waiting_cpu",
       playerMove: "scissors",
       playerScore: 1,
     };

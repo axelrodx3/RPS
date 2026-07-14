@@ -9,7 +9,7 @@ type RpsIconProps = {
 };
 
 export function RpsIcon({
-  size = 34,
+  size = 36,
   className = "",
   priority = false,
 }: RpsIconProps) {

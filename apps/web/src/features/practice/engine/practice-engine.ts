@@ -6,7 +6,8 @@ export type PracticePhase =
   | "idle"
   | "countdown"
   | "commit"
-  | "waiting_reveal"
+  | "move_locked"
+  | "waiting_cpu"
   | "reveal_pause"
   | "reveal"
   | "round_result"
@@ -43,16 +44,26 @@ export const PRACTICE_WIN_TARGET = 2;
 export const PRACTICE_TIMER_SECONDS = 20;
 export const PRACTICE_COUNTDOWN_SECONDS = 3;
 export const TIMER_WARNING_SECONDS = 5;
-export const CPU_REVEAL_DELAY_MIN_MS = 500;
-export const CPU_REVEAL_DELAY_MAX_MS = 1200;
-export const REVEAL_PAUSE_MS = 700;
-export const REVEAL_PAUSE_REDUCED_MS = 350;
-export const REVEAL_DISPLAY_MS = 750;
-export const REVEAL_DISPLAY_REDUCED_MS = 400;
+export const MOVE_LOCKED_MS = 650;
+export const MOVE_LOCKED_REDUCED_MS = 500;
+export const WAITING_CPU_MS = 1100;
+export const WAITING_CPU_REDUCED_MS = 800;
+export const REVEAL_PAUSE_MS = 850;
+export const REVEAL_PAUSE_REDUCED_MS = 500;
+export const REVEAL_DISPLAY_MS = 1000;
+export const REVEAL_DISPLAY_REDUCED_MS = 650;
 export const ROUND_RESULT_DISPLAY_MS = 1300;
-export const ROUND_RESULT_DISPLAY_REDUCED_MS = 900;
+export const ROUND_RESULT_DISPLAY_REDUCED_MS = 950;
 export const RESULT_VISIBLE_TOTAL_MS =
   REVEAL_DISPLAY_MS + ROUND_RESULT_DISPLAY_MS;
+
+export const PRACTICE_POST_LOCK_PHASES = [
+  "move_locked",
+  "waiting_cpu",
+  "reveal_pause",
+  "reveal",
+  "round_result",
+] as const satisfies readonly PracticePhase[];
 
 export const MOVES: readonly Move[] = ["rock", "paper", "scissors"] as const;
 
@@ -106,13 +117,14 @@ export function pickRandomMove(random = Math.random): Move {
 }
 
 export function randomCpuRevealDelayMs(random = Math.random): number {
-  const range = CPU_REVEAL_DELAY_MAX_MS - CPU_REVEAL_DELAY_MIN_MS;
-  return CPU_REVEAL_DELAY_MIN_MS + Math.floor(random() * (range + 1));
+  void random;
+  return WAITING_CPU_MS;
 }
 
 export function isMoveSelectionLocked(phase: PracticePhase): boolean {
   return (
-    phase === "waiting_reveal" ||
+    phase === "move_locked" ||
+    phase === "waiting_cpu" ||
     phase === "reveal_pause" ||
     phase === "reveal" ||
     phase === "round_result" ||
@@ -149,6 +161,7 @@ export type PracticeAction =
   | { type: "SYNC_TIMER"; seconds: number }
   | { type: "SELECT_MOVE"; move: Move }
   | { type: "TIMEOUT_PLAYER"; move: Move }
+  | { type: "ADVANCE_FROM_MOVE_LOCKED" }
   | { type: "CPU_REVEAL"; move: Move }
   | { type: "ADVANCE_FROM_REVEAL_PAUSE" }
   | { type: "ADVANCE_FROM_REVEAL" }
@@ -190,7 +203,7 @@ export function practiceReducer(
       return {
         ...state,
         playerMove: action.move,
-        phase: "waiting_reveal",
+        phase: "move_locked",
       };
 
     case "TIMEOUT_PLAYER": {
@@ -200,13 +213,17 @@ export function practiceReducer(
         ...state,
         playerMove: action.move,
         playerTimedOut: true,
-        phase: "waiting_reveal",
+        phase: "move_locked",
       };
     }
 
+    case "ADVANCE_FROM_MOVE_LOCKED":
+      if (state.phase !== "move_locked" || !state.playerMove) return state;
+      return { ...state, phase: "waiting_cpu" };
+
     case "CPU_REVEAL": {
       if (
-        state.phase !== "waiting_reveal" ||
+        state.phase !== "waiting_cpu" ||
         !state.playerMove ||
         state.roundResolved
       )

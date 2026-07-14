@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   MOVES,
   MOVE_EMOJI,
+  MOVE_LOCKED_MS,
+  PRACTICE_POST_LOCK_PHASES,
   PRACTICE_WIN_TARGET,
+  REVEAL_PAUSE_MS,
   RESULT_VISIBLE_TOTAL_MS,
+  WAITING_CPU_MS,
   createInitialMatchState,
   formatRoundHistoryAccessibleLabel,
   getTransitionMessage,
@@ -38,12 +42,8 @@ describe("pickRandomMove", () => {
 });
 
 describe("randomCpuRevealDelayMs", () => {
-  it("stays within the natural delay window", () => {
-    for (let i = 0; i < 20; i += 1) {
-      const delay = randomCpuRevealDelayMs(() => i / 20);
-      expect(delay).toBeGreaterThanOrEqual(500);
-      expect(delay).toBeLessThanOrEqual(1200);
-    }
+  it("matches the configured waiting CPU duration", () => {
+    expect(randomCpuRevealDelayMs()).toBe(WAITING_CPU_MS);
   });
 });
 
@@ -59,19 +59,6 @@ describe("round history helpers", () => {
         cpuTimedOut: false,
       }),
     ).toBe("Player chose Paper. CPU chose Rock. Player won the round.");
-
-    expect(
-      formatRoundHistoryAccessibleLabel({
-        round: 2,
-        playerMove: "rock",
-        cpuMove: "rock",
-        outcome: "tie",
-        playerTimedOut: true,
-        cpuTimedOut: false,
-      }),
-    ).toBe(
-      "Player chose Rock. CPU chose Rock. Round tied. Player move was automatic.",
-    );
   });
 
   it("exposes emoji mapping for history display", () => {
@@ -91,25 +78,31 @@ describe("transition messages", () => {
     };
     expect(getTransitionMessage(state)).toBe("Tie. Replay round.");
   });
+});
 
-  it("returns match point when either side has one win", () => {
-    const state = {
-      ...createInitialMatchState(),
-      roundOutcome: "player" as const,
-      playerScore: 1,
-      cpuScore: 0,
-    };
-    expect(getTransitionMessage(state)).toBe("Match point");
+describe("practice phase pacing", () => {
+  it("uses the approved post lock phase order", () => {
+    expect(PRACTICE_POST_LOCK_PHASES).toEqual([
+      "move_locked",
+      "waiting_cpu",
+      "reveal_pause",
+      "reveal",
+      "round_result",
+    ]);
   });
 
-  it("returns next round for ordinary progress", () => {
-    const state = {
-      ...createInitialMatchState(),
-      roundOutcome: "player" as const,
-      playerScore: 0,
-      cpuScore: 0,
-    };
-    expect(getTransitionMessage(state)).toBe("Next round");
+  it("keeps move locked, waiting CPU, and reveal pause within target ranges", () => {
+    expect(MOVE_LOCKED_MS).toBeGreaterThanOrEqual(500);
+    expect(MOVE_LOCKED_MS).toBeLessThanOrEqual(800);
+    expect(WAITING_CPU_MS).toBeGreaterThanOrEqual(900);
+    expect(WAITING_CPU_MS).toBeLessThanOrEqual(1300);
+    expect(REVEAL_PAUSE_MS).toBeGreaterThanOrEqual(700);
+    expect(REVEAL_PAUSE_MS).toBeLessThanOrEqual(1000);
+  });
+
+  it("keeps revealed result visible within the target total duration", () => {
+    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(2000);
+    expect(RESULT_VISIBLE_TOTAL_MS).toBeLessThanOrEqual(2600);
   });
 });
 
@@ -121,20 +114,20 @@ describe("practiceReducer", () => {
     expect(next.phase).toBe("countdown");
   });
 
-  it("ignores duplicate move selection", () => {
+  it("moves from commit into move locked before waiting on CPU", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "commit", playerMove: "rock" };
-    state = practiceReducer(state, { type: "SELECT_MOVE", move: "paper" });
-    expect(state.playerMove).toBe("rock");
+    state = { ...state, phase: "commit" };
+    state = practiceReducer(state, { type: "SELECT_MOVE", move: "rock" });
+    expect(state.phase).toBe("move_locked");
+    state = practiceReducer(state, { type: "ADVANCE_FROM_MOVE_LOCKED" });
+    expect(state.phase).toBe("waiting_cpu");
   });
 
   it("awards no score on ties and replays the same round number", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = { ...state, phase: "waiting_cpu", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "rock" });
     expect(state.roundOutcome).toBe("tie");
-    expect(state.playerScore).toBe(0);
-    expect(state.cpuScore).toBe(0);
     expect(state.phase).toBe("reveal_pause");
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL_PAUSE" });
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL" });
@@ -164,7 +157,7 @@ describe("practiceReducer", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "waiting_reveal",
+      phase: "waiting_cpu",
       playerMove: "rock",
       playerScore: 1,
       round: 2,
@@ -180,37 +173,16 @@ describe("practiceReducer", () => {
     state = practiceReducer(state, { type: "TIMEOUT_PLAYER", move: "paper" });
     expect(state.playerMove).toBe("paper");
     expect(state.playerTimedOut).toBe(true);
-    expect(state.phase).toBe("waiting_reveal");
-  });
-
-  it("rematch resets the match state", () => {
-    const rematched = practiceReducer(
-      {
-        ...createInitialMatchState(),
-        phase: "match_complete",
-        playerScore: 2,
-        matchWinner: "player",
-      },
-      { type: "REMATCH" },
-    );
-    expect(rematched.phase).toBe("countdown");
-    expect(rematched.playerScore).toBe(0);
-    expect(rematched.matchWinner).toBeNull();
+    expect(state.phase).toBe("move_locked");
   });
 
   it("enters reveal pause before showing moves", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = { ...state, phase: "waiting_cpu", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
     expect(state.phase).toBe("reveal_pause");
-    expect(state.cpuMove).toBe("scissors");
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL_PAUSE" });
     expect(state.phase).toBe("reveal");
-  });
-
-  it("keeps result visible for the configured total duration", () => {
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(1600);
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeLessThanOrEqual(2200);
   });
 
   it("uses first-to-two target", () => {

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
+  MOVE_LOCKED_MS,
+  MOVE_LOCKED_REDUCED_MS,
   PRACTICE_COUNTDOWN_SECONDS,
   PRACTICE_TIMER_SECONDS,
   PRACTICE_WIN_TARGET,
@@ -13,10 +15,11 @@ import {
   ROUND_RESULT_DISPLAY_MS,
   ROUND_RESULT_DISPLAY_REDUCED_MS,
   TIMER_WARNING_SECONDS,
+  WAITING_CPU_MS,
+  WAITING_CPU_REDUCED_MS,
   practiceReducer,
   createInitialMatchState,
   pickRandomMove,
-  randomCpuRevealDelayMs,
   type Move,
   type PracticeMatchState,
 } from "@/features/practice/engine/practice-engine";
@@ -26,12 +29,10 @@ import { useSettings } from "@/providers/SettingsProvider";
 
 type RandomSource = {
   move: () => Move;
-  cpuDelayMs: () => number;
 };
 
 const defaultRandom: RandomSource = {
   move: () => pickRandomMove(),
-  cpuDelayMs: () => randomCpuRevealDelayMs(),
 };
 
 export function usePracticeGame(random: RandomSource = defaultRandom) {
@@ -43,7 +44,8 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const { play, unlock, stopAll } = useAudio();
   const { recordMatch, settings } = useSettings();
   const pathname = usePathname();
-  const cpuTimeoutRef = useRef<number | null>(null);
+  const moveLockedTimeoutRef = useRef<number | null>(null);
+  const waitingCpuTimeoutRef = useRef<number | null>(null);
   const revealPauseTimeoutRef = useRef<number | null>(null);
   const revealTimeoutRef = useRef<number | null>(null);
   const roundResultTimeoutRef = useRef<number | null>(null);
@@ -55,7 +57,8 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
 
   const clearTimers = useCallback(() => {
     for (const ref of [
-      cpuTimeoutRef,
+      moveLockedTimeoutRef,
+      waitingCpuTimeoutRef,
       revealPauseTimeoutRef,
       revealTimeoutRef,
       roundResultTimeoutRef,
@@ -201,18 +204,44 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   ]);
 
   useEffect(() => {
-    if (state.phase !== "waiting_reveal" || !state.playerMove) return;
-    const delay = random.cpuDelayMs();
-    cpuTimeoutRef.current = window.setTimeout(() => {
-      dispatch({ type: "CPU_REVEAL", move: random.move() });
-    }, delay);
+    if (state.phase !== "move_locked" || !state.playerMove) return;
+
+    const duration = settings.reducedMotion
+      ? MOVE_LOCKED_REDUCED_MS
+      : MOVE_LOCKED_MS;
+    moveLockedTimeoutRef.current = window.setTimeout(() => {
+      dispatch({ type: "ADVANCE_FROM_MOVE_LOCKED" });
+    }, duration);
     return () => {
-      if (cpuTimeoutRef.current) {
-        window.clearTimeout(cpuTimeoutRef.current);
-        cpuTimeoutRef.current = null;
+      if (moveLockedTimeoutRef.current) {
+        window.clearTimeout(moveLockedTimeoutRef.current);
+        moveLockedTimeoutRef.current = null;
       }
     };
-  }, [state.phase, state.playerMove, state.round, random]);
+  }, [state.phase, state.playerMove, state.round, settings.reducedMotion]);
+
+  useEffect(() => {
+    if (state.phase !== "waiting_cpu" || !state.playerMove) return;
+
+    const duration = settings.reducedMotion
+      ? WAITING_CPU_REDUCED_MS
+      : WAITING_CPU_MS;
+    waitingCpuTimeoutRef.current = window.setTimeout(() => {
+      dispatch({ type: "CPU_REVEAL", move: random.move() });
+    }, duration);
+    return () => {
+      if (waitingCpuTimeoutRef.current) {
+        window.clearTimeout(waitingCpuTimeoutRef.current);
+        waitingCpuTimeoutRef.current = null;
+      }
+    };
+  }, [
+    state.phase,
+    state.playerMove,
+    state.round,
+    random,
+    settings.reducedMotion,
+  ]);
 
   useEffect(() => {
     if (state.phase !== "reveal_pause") return;

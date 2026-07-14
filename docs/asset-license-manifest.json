@@ -191,7 +191,7 @@
     "filePath": "apps/web/public/brand/rps-icon-header.png",
     "intendedUse": "Compact header home link icon",
     "format": "PNG RGBA",
-    "dimensions": "512x512 square, R fill ~86%",
+    "dimensions": "512x512 square, lime R fill ~90%, transparent background",
     "source": "Project generated branding asset",
     "author": "RPS project",
     "license": "Project generated branding asset",
@@ -205,12 +205,12 @@
     "filePath": "apps/web/public/brand/rps-icon-32.png",
     "intendedUse": "Browser tab favicon and app icon sizes",
     "format": "PNG RGBA",
-    "dimensions": "16, 32, 48, 180 square canvases; lime R on dark background, ~90% fill",
+    "dimensions": "16, 32, 48, 180 transparent square canvases; lime R ~92% fill",
     "source": "Project generated branding asset",
     "author": "RPS project",
     "license": "Project generated branding asset",
     "dateIntegrated": "2026-07-14",
-    "modifications": "Tight crop, lime recolor on #090909, scripts/generate-r-icon-assets.py",
+    "modifications": "Tight crop, lime recolor, transparent alpha background, scripts/generate-r-icon-assets.py",
     "approvalStatus": "approved-preview"
   }
 ]

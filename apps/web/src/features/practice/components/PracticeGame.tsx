@@ -28,8 +28,10 @@ function phaseLabel(
       return "Round starting";
     case "commit":
       return "Choose your move";
-    case "waiting_reveal":
+    case "move_locked":
       return "Move locked";
+    case "waiting_cpu":
+      return "Waiting on CPU";
     case "reveal_pause":
       return "Reveal incoming";
     case "reveal":
@@ -236,9 +238,6 @@ export function PracticeGame() {
           <span className={styles.phaseLabel}>
             {phaseLabel(state.phase, state.transitionMessage)}
           </span>
-          {state.phase === "waiting_reveal" ? (
-            <span className={styles.cpuThinking}>CPU preparing move…</span>
-          ) : null}
         </div>
 
         {state.phase === "countdown" ? (
@@ -286,7 +285,7 @@ export function PracticeGame() {
           </div>
         ) : null}
 
-        {state.phase === "waiting_reveal" && state.playerMove ? (
+        {state.phase === "move_locked" && state.playerMove ? (
           <div className={styles.centerStage}>
             <div className={styles.lockedPanel}>
               <span className={styles.kicker}>Move locked</span>
@@ -303,6 +302,20 @@ export function PracticeGame() {
           </div>
         ) : null}
 
+        {state.phase === "waiting_cpu" && state.playerMove ? (
+          <div className={styles.centerStage}>
+            <div className={styles.waitingCpuPanel}>
+              <span className={styles.kicker}>Waiting on CPU</span>
+              <strong
+                className={styles.lockedMoveLabel}
+                aria-label={MOVE_LABELS[state.playerMove]}
+              >
+                <span aria-hidden="true">{MOVE_EMOJI[state.playerMove]}</span>
+              </strong>
+            </div>
+          </div>
+        ) : null}
+
         {state.phase === "reveal_pause" && state.playerMove ? (
           <div className={styles.centerStage}>
             <div className={styles.revealPausePanel}>
@@ -313,7 +326,6 @@ export function PracticeGame() {
               >
                 <span aria-hidden="true">{MOVE_EMOJI[state.playerMove]}</span>
               </strong>
-              <span className={styles.cpuThinking}>CPU move ready</span>
             </div>
           </div>
         ) : null}

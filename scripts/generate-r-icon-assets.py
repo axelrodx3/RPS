@@ -13,7 +13,6 @@ BRAND = ROOT / "apps" / "web" / "public" / "brand"
 # Content bounds from alpha analysis of icons/rps icon.png (1536x1024 source).
 CONTENT_BBOX = (489, 211, 1060, 748)
 LIME = (215, 255, 67, 255)
-CANVAS_BG = (9, 9, 9, 255)
 
 
 def crop_content(source: Image.Image) -> Image.Image:
@@ -25,7 +24,6 @@ def square_canvas(
     *,
     fill_ratio: float,
     canvas_size: int,
-    background: tuple[int, int, int, int] | None = None,
     recolor_lime: bool = False,
 ) -> Image.Image:
     target = int(canvas_size * fill_ratio)
@@ -41,11 +39,7 @@ def square_canvas(
         tinted.putalpha(alpha)
         resized = tinted
 
-    if background is None:
-        canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
-    else:
-        canvas = Image.new("RGBA", (canvas_size, canvas_size), background)
-
+    canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
     offset = (
         (canvas_size - resized.width) // 2,
         (canvas_size - resized.height) // 2,
@@ -58,16 +52,10 @@ def main() -> None:
     source = Image.open(SOURCE).convert("RGBA")
     content = crop_content(source)
 
-    header = square_canvas(content, fill_ratio=0.86, canvas_size=512)
+    header = square_canvas(content, fill_ratio=0.9, canvas_size=512, recolor_lime=True)
     header.save(BRAND / "rps-icon-header.png", optimize=True)
 
-    favicon = square_canvas(
-        content,
-        fill_ratio=0.9,
-        canvas_size=512,
-        background=CANVAS_BG,
-        recolor_lime=True,
-    )
+    favicon = square_canvas(content, fill_ratio=0.92, canvas_size=512, recolor_lime=True)
 
     for size in (16, 32, 48, 180):
         favicon.resize((size, size), Image.Resampling.LANCZOS).save(
@@ -75,9 +63,10 @@ def main() -> None:
             optimize=True,
         )
 
+    corner_alpha = favicon.getpixel((0, 0))[3]
     print(f"Source: {SOURCE}")
     print(f"Header: {BRAND / 'rps-icon-header.png'}")
-    print("Favicons: 16, 32, 48, 180")
+    print(f"Favicons: 16, 32, 48, 180 (corner alpha={corner_alpha})")
 
 
 if __name__ == "__main__":
