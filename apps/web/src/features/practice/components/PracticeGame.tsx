@@ -83,7 +83,7 @@ export function PracticeGame() {
           1v1 phase flow: countdown, private selection, reveal, and scoring.
         </p>
         <ul className={styles.rules}>
-          <li>20 second move timer — expired timers pick a random move.</li>
+          <li>20 second move timer with automatic random fallback.</li>
           <li>Ties replay the round without changing the score.</li>
           <li>CPU plays fairly with equal random probability.</li>
         </ul>
@@ -167,7 +167,7 @@ export function PracticeGame() {
           </div>
           <p className={styles.resultLine} aria-live="polite">
             {state.roundOutcome === "tie"
-              ? "Tie — replaying this round."
+              ? "Tie. Replaying this round."
               : state.roundOutcome === "player"
                 ? "You win the round."
                 : "CPU wins the round."}

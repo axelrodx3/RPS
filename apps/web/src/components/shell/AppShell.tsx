@@ -16,7 +16,7 @@ const NAV_ITEMS: { href: string; label: string; soon?: boolean }[] = [
   { href: "/history", label: "History", soon: true },
   { href: "/guide", label: "Guide" },
   { href: "/profile", label: "Profile", soon: true },
-  { href: "/balance", label: "Balance", soon: true },
+  { href: "/balance", label: "Wallet", soon: true },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -62,7 +62,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className={styles.mark} aria-hidden="true">
             R
           </span>
-          {brand.name}
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">

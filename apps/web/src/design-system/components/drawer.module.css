@@ -25,6 +25,7 @@
   transition: transform var(--motion-base) var(--motion-ease);
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
+  pointer-events: none;
 }
 
 .drawer.left {
@@ -38,6 +39,7 @@
 
 .drawer.open {
   transform: translateX(0);
+  pointer-events: auto;
 }
 
 .header {

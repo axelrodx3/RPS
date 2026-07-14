@@ -7,7 +7,7 @@ const MODES = [
   {
     mode: "1v1",
     title: "Head to head",
-    description: "First to two non-tied rounds. The core competitive format.",
+    description: "First to two non tied rounds.",
     status: "Practice available",
   },
   {
@@ -27,15 +27,15 @@ const MODES = [
 const SUMMARIES = [
   {
     title: "Safety",
-    copy: "Real SOL, deposits, withdrawals, and wagering remain disabled. Practice is local-only and never touches balances.",
+    copy: "Real SOL, deposits, withdrawals, and wagering remain disabled. Practice is local only and never touches balances.",
   },
   {
     title: "Fairness",
-    copy: "Commit-reveal, atomic funding, and scoped sessions are documented in Prompt 1. Production gates still block wagered play.",
+    copy: "Commit reveal, atomic funding, and scoped sessions are documented in Prompt 1. Production gates still block wagered play.",
   },
   {
     title: "Architecture",
-    copy: "Program-authoritative balances, projection-only backend indexing, and versioned game modules guide every future phase.",
+    copy: "Program authoritative balances, projection only backend indexing, and versioned game modules guide every future phase.",
   },
 ] as const;
 

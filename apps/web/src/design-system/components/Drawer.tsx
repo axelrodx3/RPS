@@ -41,6 +41,7 @@ export function Drawer({
       <aside
         className={`${styles.drawer} ${styles[side]} ${open ? styles.open : ""}`.trim()}
         aria-hidden={!open}
+        inert={!open ? true : undefined}
         aria-label={title}
       >
         <header className={styles.header}>
