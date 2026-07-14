@@ -172,18 +172,18 @@
     "approvalStatus": "approved-preview"
   },
   {
-    "assetName": "Move lock",
+    "assetName": "Move lock (unused source)",
     "sourceFile": "sfx/soundshelfstudio-ui-target-locked-beep-535369.mp3",
     "filePath": "apps/web/public/assets/audio/move-lock.mp3",
-    "intendedUse": "Move lock confirmation when Rock, Paper, or Scissors is confirmed",
+    "intendedUse": "Previously mapped move lock confirmation (not approved)",
     "format": "MP3",
     "source": "User supplied sfx",
     "author": "Soundshelfstudio",
     "license": "Pending project verification",
     "attributionRequired": true,
     "dateIntegrated": "2026-07-14",
-    "modifications": "Copied without conversion",
-    "approvalStatus": "approved-preview"
+    "modifications": "Copied without conversion; replaced in app by generated lock tone",
+    "approvalStatus": "not-approved-unused"
   },
   {
     "assetName": "Header R icon cropped",
@@ -191,12 +191,12 @@
     "filePath": "apps/web/public/brand/rps-icon-header.png",
     "intendedUse": "Compact header home link icon",
     "format": "PNG RGBA",
-    "dimensions": "96x64",
+    "dimensions": "512x512 square, R fill ~86%",
     "source": "Project generated branding asset",
     "author": "RPS project",
     "license": "Project generated branding asset",
     "dateIntegrated": "2026-07-14",
-    "modifications": "Trimmed and resized for larger header presentation",
+    "modifications": "Tight alpha crop from icons/rps icon.png, square canvas, scripts/generate-r-icon-assets.py",
     "approvalStatus": "approved-preview"
   },
   {
@@ -205,12 +205,12 @@
     "filePath": "apps/web/public/brand/rps-icon-32.png",
     "intendedUse": "Browser tab favicon and app icon sizes",
     "format": "PNG RGBA",
-    "dimensions": "16, 32, 48, 180 square canvases",
+    "dimensions": "16, 32, 48, 180 square canvases; lime R on dark background, ~90% fill",
     "source": "Project generated branding asset",
     "author": "RPS project",
     "license": "Project generated branding asset",
     "dateIntegrated": "2026-07-14",
-    "modifications": "Square centered crop for tiny browser tab legibility",
+    "modifications": "Tight crop, lime recolor on #090909, scripts/generate-r-icon-assets.py",
     "approvalStatus": "approved-preview"
   }
 ]

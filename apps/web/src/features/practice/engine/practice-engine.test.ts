@@ -3,6 +3,7 @@ import {
   MOVES,
   MOVE_EMOJI,
   PRACTICE_WIN_TARGET,
+  RESULT_VISIBLE_TOTAL_MS,
   createInitialMatchState,
   formatRoundHistoryAccessibleLabel,
   getTransitionMessage,
@@ -134,6 +135,8 @@ describe("practiceReducer", () => {
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
+    expect(state.phase).toBe("reveal_pause");
+    state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL_PAUSE" });
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL" });
     expect(state.transitionMessage).toBe("Tie. Replay round.");
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
@@ -193,6 +196,21 @@ describe("practiceReducer", () => {
     expect(rematched.phase).toBe("countdown");
     expect(rematched.playerScore).toBe(0);
     expect(rematched.matchWinner).toBeNull();
+  });
+
+  it("enters reveal pause before showing moves", () => {
+    let state = createInitialMatchState();
+    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
+    expect(state.phase).toBe("reveal_pause");
+    expect(state.cpuMove).toBe("scissors");
+    state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL_PAUSE" });
+    expect(state.phase).toBe("reveal");
+  });
+
+  it("keeps result visible for the configured total duration", () => {
+    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(1600);
+    expect(RESULT_VISIBLE_TOTAL_MS).toBeLessThanOrEqual(2200);
   });
 
   it("uses first-to-two target", () => {

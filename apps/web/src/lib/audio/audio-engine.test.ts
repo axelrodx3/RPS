@@ -28,7 +28,6 @@ describe("audioEngine custom assets", () => {
 
   it("registers custom file paths for wired sounds", () => {
     expect(SOUND_REGISTRY.button.src).toBe("/assets/audio/ui-click.mp3");
-    expect(SOUND_REGISTRY.move_locked.src).toBe("/assets/audio/move-lock.mp3");
     expect(SOUND_REGISTRY.countdown_warning.src).toBe(
       "/assets/audio/countdown-warning.mp3",
     );
@@ -43,15 +42,55 @@ describe("audioEngine custom assets", () => {
     );
   });
 
+  it("uses generated tones for move lock and opening countdown", () => {
+    expect(SOUND_REGISTRY.move_locked.src).toBeUndefined();
+    expect(SOUND_REGISTRY.move_locked.frequencies?.length).toBeGreaterThan(0);
+    expect(SOUND_REGISTRY.countdown.frequencies?.length).toBeGreaterThan(0);
+  });
+
+  it("does not register the old target lock asset as active", () => {
+    expect(SOUND_REGISTRY.move_locked.src).not.toBe(
+      "/assets/audio/move-lock.mp3",
+    );
+  });
+
   it("plays file based UI click sounds", () => {
     audioEngine.play("button", levels);
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
-  it("plays move lock once per request", () => {
+  it("plays generated move lock tones without file playback", () => {
+    const start = vi.fn();
+    const stop = vi.fn();
+    const connect = vi.fn();
+    const gain = {
+      gain: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      connect,
+    };
+    const osc = {
+      type: "sine",
+      frequency: { value: 0 },
+      connect,
+      start,
+      stop,
+      onended: null as (() => void) | null,
+    };
+
+    vi.spyOn(audioEngine, "ensureContext").mockReturnValue({
+      state: "running",
+      currentTime: 0,
+      createOscillator: vi.fn(() => osc),
+      createGain: vi.fn(() => gain),
+      destination: {},
+    } as unknown as AudioContext);
+
     audioEngine.play("move_locked", levels);
     audioEngine.play("move_locked", levels);
-    expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+    expect(start).toHaveBeenCalledTimes(2);
+    expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
   it("respects mute settings", () => {

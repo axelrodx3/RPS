@@ -15,18 +15,9 @@ export default function GuidePage() {
         </p>
       </header>
 
-      <section
-        className={styles.brandSection}
-        aria-labelledby="guide-brand-title"
-      >
-        <p className={styles.kicker}>Brand preview</p>
-        <h2 id="guide-brand-title">Lime wordmark in context</h2>
-        <p className={styles.brandCopy}>
-          Secondary lime branding shown at guide scale for visual comparison
-          against the dark interface.
-        </p>
+      <div className={styles.brandHero} aria-label="RPS">
         <RpsWordmark variant="lime" width={420} />
-      </section>
+      </div>
 
       <div className={styles.grid}>
         <Card padding="lg">

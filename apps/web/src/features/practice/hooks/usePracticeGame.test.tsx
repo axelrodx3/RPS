@@ -4,10 +4,14 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import {
   MOVES,
+  REVEAL_DISPLAY_MS,
+  REVEAL_PAUSE_MS,
+  ROUND_RESULT_DISPLAY_MS,
   practiceReducer,
   createInitialMatchState,
 } from "@/features/practice/engine/practice-engine";
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
+import { audioEngine } from "@/lib/audio/audio-engine";
 import { AppProviders } from "@/providers/AppProviders";
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -25,6 +29,7 @@ const deterministicRandom = {
 describe("usePracticeGame", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.spyOn(audioEngine, "play").mockImplementation(() => {});
     deterministicRandom.move = (() => {
       let index = 0;
       return () => MOVES[index++ % MOVES.length]!;
@@ -32,6 +37,8 @@ describe("usePracticeGame", () => {
   });
 
   afterEach(() => {
+    audioEngine.stopAll();
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -49,7 +56,44 @@ describe("usePracticeGame", () => {
     expect(result.current.state.countdown).toBe(3);
   });
 
-  it("selects rock and resolves a scored round", () => {
+  it("plays opening countdown ticks on 3, 2, and 1 without duplicates", () => {
+    const playSpy = vi.mocked(audioEngine.play);
+    const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.startMatch();
+    });
+    expect(playSpy.mock.calls.filter(([id]) => id === "countdown").length).toBe(
+      1,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(playSpy.mock.calls.filter(([id]) => id === "countdown").length).toBe(
+      2,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(playSpy.mock.calls.filter(([id]) => id === "countdown").length).toBe(
+      3,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current.state.phase).toBe("commit");
+    expect(playSpy.mock.calls.filter(([id]) => id === "countdown").length).toBe(
+      3,
+    );
+  });
+
+  it("selects rock and passes through reveal pause before reveal", () => {
+    const playSpy = vi.mocked(audioEngine.play);
     const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
       wrapper,
     });
@@ -67,14 +111,19 @@ describe("usePracticeGame", () => {
       result.current.selectMove("rock");
     });
     expect(result.current.state.playerMove).toBe("rock");
+    expect(playSpy.mock.calls.some(([id]) => id === "move_locked")).toBe(true);
 
     act(() => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(result.current.state.phase).toBe("reveal");
+    expect(result.current.state.phase).toBe("reveal_pause");
     expect(result.current.state.cpuMove).not.toBeNull();
-    expect(MOVES).toContain(result.current.state.cpuMove!);
+
+    act(() => {
+      vi.advanceTimersByTime(REVEAL_PAUSE_MS);
+    });
+    expect(result.current.state.phase).toBe("reveal");
   });
 
   it("advances from round result directly into commit without another countdown", () => {
@@ -95,11 +144,18 @@ describe("usePracticeGame", () => {
       vi.advanceTimersByTime(500);
     });
     act(() => {
-      vi.advanceTimersByTime(700);
+      vi.advanceTimersByTime(REVEAL_PAUSE_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(REVEAL_DISPLAY_MS);
     });
     expect(result.current.state.phase).toBe("round_result");
     act(() => {
-      vi.advanceTimersByTime(600);
+      vi.advanceTimersByTime(ROUND_RESULT_DISPLAY_MS - 100);
+    });
+    expect(result.current.state.phase).toBe("round_result");
+    act(() => {
+      vi.advanceTimersByTime(100);
     });
     expect(result.current.state.phase).toBe("commit");
     expect(result.current.state.countdown).toBe(0);

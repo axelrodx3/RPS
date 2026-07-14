@@ -7,6 +7,7 @@ export type PracticePhase =
   | "countdown"
   | "commit"
   | "waiting_reveal"
+  | "reveal_pause"
   | "reveal"
   | "round_result"
   | "match_complete";
@@ -44,10 +45,14 @@ export const PRACTICE_COUNTDOWN_SECONDS = 3;
 export const TIMER_WARNING_SECONDS = 5;
 export const CPU_REVEAL_DELAY_MIN_MS = 500;
 export const CPU_REVEAL_DELAY_MAX_MS = 1200;
-export const REVEAL_DISPLAY_MS = 700;
+export const REVEAL_PAUSE_MS = 700;
+export const REVEAL_PAUSE_REDUCED_MS = 350;
+export const REVEAL_DISPLAY_MS = 750;
 export const REVEAL_DISPLAY_REDUCED_MS = 400;
-export const ROUND_RESULT_DISPLAY_MS = 600;
-export const ROUND_RESULT_DISPLAY_REDUCED_MS = 400;
+export const ROUND_RESULT_DISPLAY_MS = 1300;
+export const ROUND_RESULT_DISPLAY_REDUCED_MS = 900;
+export const RESULT_VISIBLE_TOTAL_MS =
+  REVEAL_DISPLAY_MS + ROUND_RESULT_DISPLAY_MS;
 
 export const MOVES: readonly Move[] = ["rock", "paper", "scissors"] as const;
 
@@ -108,6 +113,7 @@ export function randomCpuRevealDelayMs(random = Math.random): number {
 export function isMoveSelectionLocked(phase: PracticePhase): boolean {
   return (
     phase === "waiting_reveal" ||
+    phase === "reveal_pause" ||
     phase === "reveal" ||
     phase === "round_result" ||
     phase === "match_complete"
@@ -144,6 +150,7 @@ export type PracticeAction =
   | { type: "SELECT_MOVE"; move: Move }
   | { type: "TIMEOUT_PLAYER"; move: Move }
   | { type: "CPU_REVEAL"; move: Move }
+  | { type: "ADVANCE_FROM_REVEAL_PAUSE" }
   | { type: "ADVANCE_FROM_REVEAL" }
   | { type: "ADVANCE_FROM_ROUND_RESULT" }
   | { type: "REMATCH" }
@@ -233,11 +240,15 @@ export function practiceReducer(
         playerScore,
         cpuScore,
         history: [...state.history, record],
-        phase: "reveal",
+        phase: "reveal_pause",
         matchWinner,
         roundResolved: true,
       };
     }
+
+    case "ADVANCE_FROM_REVEAL_PAUSE":
+      if (state.phase !== "reveal_pause") return state;
+      return { ...state, phase: "reveal" };
 
     case "ADVANCE_FROM_REVEAL":
       if (state.phase !== "reveal") return state;

@@ -1,15 +1,14 @@
 .icon {
   display: block;
-  width: auto;
-  height: 32px;
-  max-height: 34px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
 }
 
 @media (max-width: 880px) {
   .icon {
-    height: 30px;
-    max-height: 32px;
+    width: 32px;
+    height: 32px;
   }
 }
 

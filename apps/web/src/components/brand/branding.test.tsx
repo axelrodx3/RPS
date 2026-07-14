@@ -23,7 +23,7 @@ describe("branding integration", () => {
 
     const homeLink = screen.getByRole("link", { name: "RPS Home" });
     expect(homeLink.querySelector("img")?.getAttribute("src")).toContain(
-      "rps-icon",
+      "rps-icon-header",
     );
   });
 
@@ -98,6 +98,7 @@ describe("RpsWordmark motion styles", () => {
       "src/components/brand/brand.module.css",
     );
     const css = readFileSync(cssPath, "utf8");
-    expect(css).toContain("height: 32px");
+    expect(css).toContain("width: 34px");
+    expect(css).toContain("height: 34px");
   });
 });

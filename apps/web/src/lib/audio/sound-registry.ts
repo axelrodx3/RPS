@@ -56,9 +56,9 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     id: "move_locked",
     category: "sfx",
     label: "Move lock confirmation",
-    src: "/assets/audio/move-lock.mp3",
+    frequencies: [560, 720],
     enabled: true,
-    volumeScale: 0.9,
+    volumeScale: 0.85,
   },
   countdown: {
     id: "countdown",
@@ -66,6 +66,7 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     label: "Opening countdown tick",
     frequencies: [440, 520],
     enabled: true,
+    volumeScale: 0.9,
   },
   countdown_warning: {
     id: "countdown_warning",

@@ -30,6 +30,8 @@ function phaseLabel(
       return "Choose your move";
     case "waiting_reveal":
       return "Move locked";
+    case "reveal_pause":
+      return "Reveal incoming";
     case "reveal":
       return "Reveal";
     case "round_result":
@@ -50,8 +52,11 @@ function liveAnnouncement(
   ) {
     return `${state.timerSeconds} seconds remaining`;
   }
-  if (state.phase === "reveal" && state.roundOutcome) {
-    if (state.roundOutcome === "tie") return "Tie. Replaying this round.";
+  if (
+    (state.phase === "reveal" || state.phase === "round_result") &&
+    state.roundOutcome
+  ) {
+    if (state.roundOutcome === "tie") return "Tie. Replay round.";
     if (state.roundOutcome === "player") return "You win the round.";
     return "CPU wins the round.";
   }
@@ -298,6 +303,21 @@ export function PracticeGame() {
           </div>
         ) : null}
 
+        {state.phase === "reveal_pause" && state.playerMove ? (
+          <div className={styles.centerStage}>
+            <div className={styles.revealPausePanel}>
+              <span className={styles.kicker}>Reveal incoming</span>
+              <strong
+                className={styles.lockedMoveLabel}
+                aria-label={MOVE_LABELS[state.playerMove]}
+              >
+                <span aria-hidden="true">{MOVE_EMOJI[state.playerMove]}</span>
+              </strong>
+              <span className={styles.cpuThinking}>CPU move ready</span>
+            </div>
+          </div>
+        ) : null}
+
         {showRevealPanel ? (
           <div className={`${styles.centerStage} ${styles.revealStage}`}>
             <div className={styles.revealGrid}>
@@ -321,10 +341,10 @@ export function PracticeGame() {
                 </strong>
               </article>
             </div>
-            {state.phase === "reveal" ? (
+            {state.phase === "reveal" || state.phase === "round_result" ? (
               <p className={styles.resultLine}>
                 {state.roundOutcome === "tie"
-                  ? "Tie. Replaying this round."
+                  ? "Tie. Replay round."
                   : state.roundOutcome === "player"
                     ? "You win the round."
                     : "CPU wins the round."}
@@ -348,7 +368,15 @@ export function PracticeGame() {
             >
               {state.matchWinner === "player" ? "Victory" : "Defeat"}
             </h2>
-            <p className={styles.matchSummary}>
+            <p
+              className={`${styles.matchSummary} ${
+                state.matchWinner === "player"
+                  ? styles.matchSummaryVictory
+                  : state.matchWinner === "cpu"
+                    ? styles.matchSummaryDefeat
+                    : ""
+              }`.trim()}
+            >
               Final score {state.playerScore} to {state.cpuScore}. Tied rounds{" "}
               {tiedRounds}. Automatic moves {automaticMoves}.
             </p>

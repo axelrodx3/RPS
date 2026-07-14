@@ -9,19 +9,17 @@ type RpsIconProps = {
 };
 
 export function RpsIcon({
-  size = 32,
+  size = 34,
   className = "",
   priority = false,
 }: RpsIconProps) {
-  const height = Math.round(size * 0.67);
-
   return (
     <Image
       src={brand.assets.icon}
       alt=""
       aria-hidden="true"
       width={size}
-      height={height}
+      height={size}
       className={`${styles.icon} ${className}`.trim()}
       priority={priority}
       sizes={`${size}px`}

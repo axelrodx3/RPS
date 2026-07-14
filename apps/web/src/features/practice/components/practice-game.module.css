@@ -250,6 +250,17 @@
   padding: var(--space-5);
 }
 
+.revealPausePanel {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  width: min(100%, 320px);
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: rgb(215 255 67 / 4%);
+}
+
 .lockedMoveLabel {
   font-size: 32px;
   text-transform: capitalize;
@@ -317,11 +328,24 @@
 }
 
 .matchVictory {
-  color: var(--color-brand-500);
+  color: var(--color-outcome-win);
 }
 
 .matchDefeat {
-  color: var(--color-danger);
+  color: var(--color-outcome-loss);
+}
+
+.matchSummaryVictory {
+  color: var(--color-text-muted);
+}
+
+.matchSummaryVictory strong,
+.matchSummaryVictory {
+  --score-accent: var(--color-outcome-win);
+}
+
+.matchSummaryDefeat {
+  color: var(--color-text-muted);
 }
 
 .actions {

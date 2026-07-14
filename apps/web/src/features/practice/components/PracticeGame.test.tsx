@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { cleanup, screen } from "@testing-library/react";
+import { act, cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { PracticeGame } from "@/features/practice/components/PracticeGame";
@@ -19,7 +19,9 @@ async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
     screen.getByRole("button", { name: "Start Practice Match" }),
   );
-  await vi.advanceTimersByTimeAsync(3000);
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000);
+  });
 }
 
 describe("PracticeGame", () => {
@@ -123,7 +125,9 @@ describe("PracticeGame", () => {
     await user.click(
       screen.getByRole("button", { name: "Start Practice Match" }),
     );
-    await vi.advanceTimersByTimeAsync(3000);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
 
     expect(screen.getByRole("button", { name: "Choose Rock" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Choose Paper" })).toBeEnabled();
@@ -201,8 +205,13 @@ describe("reveal outcome styles", () => {
     expect(css).toContain("revealOutcomeWin");
     expect(css).toContain("revealOutcomeLoss");
     expect(css).toContain("revealOutcomeTie");
+    expect(css).toContain("matchVictory");
+    expect(css).toContain("color-outcome-win");
+    expect(css).toContain("color-outcome-loss");
     expect(styles.revealOutcomeWin).toBeTruthy();
     expect(styles.revealOutcomeLoss).toBeTruthy();
     expect(styles.revealOutcomeTie).toBeTruthy();
+    expect(styles.matchVictory).toBeTruthy();
+    expect(styles.matchDefeat).toBeTruthy();
   });
 });
