@@ -1,0 +1,57 @@
+export const tokens = {
+  color: {
+    brand: { 500: "#d7ff43", 600: "#c3ed2c", ink: "#111400" },
+    canvas: "#090909",
+    surface: "#111111",
+    surfaceRaised: "#171717",
+    surfaceOverlay: "#1f1f1f",
+    border: "#2b2b2b",
+    borderStrong: "#424242",
+    text: "#f5f5f3",
+    textMuted: "#a6a6a1",
+    textSubtle: "#70706b",
+    success: "#2eb67d",
+    warning: "#f2a93b",
+    danger: "#e55353",
+    info: "#4c8dff",
+  },
+  radius: { sm: "10px", md: "18px", lg: "28px", pill: "999px" },
+  spacing: {
+    1: "4px",
+    2: "8px",
+    3: "12px",
+    4: "16px",
+    5: "20px",
+    6: "24px",
+    8: "32px",
+    10: "40px",
+    12: "48px",
+    16: "64px",
+  },
+  shadow: {
+    panel: "0 22px 70px rgb(0 0 0 / 35%)",
+    glow: "0 0 24px rgb(215 255 67 / 18%)",
+  },
+  motion: {
+    fast: "160ms",
+    base: "240ms",
+    slow: "420ms",
+    ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+  },
+  breakpoint: {
+    sm: "600px",
+    md: "880px",
+    lg: "1180px",
+  },
+  zIndex: {
+    base: 0,
+    dropdown: 40,
+    sticky: 50,
+    overlay: 80,
+    modal: 100,
+    toast: 120,
+  },
+  content: "1180px",
+} as const;
+
+export type ThemePreference = "dark" | "light" | "system";

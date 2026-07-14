@@ -1,0 +1,61 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.page header h1 {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -0.04em;
+}
+
+.page header p,
+.grid li,
+.faq dd {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.kicker {
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.grid h2 {
+  margin-top: 0;
+}
+
+.grid ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.faq {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.faq dt {
+  font-weight: 700;
+}
+
+.faq dd {
+  margin: var(--space-2) 0 0;
+}
+
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

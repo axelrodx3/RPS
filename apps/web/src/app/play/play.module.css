@@ -1,0 +1,58 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.header h1 {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -0.04em;
+}
+
+.header p,
+.grid p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.kicker {
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.practiceCard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.badge {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgb(46 182 125 / 12%);
+  color: var(--color-success);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.practiceCard h2 {
+  margin: 0;
+}
+
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

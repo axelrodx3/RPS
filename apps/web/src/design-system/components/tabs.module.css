@@ -1,0 +1,70 @@
+.root {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.list button {
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.list button.active {
+  border-color: var(--color-brand-500);
+  background: rgb(215 255 67 / 10%);
+  color: var(--color-text);
+}
+
+.list button:focus-visible {
+  outline: 3px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.panel {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.segmented button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmentActive {
+  background: var(--color-brand-500) !important;
+  color: var(--color-brand-ink) !important;
+}
+
+.segmented button:focus-visible {
+  outline: 3px solid var(--color-brand-500);
+  outline-offset: 2px;
+}

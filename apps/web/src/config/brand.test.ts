@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brand, environment } from "./brand";
+import { brand, environment } from "@/config/brand";
 
 describe("foundation safety configuration", () => {
   it("identifies the product and keeps real SOL disabled", () => {

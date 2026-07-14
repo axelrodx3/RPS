@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppShell } from "@/components/shell/AppShell";
 import { brand } from "@/config/brand";
+import { AppProviders } from "@/providers/AppProviders";
+import { TutorialGate } from "@/features/tutorial/TutorialGate";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -11,11 +14,14 @@ const siteUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: `${brand.name} — Foundation Preview`,
+  title: {
+    default: `${brand.name} — Built for verifiable competition`,
+    template: `%s · ${brand.name}`,
+  },
   description: brand.description,
   icons: { icon: brand.assets.favicon },
   openGraph: {
-    title: `${brand.name} — Foundation Preview`,
+    title: `${brand.name} — Built for verifiable competition`,
     description: brand.description,
     images: [brand.assets.socialPreview],
   },
@@ -25,6 +31,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "dark",
   themeColor: "#090909",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -32,7 +39,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${mono.variable}`}>{children}</body>
+      <body className={`${sans.variable} ${mono.variable}`}>
+        <AppProviders>
+          <AppShell>{children}</AppShell>
+          <TutorialGate />
+        </AppProviders>
+      </body>
     </html>
   );
 }

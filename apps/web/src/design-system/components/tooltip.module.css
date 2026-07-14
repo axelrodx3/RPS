@@ -1,0 +1,65 @@
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: var(--z-dropdown);
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-overlay);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.root:hover .tip,
+.root:focus-within .tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.popover {
+  position: relative;
+}
+
+.popover summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.popover summary::-webkit-details-marker {
+  display: none;
+}
+
+.popoverPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-dropdown);
+  width: min(280px, 80vw);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.popoverPanel strong {
+  display: block;
+  margin-bottom: var(--space-2);
+}
