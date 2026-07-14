@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Button } from "@/design-system/components";
 import buttonStyles from "@/design-system/components/button.module.css";
+import { useHoverSound } from "@/lib/audio/use-hover-sound";
+import { useSettings } from "@/providers/SettingsProvider";
+import { MatchResultArt } from "./MatchResultArt";
 import styles from "../practice-game.module.css";
 
 type MatchCompletePanelProps = {
@@ -11,6 +14,7 @@ type MatchCompletePanelProps = {
   cpuScore: number;
   tiedRounds: number;
   automaticMoves: number;
+  matchKey: string;
   onRematch: () => void;
 };
 
@@ -20,9 +24,13 @@ export function MatchCompletePanel({
   cpuScore,
   tiedRounds,
   automaticMoves,
+  matchKey,
   onRematch,
 }: MatchCompletePanelProps) {
+  const { settings } = useSettings();
   const isVictory = matchWinner === "player";
+  const playHover = useHoverSound(false);
+  const playHoverRematch = useHoverSound(false);
 
   return (
     <div
@@ -31,13 +39,24 @@ export function MatchCompletePanel({
     >
       <div className={styles.matchCompleteBody}>
         <p className={styles.matchCompleteKicker}>Match complete</p>
-        <h2
-          className={`${styles.matchCompleteTitle} ${
-            isVictory ? styles.matchVictory : styles.matchDefeat
-          }`.trim()}
+
+        <div
+          className={`${styles.matchCompleteHero} ${isVictory ? styles.matchCompleteHeroVictory : styles.matchCompleteHeroDefeat}`.trim()}
         >
-          {isVictory ? "VICTORY" : "DEFEAT"}
-        </h2>
+          <h2
+            className={`${styles.matchCompleteTitle} ${
+              isVictory ? styles.matchVictory : styles.matchDefeat
+            } ${!isVictory && !settings.reducedMotion ? styles.matchDefeatShake : ""}`.trim()}
+          >
+            {isVictory ? "VICTORY" : "DEFEAT"}
+          </h2>
+          <MatchResultArt
+            variant={isVictory ? "victory" : "defeat"}
+            matchKey={matchKey}
+            reducedMotion={settings.reducedMotion}
+          />
+        </div>
+
         <p className={styles.matchCompleteScore}>
           Final score {playerScore} – {cpuScore}
         </p>
@@ -50,12 +69,14 @@ export function MatchCompletePanel({
           size="lg"
           className={styles.matchActionButton}
           onClick={onRematch}
+          onPointerEnter={playHoverRematch}
         >
           Rematch
         </Button>
         <Link
           href="/"
           className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.lg} ${styles.matchActionButton} ${styles.matchActionLink}`.trim()}
+          onPointerEnter={playHover}
         >
           Return Home
         </Link>

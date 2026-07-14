@@ -17,6 +17,9 @@ export class AudioEngine {
   private unlocked = false;
   private lastPlayed = new Map<SoundId, number>();
   private readonly minGapMs = 40;
+  private readonly minGapBySound: Partial<Record<SoundId, number>> = {
+    ui_hover: 120,
+  };
 
   ensureContext(): AudioContext | null {
     if (typeof window === "undefined") return null;
@@ -112,7 +115,8 @@ export class AudioEngine {
 
     const nowMs = Date.now();
     const last = this.lastPlayed.get(id) ?? 0;
-    if (nowMs - last < this.minGapMs) return;
+    const gap = this.minGapBySound[id] ?? this.minGapMs;
+    if (nowMs - last < gap) return;
     this.lastPlayed.set(id, nowMs);
 
     if (def.src) {

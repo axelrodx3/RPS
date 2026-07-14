@@ -2,6 +2,7 @@
 
 import type { Move } from "@/features/practice/engine/practice-engine";
 import { MOVE_LIST } from "@/features/practice/moves/move-metadata";
+import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import { useAudio } from "@/providers/AudioProvider";
 import styles from "../practice-game.module.css";
 
@@ -13,6 +14,7 @@ type MoveDockProps = {
 
 export function MoveDock({ selectedMove, locked, onSelect }: MoveDockProps) {
   const { unlock } = useAudio();
+  const playHover = useHoverSound(locked);
   const hasSelection = selectedMove !== null;
 
   return (
@@ -40,6 +42,7 @@ export function MoveDock({ selectedMove, locked, onSelect }: MoveDockProps) {
               aria-pressed={selected}
               title={move.description}
               onClick={() => onSelect(move.id)}
+              onPointerEnter={playHover}
               onFocus={() => {
                 if (!disabled) unlock();
               }}

@@ -110,4 +110,82 @@ describe("audioEngine custom assets", () => {
     expect(SOUND_REGISTRY.round_win.enabled).toBe(false);
     expect(SOUND_REGISTRY.round_loss.enabled).toBe(false);
   });
+
+  it("plays generated ui hover tones quieter than button clicks", () => {
+    expect(SOUND_REGISTRY.ui_hover.frequencies?.length).toBeGreaterThan(0);
+    expect(SOUND_REGISTRY.ui_hover.volumeScale).toBeLessThan(
+      SOUND_REGISTRY.button.volumeScale ?? 1,
+    );
+
+    const start = vi.fn();
+    const stop = vi.fn();
+    const connect = vi.fn();
+    const gain = {
+      gain: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      connect,
+    };
+    const osc = {
+      type: "sine",
+      frequency: { value: 0 },
+      connect,
+      start,
+      stop,
+      onended: null as (() => void) | null,
+    };
+
+    vi.spyOn(audioEngine, "ensureContext").mockReturnValue({
+      state: "running",
+      currentTime: 0,
+      createOscillator: vi.fn(() => osc),
+      createGain: vi.fn(() => gain),
+      destination: {},
+    } as unknown as AudioContext);
+
+    audioEngine.play("ui_hover", levels);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+  });
+
+  it("debounces rapid ui hover playback", () => {
+    let time = Date.now() + 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => time);
+
+    const start = vi.fn();
+    const connect = vi.fn();
+    const gain = {
+      gain: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      connect,
+    };
+    const osc = {
+      type: "sine",
+      frequency: { value: 0 },
+      connect,
+      start,
+      stop: vi.fn(),
+      onended: null as (() => void) | null,
+    };
+
+    vi.spyOn(audioEngine, "ensureContext").mockReturnValue({
+      state: "running",
+      currentTime: 0,
+      createOscillator: vi.fn(() => osc),
+      createGain: vi.fn(() => gain),
+      destination: {},
+    } as unknown as AudioContext);
+
+    audioEngine.play("ui_hover", levels);
+    time += 50;
+    audioEngine.play("ui_hover", levels);
+    expect(start).toHaveBeenCalledTimes(1);
+
+    time += 100;
+    audioEngine.play("ui_hover", levels);
+    expect(start).toHaveBeenCalledTimes(2);
+  });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import styles from "./tabs.module.css";
 
 type TabItem = { id: string; label: string; content: React.ReactNode };
@@ -14,6 +15,7 @@ export function Tabs({
 }) {
   const baseId = useId();
   const [activeId, setActiveId] = useState(defaultId ?? items[0]?.id ?? "");
+  const playHover = useHoverSound(false);
 
   const onKeyDown = (
     event: React.KeyboardEvent<HTMLButtonElement>,
@@ -48,6 +50,7 @@ export function Tabs({
               aria-controls={panelId}
               tabIndex={selected ? 0 : -1}
               onClick={() => setActiveId(item.id)}
+              onPointerEnter={playHover}
               onKeyDown={(event) => onKeyDown(event, index)}
             >
               {item.label}

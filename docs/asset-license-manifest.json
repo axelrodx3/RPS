@@ -242,5 +242,35 @@
     "dateIntegrated": "2026-07-14",
     "modifications": "Created for Prompt 3B repair player identity foundation",
     "approvalStatus": "approved-preview"
+  },
+  {
+    "assetName": "Match defeat fall animation",
+    "sourceFile": "animations/fall.svg",
+    "filePath": "apps/web/public/assets/animations/defeat-fall.svg",
+    "intendedUse": "Full match defeat presentation art in Practice mode",
+    "format": "SVG (SMIL animation)",
+    "dimensions": "1080x736 viewBox",
+    "source": "Project animation asset",
+    "author": "RPS project",
+    "license": "Project internal asset",
+    "attributionRequired": false,
+    "dateIntegrated": "2026-07-14",
+    "modifications": "Copied to public assets as defeat-fall.svg",
+    "approvalStatus": "approved-preview"
+  },
+  {
+    "assetName": "Match victory money animation",
+    "sourceFile": "animations/money.svg",
+    "filePath": "apps/web/public/assets/animations/victory-money.svg",
+    "intendedUse": "Full match victory presentation art in Practice mode",
+    "format": "SVG (SMIL animation)",
+    "dimensions": "675x812 viewBox",
+    "source": "Project animation asset",
+    "author": "RPS project",
+    "license": "Project internal asset",
+    "attributionRequired": false,
+    "dateIntegrated": "2026-07-14",
+    "modifications": "Copied to public assets as victory-money.svg",
+    "approvalStatus": "approved-preview"
   }
 ]

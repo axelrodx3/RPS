@@ -58,6 +58,10 @@ describe("PracticeGame", () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<PracticeGame />);
 
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Best of 3",
+    );
+
     await user.click(
       screen.getByRole("button", { name: "Start Practice Match" }),
     );
@@ -420,6 +424,8 @@ describe("reveal outcome styles", () => {
     expect(styles.moveDock).toBeTruthy();
     expect(styles.matchVictory).toBeTruthy();
     expect(styles.matchDefeat).toBeTruthy();
+    expect(css).toContain("matchDefeatShake");
+    expect(css).toContain("matchResultArt");
   });
 });
 
@@ -484,6 +490,154 @@ describe("victory confetti", () => {
     expect(
       container.querySelector(
         `object[data="/assets/animations/confetti-victory.svg"]`,
+      ),
+    ).toBeNull();
+    hook.mockRestore();
+  });
+});
+
+describe("match result presentation", () => {
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it("shows victory money animation only on full match victory", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "player",
+      playerScore: 2,
+      cpuScore: 0,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/victory-money.svg"]`,
+      ),
+    ).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("shows defeat fall animation only on full match defeat", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "cpu",
+      playerScore: 0,
+      cpuScore: 2,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/defeat-fall.svg"]`,
+      ),
+    ).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("does not show match result animations during round loss", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_result",
+      roundOutcome: "cpu",
+      playerScore: 0,
+      cpuScore: 1,
+      transitionMessage: "CPU wins the round",
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/defeat-fall.svg"]`,
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/victory-money.svg"]`,
+      ),
+    ).toBeNull();
+    hook.mockRestore();
+  });
+
+  it("applies defeat shake styling when motion is allowed", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "cpu",
+      playerScore: 0,
+      cpuScore: 2,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(container.querySelector(`.${styles.matchDefeatShake}`)).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("omits defeat shake styling under reduced motion", () => {
+    vi.spyOn(settingsModule, "useSettings").mockReturnValue({
+      ready: true,
+      settings: { ...DEFAULT_SETTINGS, reducedMotion: true },
+      stats: { ...DEFAULT_PRACTICE_STATS },
+      updateSettings: vi.fn(),
+      completeTutorial: vi.fn(),
+      recordMatch: vi.fn(),
+      resetStats: vi.fn(),
+    });
+
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "cpu",
+      playerScore: 0,
+      cpuScore: 2,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(container.querySelector(`.${styles.matchDefeatShake}`)).toBeNull();
+    expect(screen.getByText("Defeat")).toBeInTheDocument();
+    hook.mockRestore();
+  });
+
+  it("clears result effects when rematch starts", async () => {
+    let state: ReturnType<typeof createInitialMatchState> = {
+      ...createInitialMatchState(),
+      phase: "match_complete",
+      matchWinner: "player",
+      playerScore: 2,
+      cpuScore: 0,
+    };
+
+    const rematch = vi.fn(() => {
+      state = {
+        ...createInitialMatchState(),
+        phase: "countdown",
+        countdown: 3,
+      };
+    });
+
+    const hook = vi
+      .spyOn(usePracticeGameModule, "usePracticeGame")
+      .mockImplementation(() => ({
+        state,
+        startMatch: vi.fn(),
+        selectMove: vi.fn(),
+        rematch,
+        winTarget: 2,
+        timerTotal: 20,
+      }));
+
+    const user = userEvent.setup();
+    const view = renderWithProviders(<PracticeGame />);
+    expect(
+      view.container.querySelector(
+        `object[data="/assets/animations/victory-money.svg"]`,
+      ),
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Rematch" }));
+    expect(rematch).toHaveBeenCalled();
+    view.rerender(<PracticeGame />);
+    expect(
+      view.container.querySelector(
+        `object[data="/assets/animations/victory-money.svg"]`,
       ),
     ).toBeNull();
     hook.mockRestore();

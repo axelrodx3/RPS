@@ -2,6 +2,7 @@ export type SoundCategory = "sfx" | "music";
 
 export type SoundId =
   | "button"
+  | "ui_hover"
   | "move_hover"
   | "move_selected"
   | "move_locked"
@@ -39,6 +40,14 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     src: "/assets/audio/ui-click.mp3",
     enabled: true,
     volumeScale: 0.85,
+  },
+  ui_hover: {
+    id: "ui_hover",
+    category: "sfx",
+    label: "UI hover",
+    frequencies: [920],
+    enabled: true,
+    volumeScale: 0.28,
   },
   move_hover: {
     id: "move_hover",

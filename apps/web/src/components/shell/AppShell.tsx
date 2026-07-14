@@ -8,6 +8,7 @@ import { brand, environment } from "@/config/brand";
 import { Drawer } from "@/design-system/components";
 import { AudioControl } from "@/components/AudioControl";
 import { AudioSettingsPanel } from "@/components/AudioSettingsPanel";
+import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import styles from "./app-shell.module.css";
 
 const NAV_ITEMS: { href: string; label: string; soon?: boolean }[] = [
@@ -23,6 +24,7 @@ const NAV_ITEMS: { href: string; label: string; soon?: boolean }[] = [
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const playHover = useHoverSound(false);
 
   return (
     <>
@@ -35,6 +37,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             className={`${styles.navLink} ${active ? styles.active : ""}`.trim()}
             aria-current={active ? "page" : undefined}
             onClick={onNavigate}
+            onPointerEnter={playHover}
           >
             {item.label}
             {item.soon ? <span className={styles.soon}>Soon</span> : null}

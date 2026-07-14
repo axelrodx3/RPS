@@ -470,19 +470,71 @@
 }
 
 .matchComplete {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: var(--space-5);
-  padding: var(--space-6) var(--space-4);
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
   text-align: center;
   border-radius: var(--radius-lg);
   border: 1px solid rgb(255 255 255 / 8%);
+  overflow: hidden;
 }
 
 .matchCompleteBody {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   justify-items: center;
+  width: 100%;
+  max-width: 560px;
+}
+
+.matchCompleteHero {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  width: 100%;
+}
+
+.matchCompleteHeroVictory {
+  grid-template-columns: 1fr;
+}
+
+.matchCompleteHeroDefeat {
+  grid-template-columns: 1fr;
+}
+
+.matchResultArt {
+  display: grid;
+  place-items: center;
+  width: min(100%, 300px);
+  height: clamp(128px, 30vw, 200px);
+  pointer-events: none;
+}
+
+.matchResultArtVictory {
+  width: min(100%, 280px);
+  height: clamp(120px, 28vw, 180px);
+}
+
+.matchResultArtDefeat {
+  width: min(100%, 340px);
+  height: clamp(140px, 34vw, 210px);
+}
+
+.matchResultArtObject {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.matchResultArtFallback {
+  font-size: clamp(28px, 8vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
 }
 
 .matchCompleteActions {
@@ -490,13 +542,13 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   gap: var(--space-3);
-  width: min(100%, 420px);
-  margin-top: var(--space-2);
+  width: min(100%, 400px);
+  margin-top: var(--space-1);
 }
 
 .matchActionButton {
   width: 100%;
-  min-height: 52px;
+  min-height: 48px;
   text-align: center;
 }
 
@@ -766,6 +818,43 @@
 
 .matchDefeat {
   color: var(--color-outcome-loss);
+}
+
+.matchDefeatShake {
+  display: inline-block;
+  transform-origin: center center;
+  animation: defeatTitleShake 500ms ease-out 1;
+}
+
+@keyframes defeatTitleShake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  12% {
+    transform: translateX(-3px) rotate(-1.2deg);
+  }
+
+  24% {
+    transform: translateX(3px) rotate(1.2deg);
+  }
+
+  36% {
+    transform: translateX(-2px) rotate(-0.8deg);
+  }
+
+  48% {
+    transform: translateX(2px) rotate(0.8deg);
+  }
+
+  60% {
+    transform: translateX(-1px) rotate(-0.4deg);
+  }
+
+  72% {
+    transform: translateX(1px) rotate(0.4deg);
+  }
 }
 
 .matchCompleteScore {
@@ -1087,9 +1176,26 @@
   }
 }
 
+@media (min-width: 768px) {
+  .matchCompleteHeroDefeat {
+    grid-template-columns: auto minmax(180px, 1fr);
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  .matchCompleteHeroVictory {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .matchCompleteActions {
     grid-template-columns: 1fr;
+  }
+
+  .matchActionButton {
+    min-height: 44px;
   }
 
   .playerStrip {
@@ -1163,7 +1269,8 @@
   .battlePodLocked,
   .battlePodThinking,
   .moveDockButton,
-  .timelineEntry {
+  .timelineEntry,
+  .matchDefeatShake {
     animation: none !important;
     transition: none !important;
   }
@@ -1184,7 +1291,8 @@
 [data-reduced-motion="true"] .battlePodLocked,
 [data-reduced-motion="true"] .battlePodThinking,
 [data-reduced-motion="true"] .moveDockButton,
-[data-reduced-motion="true"] .timelineEntry {
+[data-reduced-motion="true"] .timelineEntry,
+[data-reduced-motion="true"] .matchDefeatShake {
   animation: none !important;
   transition: none !important;
 }

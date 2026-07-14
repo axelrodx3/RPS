@@ -16,6 +16,12 @@ describe("practice asset slots", () => {
     expect(PRACTICE_ASSET_SLOTS.confetti.path).toBe(
       "/assets/animations/confetti-victory.svg",
     );
+    expect(PRACTICE_ASSET_SLOTS.victoryEffect.path).toBe(
+      "/assets/animations/victory-money.svg",
+    );
+    expect(PRACTICE_ASSET_SLOTS.defeatEffect.path).toBe(
+      "/assets/animations/defeat-fall.svg",
+    );
     expect(PRACTICE_ASSET_SPECS.moveReveal.width).toBe(128);
   });
 

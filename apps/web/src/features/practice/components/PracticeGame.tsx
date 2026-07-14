@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card } from "@/design-system/components";
+import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import {
   TIMER_WARNING_SECONDS,
   countAutomaticMoves,
@@ -91,6 +92,7 @@ function useScorePulse(score: number) {
 export function PracticeGame() {
   const { state, startMatch, selectMove, rematch, winTarget, timerTotal } =
     usePracticeGame();
+  const playPracticeHover = useHoverSound(false);
   const announcement = liveAnnouncement(state);
   const playerScorePulse = useScorePulse(state.playerScore);
   const cpuScorePulse = useScorePulse(state.cpuScore);
@@ -100,7 +102,7 @@ export function PracticeGame() {
       <div className={styles.pageStack}>
         <Card padding="lg" className={styles.intro}>
           <span className={styles.kicker}>Practice · Local CPU</span>
-          <h1>Best of 3 · First to 2</h1>
+          <h1>Best of 3</h1>
           <p>
             No wallet, no backend, no balances. This local mode mirrors the
             future 1v1 phase flow: countdown, private selection, reveal, and
@@ -111,7 +113,11 @@ export function PracticeGame() {
             <li>Ties replay the round without changing the score.</li>
             <li>CPU plays fairly with equal random probability.</li>
           </ul>
-          <Button size="lg" onClick={startMatch}>
+          <Button
+            size="lg"
+            onClick={startMatch}
+            onPointerEnter={playPracticeHover}
+          >
             Start Practice Match
           </Button>
         </Card>
@@ -127,6 +133,7 @@ export function PracticeGame() {
   const showPlayerVictoryConfetti =
     state.phase === "match_complete" && state.matchWinner === "player";
   const victoryMatchKey = `win-${state.playerScore}-${state.cpuScore}-${state.history.length}`;
+  const resultMatchKey = `${state.matchWinner ?? "none"}-${state.playerScore}-${state.cpuScore}-${state.history.length}`;
 
   return (
     <div className={styles.pageStack}>
@@ -166,6 +173,7 @@ export function PracticeGame() {
               cpuScore={state.cpuScore}
               tiedRounds={tiedRounds}
               automaticMoves={automaticMoves}
+              matchKey={resultMatchKey}
               onRematch={rematch}
             />
           ) : (

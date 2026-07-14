@@ -81,14 +81,14 @@ export const PRACTICE_ASSET_SLOTS: Record<
     label: "Versus impact effect",
   },
   victoryEffect: {
-    path: null,
+    path: "/assets/animations/victory-money.svg",
     fallback: "Victory",
-    label: "Victory overlay effect",
+    label: "Victory money animation",
   },
   defeatEffect: {
-    path: null,
+    path: "/assets/animations/defeat-fall.svg",
     fallback: "Defeat",
-    label: "Defeat overlay effect",
+    label: "Defeat fall animation",
   },
   confetti: {
     path: "/assets/animations/confetti-victory.svg",

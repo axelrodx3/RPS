@@ -1,14 +1,15 @@
 /** @vitest-environment happy-dom */
 
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { Tabs } from "@/design-system/components/Tabs";
+import { renderWithProviders } from "@/test/render";
 
 describe("Tabs", () => {
   it("shows FAQ content by default and switches to Modes", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithProviders(
       <Tabs
         defaultId="faq"
         items={[
