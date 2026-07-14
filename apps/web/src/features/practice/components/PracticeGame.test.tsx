@@ -12,6 +12,11 @@ import {
   createInitialMatchState,
 } from "@/features/practice/engine/practice-engine";
 import * as usePracticeGameModule from "@/features/practice/hooks/usePracticeGame";
+import * as settingsModule from "@/providers/SettingsProvider";
+import {
+  DEFAULT_PRACTICE_STATS,
+  DEFAULT_SETTINGS,
+} from "@/lib/storage/local-storage";
 import { renderWithProviders } from "@/test/render";
 import styles from "@/features/practice/components/practice-game.module.css";
 
@@ -24,6 +29,20 @@ async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
   });
 }
 
+function mockActiveMatch(
+  state: ReturnType<typeof createInitialMatchState>,
+  overrides: Partial<ReturnType<typeof createInitialMatchState>> = {},
+) {
+  return vi.spyOn(usePracticeGameModule, "usePracticeGame").mockReturnValue({
+    state: { ...state, ...overrides },
+    startMatch: vi.fn(),
+    selectMove: vi.fn(),
+    rematch: vi.fn(),
+    winTarget: 2,
+    timerTotal: 20,
+  });
+}
+
 describe("PracticeGame", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -32,6 +51,7 @@ describe("PracticeGame", () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("starts a playable match from the intro card", async () => {
@@ -43,8 +63,9 @@ describe("PracticeGame", () => {
     );
 
     expect(screen.getByText("Opening round")).toBeInTheDocument();
-    expect(screen.getByText("You")).toBeInTheDocument();
-    expect(screen.getByText("CPU")).toBeInTheDocument();
+    expect(screen.getByLabelText("Match scoreboard")).toBeInTheDocument();
+    expect(screen.getAllByText("YOU").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("CPU").length).toBeGreaterThan(0);
   });
 
   it.each(["Rock", "Paper", "Scissors"] as const)(
@@ -54,7 +75,11 @@ describe("PracticeGame", () => {
       renderWithProviders(<PracticeGame />);
       await startCommitPhase(user);
 
-      await user.click(screen.getByRole("button", { name: `Choose ${label}` }));
+      await user.click(
+        screen.getByRole("button", {
+          name: new RegExp(`Choose ${label}`, "i"),
+        }),
+      );
       expect(screen.getAllByText("Move locked").length).toBeGreaterThan(0);
     },
   );
@@ -64,11 +89,9 @@ describe("PracticeGame", () => {
     renderWithProviders(<PracticeGame />);
     await startCommitPhase(user);
 
-    const rock = screen.getByRole("button", { name: "Choose Rock" });
+    const rock = screen.getByRole("button", { name: /Choose Rock/i });
     await user.click(rock);
-    expect(
-      screen.queryByRole("button", { name: "Choose Rock" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Choose Rock/i })).toBeNull();
   });
 
   it("does not show Get ready between ordinary rounds", () => {
@@ -116,7 +139,7 @@ describe("PracticeGame", () => {
     expect(state.matchWinner).toBe("player");
   });
 
-  it("shows move buttons during commit phase", async () => {
+  it("shows move dock controls during commit phase", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<PracticeGame />);
 
@@ -127,10 +150,11 @@ describe("PracticeGame", () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
 
-    expect(screen.getByRole("button", { name: "Choose Rock" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Choose Paper" })).toBeEnabled();
+    expect(screen.getByRole("group", { name: "Choose move" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Choose Rock/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Choose Paper/i })).toBeEnabled();
     expect(
-      screen.getByRole("button", { name: "Choose Scissors" }),
+      screen.getByRole("button", { name: /Choose Scissors/i }),
     ).toBeEnabled();
   });
 
@@ -153,64 +177,118 @@ describe("PracticeGame", () => {
   });
 });
 
-describe("round history presentation", () => {
-  it("renders emoji move pairs with accessible round labels", () => {
-    const state = {
-      ...createInitialMatchState(),
-      phase: "round_result" as const,
+describe("battle arena presentation", () => {
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the battle stage, player strip, and move dock during commit", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      round: 1,
+      timerSeconds: 18,
+      commitStartedAt: Date.now(),
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(container.querySelector(`.${styles.battleStage}`)).toBeTruthy();
+    expect(container.querySelector(`.${styles.playerStrip}`)).toBeTruthy();
+    expect(container.querySelector(`.${styles.moveDock}`)).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("updates round win markers when the player leads", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      playerScore: 1,
+      cpuScore: 0,
+      round: 2,
+      timerSeconds: 15,
+      commitStartedAt: Date.now(),
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    const filled = container.querySelectorAll(`.${styles.winMarkerFilled}`);
+    expect(filled.length).toBe(1);
+    hook.mockRestore();
+  });
+
+  it("renders reveal stage with both moves and outcome styling", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "reveal",
+      playerMove: "rock",
+      cpuMove: "scissors",
+      roundOutcome: "player",
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(container.querySelector(`.${styles.battlePodWin}`)).toBeTruthy();
+    expect(container.querySelector(`.${styles.battlePodLoss}`)).toBeTruthy();
+    expect(container.querySelector(`.${styles.vsImpact}`)).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("renders compact timeline entries with outcome badges", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_result",
       history: [
         {
           round: 1,
-          playerMove: "paper" as const,
-          cpuMove: "rock" as const,
-          outcome: "player" as const,
+          playerMove: "paper",
+          cpuMove: "rock",
+          outcome: "player",
           playerTimedOut: false,
-          cpuTimedOut: false as const,
+          cpuTimedOut: false,
         },
       ],
-    };
-
-    const hook = vi
-      .spyOn(usePracticeGameModule, "usePracticeGame")
-      .mockReturnValue({
-        state,
-        startMatch: vi.fn(),
-        selectMove: vi.fn(),
-        rematch: vi.fn(),
-        winTarget: 2,
-        timerTotal: 20,
-      });
+    });
 
     renderWithProviders(<PracticeGame />);
-
     const historyItem = screen.getByRole("listitem");
     expect(historyItem).toHaveAttribute("aria-label");
     expect(historyItem.getAttribute("aria-label")).toContain(
       "Player chose Paper",
     );
-    expect(screen.getByText(/✋ vs ✊/)).toBeInTheDocument();
+    expect(screen.getByText(/✋ VS ✊/)).toBeInTheDocument();
+    expect(screen.getByText("WIN")).toBeInTheDocument();
+    hook.mockRestore();
+  });
+
+  it("keeps move dock available on mobile widths", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      timerSeconds: 12,
+      commitStartedAt: Date.now(),
+    });
+
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 375,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(container.querySelector(`.${styles.moveDock}`)).toBeTruthy();
     hook.mockRestore();
   });
 });
 
 describe("reveal outcome styles", () => {
-  it("defines win, loss, and tie outline classes", () => {
+  it("defines battle arena and outcome classes", () => {
     const cssPath = path.resolve(
       process.cwd(),
       "src/features/practice/components/practice-game.module.css",
     );
     const css = readFileSync(cssPath, "utf8");
+    expect(css).toContain("battleStage");
+    expect(css).toContain("playerStrip");
+    expect(css).toContain("moveDock");
     expect(css).toContain("revealOutcomeWin");
-    expect(css).toContain("revealOutcomeLoss");
-    expect(css).toContain("revealOutcomeTie");
-    expect(css).toContain("matchVictory");
     expect(css).toContain("color-outcome-win");
-    expect(css).toContain("color-outcome-loss");
-    expect(css).toContain("arenaShell");
-    expect(css).toContain("confettiOverlay");
-    expect(styles.revealOutcomeWin).toBeTruthy();
-    expect(styles.revealOutcomeLoss).toBeTruthy();
-    expect(styles.revealOutcomeTie).toBeTruthy();
+    expect(styles.battleStage).toBeTruthy();
+    expect(styles.playerStrip).toBeTruthy();
+    expect(styles.moveDock).toBeTruthy();
     expect(styles.matchVictory).toBeTruthy();
     expect(styles.matchDefeat).toBeTruthy();
   });
@@ -222,24 +300,12 @@ describe("victory confetti", () => {
   });
 
   it("shows confetti only on player match victory", () => {
-    const state = {
-      ...createInitialMatchState(),
-      phase: "match_complete" as const,
-      matchWinner: "player" as const,
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "player",
       playerScore: 2,
       cpuScore: 0,
-    };
-
-    const hook = vi
-      .spyOn(usePracticeGameModule, "usePracticeGame")
-      .mockReturnValue({
-        state,
-        startMatch: vi.fn(),
-        selectMove: vi.fn(),
-        rematch: vi.fn(),
-        winTarget: 2,
-        timerTotal: 20,
-      });
+    });
 
     const { container } = renderWithProviders(<PracticeGame />);
     expect(
@@ -251,24 +317,39 @@ describe("victory confetti", () => {
   });
 
   it("does not show confetti on CPU match victory", () => {
-    const state = {
-      ...createInitialMatchState(),
-      phase: "match_complete" as const,
-      matchWinner: "cpu" as const,
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "cpu",
       playerScore: 0,
       cpuScore: 2,
-    };
+    });
 
-    const hook = vi
-      .spyOn(usePracticeGameModule, "usePracticeGame")
-      .mockReturnValue({
-        state,
-        startMatch: vi.fn(),
-        selectMove: vi.fn(),
-        rematch: vi.fn(),
-        winTarget: 2,
-        timerTotal: 20,
-      });
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/confetti-victory.svg"]`,
+      ),
+    ).toBeNull();
+    hook.mockRestore();
+  });
+
+  it("disables confetti when reduced motion is enabled", () => {
+    vi.spyOn(settingsModule, "useSettings").mockReturnValue({
+      ready: true,
+      settings: { ...DEFAULT_SETTINGS, reducedMotion: true },
+      stats: { ...DEFAULT_PRACTICE_STATS },
+      updateSettings: vi.fn(),
+      completeTutorial: vi.fn(),
+      recordMatch: vi.fn(),
+      resetStats: vi.fn(),
+    });
+
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "player",
+      playerScore: 2,
+      cpuScore: 0,
+    });
 
     const { container } = renderWithProviders(<PracticeGame />);
     expect(

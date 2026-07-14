@@ -5,9 +5,10 @@ import styles from "./practice-game.module.css";
 
 type VictoryConfettiProps = {
   active: boolean;
+  matchKey: string;
 };
 
-export function VictoryConfetti({ active }: VictoryConfettiProps) {
+export function VictoryConfetti({ active, matchKey }: VictoryConfettiProps) {
   const { settings } = useSettings();
 
   if (!active || settings.reducedMotion) {
@@ -17,6 +18,7 @@ export function VictoryConfetti({ active }: VictoryConfettiProps) {
   return (
     <div className={styles.confettiOverlay} aria-hidden="true">
       <object
+        key={matchKey}
         className={styles.confettiObject}
         data="/assets/animations/confetti-victory.svg"
         type="image/svg+xml"
