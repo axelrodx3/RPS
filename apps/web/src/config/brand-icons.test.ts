@@ -55,8 +55,8 @@ describe("brand icon assets", () => {
       "utf8",
     );
     expect(css).toContain("object-position: center");
-    expect(css).toContain("width: 36px");
+    expect(css).toContain("width: 40px");
     expect(shellCss).toContain("justify-content: center");
-    expect(shellCss).toContain("min-height: 44px");
+    expect(shellCss).toContain("min-height: 48px");
   });
 });

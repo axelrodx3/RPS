@@ -1,6 +1,7 @@
 .pageStack {
   display: grid;
   gap: var(--space-6);
+  position: relative;
 }
 
 .intro h1,
@@ -34,40 +35,156 @@
   color: var(--color-text-muted);
 }
 
-.arena {
-  display: grid;
-  gap: var(--space-5);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(circle at top, rgb(215 255 67 / 8%), transparent 42%),
-    linear-gradient(180deg, rgb(255 255 255 / 2%), transparent),
-    var(--color-surface-raised);
-  box-shadow: var(--shadow-panel);
+/* ── Battle arena ── */
+.arenaShell {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  border-radius: calc(var(--radius-lg) + 4px);
+  overflow: hidden;
 }
 
+.arenaBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgb(215 255 67 / 10%),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 20% 100%,
+      rgb(215 255 67 / 4%),
+      transparent 50%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 3%),
+      transparent 40%,
+      rgb(0 0 0 / 35%)
+    );
+  animation: arenaGlow 18s ease-in-out infinite alternate;
+}
+
+.arenaVignette {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px rgb(0 0 0 / 45%);
+}
+
+.arenaParticles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    radial-gradient(
+      circle at 20% 30%,
+      rgb(215 255 67 / 18%) 0 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 70% 60%,
+      rgb(215 255 67 / 12%) 0 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgb(255 255 255 / 8%) 0 1px,
+      transparent 2px
+    );
+  background-size:
+    180px 180px,
+    220px 220px,
+    160px 160px;
+  animation: particleDrift 24s linear infinite;
+}
+
+.arena {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  border: 1px solid rgb(215 255 67 / 18%);
+  border-radius: var(--radius-lg);
+  background: rgb(12 12 12 / 72%);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 24px 80px rgb(0 0 0 / 45%),
+    0 0 0 1px rgb(255 255 255 / 4%) inset,
+    0 0 48px rgb(215 255 67 / 6%);
+}
+
+.confettiOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confettiObject {
+  width: 100%;
+  height: 100%;
+  opacity: 0.92;
+}
+
+/* ── Scoreboard ── */
 .scoreRow {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: var(--space-3);
+  gap: var(--space-4);
   align-items: stretch;
-}
-
-.combatant,
-.roundBadge,
-.lockedPanel,
-.revealCard {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: rgb(0 0 0 / 22%);
 }
 
 .combatant {
   display: grid;
-  gap: var(--space-1);
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
   padding: var(--space-4);
-  text-align: center;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, rgb(255 255 255 / 5%), rgb(0 0 0 / 25%));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+}
+
+.combatantPlayer {
+  text-align: left;
+}
+
+.combatantCpu {
+  text-align: right;
+  direction: rtl;
+}
+
+.combatantCpu .combatantCopy {
+  direction: ltr;
+}
+
+.avatar {
+  grid-row: 1 / span 3;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgb(215 255 67 / 25%);
+  background: linear-gradient(160deg, rgb(215 255 67 / 18%), rgb(0 0 0 / 40%));
+  color: var(--color-brand-500);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgb(215 255 67 / 12%);
 }
 
 .combatantLabel,
@@ -75,32 +192,45 @@
 .roundBadge span,
 .revealCard span {
   color: var(--color-text-muted);
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .combatantScore,
 .roundBadge strong {
-  font-size: clamp(36px, 8vw, 52px);
+  font-size: clamp(40px, 8vw, 56px);
   font-weight: 800;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.scorePulse {
+  animation: scorePop 520ms var(--motion-ease);
 }
 
 .roundBadge {
   display: grid;
   place-items: center;
   gap: var(--space-1);
-  min-width: 92px;
-  padding: var(--space-3);
+  min-width: 96px;
+  padding: var(--space-4);
+  border: 1px solid rgb(215 255 67 / 22%);
+  border-radius: var(--radius-md);
+  background: rgb(215 255 67 / 6%);
+  box-shadow: 0 0 32px rgb(215 255 67 / 8%);
 }
 
 .phaseBar {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-2);
+  justify-content: center;
   align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 28%);
+  border: 1px solid rgb(255 255 255 / 6%);
 }
 
 .phaseLabel {
@@ -108,13 +238,8 @@
   font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.cpuThinking {
-  color: var(--color-text-muted);
-  font-size: 13px;
 }
 
 .centerStage {
@@ -122,49 +247,63 @@
   gap: var(--space-5);
   justify-items: center;
   text-align: center;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
 }
 
 .countdown {
-  font-size: clamp(72px, 16vw, 120px);
+  font-size: clamp(80px, 18vw, 128px);
   font-weight: 800;
   letter-spacing: -0.06em;
   line-height: 1;
+  text-shadow: 0 0 40px rgb(215 255 67 / 25%);
   animation: pulse 1s var(--motion-ease) infinite;
 }
 
+/* ── Timer ── */
 .heroTimer {
   display: grid;
-  gap: var(--space-2);
-  width: min(100%, 360px);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border-strong);
+  gap: var(--space-3);
+  width: min(100%, 380px);
+  padding: var(--space-6);
+  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: var(--radius-lg);
-  background: rgb(0 0 0 / 28%);
+  background: linear-gradient(180deg, rgb(255 255 255 / 6%), rgb(0 0 0 / 35%));
+  box-shadow:
+    0 16px 40px rgb(0 0 0 / 35%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
 }
 
 .heroTimerWarning {
   border-color: var(--color-brand-500);
-  box-shadow: var(--shadow-glow);
+  box-shadow:
+    var(--shadow-glow),
+    0 16px 40px rgb(0 0 0 / 35%);
 }
 
 .heroTimerValue {
-  font-size: clamp(56px, 14vw, 88px);
+  font-size: clamp(64px, 16vw, 96px);
   font-weight: 800;
-  line-height: 1;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
 }
 
 .heroTimerLabel {
   color: var(--color-text-muted);
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .heroTimerTrack {
   overflow: hidden;
-  height: 8px;
+  height: 10px;
   border-radius: var(--radius-pill);
-  background: var(--color-border);
+  background: rgb(255 255 255 / 8%);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 35%);
 }
 
 .heroTimerFill {
@@ -172,12 +311,16 @@
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    var(--color-brand-500),
-    rgb(215 255 67 / 55%)
+    var(--color-brand-600),
+    var(--color-brand-500) 55%,
+    rgb(215 255 67 / 70%)
   );
+  box-shadow: 0 0 16px rgb(215 255 67 / 35%);
   transition: width 250ms linear;
+  will-change: width;
 }
 
+/* ── Move selection ── */
 .moveGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -188,52 +331,68 @@
 .moveButton {
   display: grid;
   gap: var(--space-2);
-  min-height: 132px;
+  min-height: 140px;
   padding: var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: linear-gradient(160deg, rgb(255 255 255 / 4%), rgb(0 0 0 / 30%));
   color: var(--color-text);
   text-align: center;
   cursor: pointer;
+  transform: translateY(0) rotate(0deg) scale(1);
   transition:
     transform var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-fast) var(--motion-ease),
-    background var(--motion-fast) var(--motion-ease);
+    background var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease);
+  will-change: transform;
 }
 
 .moveButton:hover:not(:disabled),
 .moveButton:focus-visible:not(:disabled) {
-  transform: translateY(-2px);
+  transform: translateY(-6px) rotate(-1deg) scale(1.02);
   border-color: var(--color-brand-500);
-  box-shadow: var(--shadow-glow);
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 35%),
+    0 0 24px rgb(215 255 67 / 18%);
   outline: none;
 }
 
 .moveButton:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(0.98);
 }
 
 .moveSelected {
+  transform: translateY(-4px) scale(1.04);
   border-color: var(--color-brand-500);
-  background: rgb(215 255 67 / 10%);
+  background: rgb(215 255 67 / 12%);
+  box-shadow: 0 0 28px rgb(215 255 67 / 22%);
+  animation: movePulse 600ms var(--motion-ease);
+}
+
+.moveDimmed {
+  opacity: 0.45;
+  transform: scale(0.96);
 }
 
 .moveLocked,
 .moveButton:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .moveIcon {
-  font-size: 40px;
+  font-size: 44px;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 35%));
 }
 
 .moveLabel {
   font-size: 18px;
   font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .moveHint {
@@ -242,43 +401,79 @@
   line-height: 1.4;
 }
 
-.lockedPanel {
+/* ── Phase panels ── */
+.phasePanel {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   justify-items: center;
-  width: min(100%, 320px);
-  padding: var(--space-5);
+  width: min(100%, 340px);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
 }
 
-.revealPausePanel {
+.lockedPanel {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   justify-items: center;
-  width: min(100%, 320px);
-  padding: var(--space-5);
-  border: 1px dashed var(--color-border-strong);
+  width: min(100%, 340px);
+  padding: var(--space-6);
   border-radius: var(--radius-md);
-  background: rgb(215 255 67 / 4%);
+  border: 1px solid rgb(61 214 140 / 35%);
+  background: linear-gradient(160deg, rgb(61 214 140 / 10%), rgb(0 0 0 / 30%));
+  box-shadow: 0 0 32px rgb(61 214 140 / 12%);
+  animation: lockPulse 900ms var(--motion-ease) infinite;
+}
+
+.lockIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgb(61 214 140 / 15%);
+  color: var(--color-outcome-win);
+  font-size: 18px;
 }
 
 .waitingCpuPanel {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   justify-items: center;
-  width: min(100%, 320px);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
+  width: min(100%, 340px);
+  padding: var(--space-6);
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+  animation: panelBreath 1.4s ease-in-out infinite;
+}
+
+.waitingDots::after {
+  content: "";
+  animation: waitingDots 1.2s steps(4, end) infinite;
+}
+
+.revealPausePanel {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  width: min(100%, 340px);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgb(215 255 67 / 35%);
+  background: rgb(215 255 67 / 5%);
+  animation: revealAnticipation 850ms var(--motion-ease) infinite alternate;
 }
 
 .lockedMoveLabel {
-  font-size: 32px;
-  text-transform: capitalize;
+  font-size: clamp(36px, 8vw, 48px);
+  line-height: 1;
+  filter: drop-shadow(0 6px 16px rgb(0 0 0 / 35%));
 }
 
+/* ── Reveal ── */
 .revealStage {
-  animation: reveal-in var(--motion-slow) var(--motion-ease);
+  width: 100%;
+  animation: arenaFocus 700ms var(--motion-ease);
 }
 
 .revealGrid {
@@ -292,23 +487,40 @@
   display: grid;
   gap: var(--space-2);
   justify-items: center;
-  padding: var(--space-5);
-  border: 2px solid var(--color-border);
+  padding: var(--space-6);
+  border: 2px solid rgb(255 255 255 / 10%);
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
-  transition:
-    border-color var(--motion-fast) var(--motion-ease),
-    box-shadow var(--motion-fast) var(--motion-ease);
+  background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(0 0 0 / 35%));
+  opacity: 0;
+  transform: translateY(18px) scale(0.94);
+  animation: revealCardIn 520ms var(--motion-ease) forwards;
+  will-change: transform, opacity;
+}
+
+.revealCardPlayer {
+  animation-delay: 80ms;
+}
+
+.revealCardCpu {
+  animation-delay: 180ms;
 }
 
 .revealCard strong {
-  font-size: clamp(36px, 8vw, 52px);
+  font-size: clamp(40px, 9vw, 56px);
   line-height: 1;
+}
+
+.revealCardMuted {
+  opacity: 0.72;
+  filter: saturate(0.75);
+  transform: scale(0.96);
 }
 
 .revealOutcomeWin {
   border-color: var(--color-outcome-win);
-  box-shadow: 0 0 0 1px rgb(61 214 140 / 18%);
+  box-shadow:
+    0 0 0 1px rgb(61 214 140 / 22%),
+    0 0 32px rgb(61 214 140 / 15%);
 }
 
 .revealOutcomeLoss {
@@ -322,8 +534,18 @@
 }
 
 .resultLine {
-  font-size: 20px;
+  margin: 0;
+  font-size: clamp(20px, 4vw, 26px);
   font-weight: 800;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: resultReveal 480ms var(--motion-ease) 420ms forwards;
+}
+
+.resultLineVisible {
+  opacity: 1;
+  transform: none;
+  animation: none;
 }
 
 .transitionLine {
@@ -332,6 +554,7 @@
   font-size: clamp(18px, 4vw, 24px);
   font-weight: 800;
   letter-spacing: 0.02em;
+  animation: fadeUp 400ms var(--motion-ease);
 }
 
 .matchTitle {
@@ -340,21 +563,14 @@
 
 .matchVictory {
   color: var(--color-outcome-win);
+  text-shadow: 0 0 24px rgb(61 214 140 / 20%);
 }
 
 .matchDefeat {
   color: var(--color-outcome-loss);
 }
 
-.matchSummaryVictory {
-  color: var(--color-text-muted);
-}
-
-.matchSummaryVictory strong,
-.matchSummaryVictory {
-  --score-accent: var(--color-outcome-win);
-}
-
+.matchSummaryVictory,
 .matchSummaryDefeat {
   color: var(--color-text-muted);
 }
@@ -366,9 +582,23 @@
   gap: var(--space-3);
 }
 
+/* ── History ── */
+.historyPanel {
+  padding: var(--space-5);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 3%);
+  backdrop-filter: blur(8px);
+  animation: fadeUp 400ms var(--motion-ease);
+}
+
 .historyTitle {
   margin: 0 0 var(--space-4);
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .historyList {
@@ -379,20 +609,59 @@
   list-style: none;
 }
 
-.historyList li {
+.historyItem {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: var(--space-3);
   align-items: center;
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: 14px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 22%);
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+
+.historyRound {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .historyMoves {
-  font-size: 20px;
-  letter-spacing: 0.08em;
+  font-size: 22px;
+  letter-spacing: 0.12em;
+}
+
+.historyBadge {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.historyBadgeWin {
+  background: rgb(61 214 140 / 14%);
+  color: var(--color-outcome-win);
+  border: 1px solid rgb(61 214 140 / 25%);
+}
+
+.historyBadgeLoss {
+  background: rgb(229 83 83 / 12%);
+  color: var(--color-outcome-loss);
+  border: 1px solid rgb(229 83 83 / 22%);
+}
+
+.historyBadgeTie {
+  background: rgb(108 180 255 / 12%);
+  color: var(--color-outcome-tie);
+  border: 1px solid rgb(108 180 255 / 22%);
+}
+
+.historyEmpty {
+  margin: 0;
 }
 
 .autoBadge {
@@ -402,7 +671,7 @@
   border-radius: var(--radius-pill);
   background: rgb(215 255 67 / 12%);
   color: var(--color-brand-500);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -420,16 +689,140 @@
   border: 0;
 }
 
+/* ── Keyframes ── */
+@keyframes arenaGlow {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 0.85;
+  }
+
+  to {
+    transform: scale(1.04) translateY(-1%);
+    opacity: 1;
+  }
+}
+
+@keyframes particleDrift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-40px, -24px, 0);
+  }
+}
+
 @keyframes pulse {
   50% {
     transform: scale(1.04);
   }
 }
 
-@keyframes reveal-in {
+@keyframes scorePop {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.14);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes movePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 28px rgb(215 255 67 / 22%);
+  }
+
+  50% {
+    box-shadow: 0 0 36px rgb(215 255 67 / 34%);
+  }
+}
+
+@keyframes lockPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 32px rgb(61 214 140 / 12%);
+  }
+
+  50% {
+    box-shadow: 0 0 44px rgb(61 214 140 / 22%);
+  }
+}
+
+@keyframes panelBreath {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+
+  50% {
+    transform: scale(1.01);
+    opacity: 1;
+  }
+}
+
+@keyframes waitingDots {
+  0% {
+    content: "";
+  }
+
+  25% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  75% {
+    content: "...";
+  }
+}
+
+@keyframes revealAnticipation {
+  from {
+    box-shadow: 0 0 24px rgb(215 255 67 / 8%);
+  }
+
+  to {
+    box-shadow: 0 0 40px rgb(215 255 67 / 18%);
+  }
+}
+
+@keyframes arenaFocus {
+  from {
+    filter: brightness(0.96);
+  }
+
+  to {
+    filter: brightness(1.04);
+  }
+}
+
+@keyframes revealCardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes resultReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
 
   to {
@@ -452,18 +845,60 @@
     min-width: 0;
   }
 
-  .historyList li {
+  .historyItem {
     grid-template-columns: 1fr;
+    gap: var(--space-2);
+    text-align: center;
+  }
+
+  .combatant {
+    grid-template-columns: auto 1fr;
+  }
+
+  .combatantCpu {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .moveButton {
+    min-height: 120px;
+  }
+
+  .arena {
+    padding: var(--space-4);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .arenaBackdrop,
+  .arenaParticles,
   .countdown,
   .revealStage,
+  .revealCard,
+  .resultLine,
+  .lockedPanel,
+  .waitingCpuPanel,
+  .revealPausePanel,
   .moveButton,
-  .heroTimerFill {
-    animation: none;
-    transition: none;
+  .heroTimerFill,
+  .scorePulse,
+  .historyPanel,
+  .transitionLine {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .revealCard {
+    opacity: 1;
+    transform: none;
+  }
+
+  .resultLine,
+  .resultLineVisible {
+    opacity: 1;
+    transform: none;
   }
 
   .moveButton:hover:not(:disabled) {
@@ -471,10 +906,29 @@
   }
 }
 
+[data-reduced-motion="true"] .arenaBackdrop,
+[data-reduced-motion="true"] .arenaParticles,
 [data-reduced-motion="true"] .countdown,
 [data-reduced-motion="true"] .revealStage,
+[data-reduced-motion="true"] .revealCard,
+[data-reduced-motion="true"] .resultLine,
+[data-reduced-motion="true"] .lockedPanel,
+[data-reduced-motion="true"] .waitingCpuPanel,
+[data-reduced-motion="true"] .revealPausePanel,
 [data-reduced-motion="true"] .moveButton,
-[data-reduced-motion="true"] .heroTimerFill {
-  animation: none;
-  transition: none;
+[data-reduced-motion="true"] .heroTimerFill,
+[data-reduced-motion="true"] .scorePulse {
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-reduced-motion="true"] .revealCard {
+  opacity: 1;
+  transform: none;
+}
+
+[data-reduced-motion="true"] .resultLine,
+[data-reduced-motion="true"] .resultLineVisible {
+  opacity: 1;
+  transform: none;
 }

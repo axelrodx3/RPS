@@ -206,10 +206,76 @@ describe("reveal outcome styles", () => {
     expect(css).toContain("matchVictory");
     expect(css).toContain("color-outcome-win");
     expect(css).toContain("color-outcome-loss");
+    expect(css).toContain("arenaShell");
+    expect(css).toContain("confettiOverlay");
     expect(styles.revealOutcomeWin).toBeTruthy();
     expect(styles.revealOutcomeLoss).toBeTruthy();
     expect(styles.revealOutcomeTie).toBeTruthy();
     expect(styles.matchVictory).toBeTruthy();
     expect(styles.matchDefeat).toBeTruthy();
+  });
+});
+
+describe("victory confetti", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("shows confetti only on player match victory", () => {
+    const state = {
+      ...createInitialMatchState(),
+      phase: "match_complete" as const,
+      matchWinner: "player" as const,
+      playerScore: 2,
+      cpuScore: 0,
+    };
+
+    const hook = vi
+      .spyOn(usePracticeGameModule, "usePracticeGame")
+      .mockReturnValue({
+        state,
+        startMatch: vi.fn(),
+        selectMove: vi.fn(),
+        rematch: vi.fn(),
+        winTarget: 2,
+        timerTotal: 20,
+      });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/confetti-victory.svg"]`,
+      ),
+    ).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it("does not show confetti on CPU match victory", () => {
+    const state = {
+      ...createInitialMatchState(),
+      phase: "match_complete" as const,
+      matchWinner: "cpu" as const,
+      playerScore: 0,
+      cpuScore: 2,
+    };
+
+    const hook = vi
+      .spyOn(usePracticeGameModule, "usePracticeGame")
+      .mockReturnValue({
+        state,
+        startMatch: vi.fn(),
+        selectMove: vi.fn(),
+        rematch: vi.fn(),
+        winTarget: 2,
+        timerTotal: 20,
+      });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(
+        `object[data="/assets/animations/confetti-victory.svg"]`,
+      ),
+    ).toBeNull();
+    hook.mockRestore();
   });
 });

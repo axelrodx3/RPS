@@ -98,7 +98,7 @@ describe("RpsWordmark motion styles", () => {
       "src/components/brand/brand.module.css",
     );
     const css = readFileSync(cssPath, "utf8");
-    expect(css).toContain("width: 36px");
-    expect(css).toContain("height: 36px");
+    expect(css).toContain("width: 40px");
+    expect(css).toContain("height: 40px");
   });
 });

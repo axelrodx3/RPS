@@ -212,5 +212,20 @@
     "dateIntegrated": "2026-07-14",
     "modifications": "Tight crop, lime recolor, transparent alpha background, scripts/generate-r-icon-assets.py",
     "approvalStatus": "approved-preview"
+  },
+  {
+    "assetName": "Victory confetti animation",
+    "sourceFile": "animations/Confetti Effects Lottie Animation.svg",
+    "filePath": "apps/web/public/assets/animations/confetti-victory.svg",
+    "intendedUse": "Player match victory celebration overlay in Practice mode only",
+    "format": "SVG (Lottie export with SMIL animation)",
+    "dimensions": "609x812 viewBox",
+    "source": "Project animation asset",
+    "author": "RPS project",
+    "license": "Project internal asset",
+    "attributionRequired": false,
+    "dateIntegrated": "2026-07-14",
+    "modifications": "Copied to public assets as confetti-victory.svg",
+    "approvalStatus": "approved-preview"
   }
 ]
