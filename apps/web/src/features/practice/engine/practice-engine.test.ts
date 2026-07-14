@@ -133,11 +133,13 @@ describe("practiceReducer", () => {
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL" });
     expect(state.transitionMessage).toBe("Tie. Replay round.");
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
-    expect(state.phase).toBe("commit");
+    expect(state.phase).toBe("round_intro");
     expect(state.round).toBe(1);
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_INTRO" });
+    expect(state.phase).toBe("commit");
   });
 
-  it("opens the next commit phase directly after round result", () => {
+  it("opens round intro after round result before the next commit phase", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
@@ -148,9 +150,25 @@ describe("practiceReducer", () => {
       cpuScore: 0,
     };
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
-    expect(state.phase).toBe("commit");
+    expect(state.phase).toBe("round_intro");
     expect(state.round).toBe(2);
     expect(state.countdown).toBe(0);
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_INTRO" });
+    expect(state.phase).toBe("commit");
+    expect(state.commitStartedAt).toBeTruthy();
+  });
+
+  it("enters round intro after opening countdown", () => {
+    let state = createInitialMatchState();
+    state = practiceReducer(state, { type: "START_MATCH" });
+    while (state.phase === "countdown" && state.countdown > 1) {
+      state = practiceReducer(state, { type: "TICK_COUNTDOWN" });
+    }
+    state = practiceReducer(state, { type: "TICK_COUNTDOWN" });
+    expect(state.phase).toBe("round_intro");
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_INTRO" });
+    expect(state.phase).toBe("commit");
+    expect(state.timerSeconds).toBe(20);
   });
 
   it("declares a player match win at the target score", () => {

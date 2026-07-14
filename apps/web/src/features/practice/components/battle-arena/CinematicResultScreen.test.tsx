@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { cleanup, screen } from "@testing-library/react";
+import { act, cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CinematicResultScreen } from "@/features/practice/components/battle-arena/CinematicResultScreen";
 import {
@@ -193,5 +193,83 @@ describe("CinematicResultScreen", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "DEFEAT" }),
     ).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="victory-persistent-effects"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="defeat-persistent-effects"]'),
+    ).toBeNull();
+  });
+
+  it("renders readable match summary pills", () => {
+    renderWithProviders(
+      <CinematicResultScreen
+        {...baseProps}
+        tiedRounds={1}
+        automaticMoves={2}
+        variant="victory"
+        reducedMotion={false}
+      />,
+    );
+
+    expect(screen.getByTestId("match-summary-row")).toBeInTheDocument();
+    expect(screen.getByTestId("match-summary-tied-rounds")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("match-summary-automatic-moves"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("TIED ROUNDS")).toBeInTheDocument();
+    expect(screen.getByText("AUTOMATIC MOVES")).toBeInTheDocument();
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
+
+  it("renders victory persistent effects after entrance when motion is allowed", () => {
+    vi.useFakeTimers();
+    const { container } = renderWithProviders(
+      <CinematicResultScreen
+        {...baseProps}
+        variant="victory"
+        reducedMotion={false}
+      />,
+    );
+
+    expect(
+      container.querySelector('[data-testid="victory-persistent-effects"]'),
+    ).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(
+      container.querySelector('[data-testid="victory-persistent-effects"]'),
+    ).toBeTruthy();
+    expect(
+      container.querySelector('[data-testid="defeat-persistent-effects"]'),
+    ).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it("renders defeat persistent effects after entrance when motion is allowed", () => {
+    vi.useFakeTimers();
+    const { container } = renderWithProviders(
+      <CinematicResultScreen
+        {...baseProps}
+        variant="defeat"
+        reducedMotion={false}
+      />,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(
+      container.querySelector('[data-testid="defeat-persistent-effects"]'),
+    ).toBeTruthy();
+    expect(
+      container.querySelector('[data-testid="victory-persistent-effects"]'),
+    ).toBeNull();
+    vi.useRealTimers();
   });
 });

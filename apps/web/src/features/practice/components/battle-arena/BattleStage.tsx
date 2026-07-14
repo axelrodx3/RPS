@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   MOVE_EMOJI,
   MOVE_LABELS,
@@ -21,7 +22,11 @@ type BattleStageProps = {
   playerTimedOut: boolean;
   transitionMessage: string | null;
   phaseLabel: string;
+  round: number;
+  reducedMotion: boolean;
 };
+
+const CPU_REVEAL_DELAY_MS = 380;
 
 function playerShowsMove(
   phase: PracticePhase,
@@ -37,15 +42,12 @@ function playerShowsMove(
   );
 }
 
-function cpuShowsMove(phase: PracticePhase): boolean {
-  return phase === "reveal" || phase === "round_result";
-}
-
 function revealPodClass(
   side: "player" | "cpu",
   outcome: RoundOutcome | null,
   phase: PracticePhase,
   playerMove: Move | null,
+  cpuRevealVisible: boolean,
 ): string {
   const classes = [styles.battlePod];
   if (side === "player") classes.push(styles.battlePodPlayer);
@@ -54,9 +56,11 @@ function revealPodClass(
   if (phase === "reveal" || phase === "round_result") {
     classes.push(styles.battlePodReveal);
     if (side === "player") classes.push(styles.battlePodEnterPlayer);
-    if (side === "cpu") classes.push(styles.battlePodEnterCpu);
+    if (side === "cpu" && cpuRevealVisible) {
+      classes.push(styles.battlePodEnterCpu);
+    }
 
-    if (outcome) {
+    if (outcome && cpuRevealVisible) {
       if (outcome === "tie") {
         classes.push(styles.battlePodTie);
       } else {
@@ -76,6 +80,9 @@ function revealPodClass(
       phase === "reveal_pause")
   ) {
     classes.push(styles.battlePodLocked);
+    if (phase === "move_locked") {
+      classes.push(styles.battlePodLockedFlash);
+    }
   }
 
   if (phase === "waiting_cpu" && side === "cpu") {
@@ -95,7 +102,7 @@ function podStatusLabel(
   phase: PracticePhase,
 ): string | null {
   if (side === "player") {
-    if (phase === "move_locked") return "Move locked";
+    if (phase === "move_locked") return "LOCKED IN";
     if (phase === "waiting_cpu" || phase === "reveal_pause") {
       return "Your move is ready";
     }
@@ -103,7 +110,7 @@ function podStatusLabel(
 
   if (side === "cpu") {
     if (phase === "move_locked") return "CPU locked";
-    if (phase === "waiting_cpu") return "Waiting on CPU";
+    if (phase === "waiting_cpu") return "Waiting for CPU";
     if (phase === "reveal_pause") return "Reveal incoming";
   }
 
@@ -116,12 +123,14 @@ function MoveDisplay({
   timedOut,
   side,
   showName = false,
+  entering = false,
 }: {
   move: Move | null;
   concealed: boolean;
   timedOut?: boolean;
   side: "player" | "cpu";
   showName?: boolean;
+  entering?: boolean;
 }) {
   if (concealed || !move) {
     return (
@@ -132,7 +141,9 @@ function MoveDisplay({
   }
 
   return (
-    <div className={styles.moveRevealArt}>
+    <div
+      className={`${styles.moveRevealArt} ${entering ? styles.moveRevealEnter : ""}`.trim()}
+    >
       <strong aria-label={MOVE_LABELS[move]}>
         <span aria-hidden="true">{MOVE_EMOJI[move]}</span>
       </strong>
@@ -158,10 +169,28 @@ function phaseCoreMode(
 }
 
 function phaseCoreSubLabel(phase: PracticePhase): string | undefined {
-  if (phase === "move_locked") return "Move locked";
-  if (phase === "waiting_cpu") return "Waiting on CPU";
+  if (phase === "move_locked") return "Locked in";
+  if (phase === "waiting_cpu") return "Waiting for CPU";
   if (phase === "reveal_pause") return "Reveal incoming";
   return undefined;
+}
+
+function stageAtmosphereClass(phase: PracticePhase): string {
+  switch (phase) {
+    case "commit":
+      return styles.battleStageCommit ?? "";
+    case "move_locked":
+      return styles.battleStageMoveLocked ?? "";
+    case "waiting_cpu":
+      return styles.battleStageWaitingCpu ?? "";
+    case "reveal_pause":
+      return styles.battleStageRevealPrep ?? "";
+    case "reveal":
+    case "round_result":
+      return styles.battleStageReveal ?? "";
+    default:
+      return "";
+  }
 }
 
 export function BattleStage({
@@ -175,12 +204,52 @@ export function BattleStage({
   playerTimedOut,
   transitionMessage,
   phaseLabel,
+  round,
+  reducedMotion,
 }: BattleStageProps) {
+  const [cpuRevealVisible, setCpuRevealVisible] = useState(false);
+  const [revealImpact, setRevealImpact] = useState(false);
+
+  useEffect(() => {
+    if (phase !== "reveal") {
+      const resetTimer = window.setTimeout(() => {
+        setCpuRevealVisible(false);
+        setRevealImpact(false);
+      }, 0);
+      return () => window.clearTimeout(resetTimer);
+    }
+
+    const hideTimer = window.setTimeout(() => {
+      setCpuRevealVisible(false);
+      setRevealImpact(!reducedMotion);
+    }, 0);
+    const revealTimer = window.setTimeout(
+      () => {
+        setCpuRevealVisible(true);
+      },
+      reducedMotion ? 0 : CPU_REVEAL_DELAY_MS,
+    );
+    const impactTimer = window.setTimeout(
+      () => {
+        setRevealImpact(false);
+      },
+      reducedMotion ? 0 : CPU_REVEAL_DELAY_MS + 420,
+    );
+
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(impactTimer);
+    };
+  }, [phase, round, reducedMotion]);
+
   const showResult =
     (phase === "reveal" || phase === "round_result") && roundOutcome;
   const playerVisible = playerShowsMove(phase, playerMove);
-  const cpuVisible = cpuShowsMove(phase);
+  const cpuVisible =
+    (phase === "reveal" || phase === "round_result") && cpuRevealVisible;
   const coreMode = phaseCoreMode(phase);
+  const playerMoveEntering = phase === "move_locked" && Boolean(playerMove);
 
   const resultText =
     roundOutcome === "tie"
@@ -198,14 +267,44 @@ export function BattleStage({
         ? styles.resultLoss
         : styles.resultTie;
 
+  const stageClass = [
+    styles.battleStage,
+    stageAtmosphereClass(phase),
+    phase === "reveal_pause" ? styles.battleStageAnticipation : "",
+    revealImpact ? styles.battleStageImpact : "",
+    roundOutcome === "tie" && (phase === "reveal" || phase === "round_result")
+      ? styles.battleStageTie
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const fieldClass = [
+    styles.stageField,
+    phase === "reveal_pause" ? styles.stageFieldRevealPrep : "",
+    phase === "reveal" || phase === "round_result"
+      ? styles.stageFieldReveal
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={styles.battleStage} data-phase={phase}>
+    <div className={stageClass} data-phase={phase}>
       <div className={styles.stageSpotlight} aria-hidden="true" />
       <div className={styles.stageGrid} aria-hidden="true" />
+      <div className={styles.stageScanline} aria-hidden="true" />
+      <div className={styles.stageHaze} aria-hidden="true" />
 
-      <div className={styles.stageField}>
+      <div className={fieldClass}>
         <div
-          className={revealPodClass("player", roundOutcome, phase, playerMove)}
+          className={revealPodClass(
+            "player",
+            roundOutcome,
+            phase,
+            playerMove,
+            cpuRevealVisible,
+          )}
         >
           <span className={styles.podLabel}>YOU</span>
           {podStatusLabel("player", phase) ? (
@@ -219,6 +318,7 @@ export function BattleStage({
             timedOut={playerTimedOut}
             side="player"
             showName={playerVisible}
+            entering={playerMoveEntering}
           />
         </div>
 
@@ -230,13 +330,14 @@ export function BattleStage({
             phaseLabel={phaseLabel}
             subLabel={phaseCoreSubLabel(phase)}
             countdown={countdown}
+            vsImpact={phase === "reveal" && cpuRevealVisible}
           />
 
           {showResult ? (
             <div
               className={`${styles.roundResultPanel} ${resultClass} ${
                 phase === "round_result" ? styles.roundResultVisible : ""
-              }`.trim()}
+              } ${phase === "reveal" && cpuRevealVisible ? styles.roundResultReveal : ""}`.trim()}
               role="status"
             >
               <p>{resultText}</p>
@@ -247,7 +348,15 @@ export function BattleStage({
           ) : null}
         </div>
 
-        <div className={revealPodClass("cpu", roundOutcome, phase, playerMove)}>
+        <div
+          className={revealPodClass(
+            "cpu",
+            roundOutcome,
+            phase,
+            playerMove,
+            cpuRevealVisible,
+          )}
+        >
           <span className={styles.podLabel}>CPU</span>
           {podStatusLabel("cpu", phase) ? (
             <span
@@ -261,6 +370,7 @@ export function BattleStage({
             concealed={!cpuVisible}
             side="cpu"
             showName={cpuVisible}
+            entering={cpuVisible && phase === "reveal"}
           />
         </div>
       </div>

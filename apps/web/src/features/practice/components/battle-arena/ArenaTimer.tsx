@@ -12,6 +12,7 @@ type ArenaCoreProps = {
   phaseLabel: string;
   subLabel?: string;
   countdown?: number;
+  vsImpact?: boolean;
 };
 
 const RING_RADIUS = 54;
@@ -24,6 +25,7 @@ export function ArenaCore({
   phaseLabel,
   subLabel,
   countdown = 0,
+  vsImpact = false,
 }: ArenaCoreProps) {
   const showProgress = mode === "timer";
   const progress = showProgress ? seconds / total : 0;
@@ -33,7 +35,7 @@ export function ArenaCore({
 
   return (
     <div
-      className={`${styles.arenaCore} ${warning ? styles.arenaTimerWarning : ""} ${revealActive ? styles.arenaCoreReveal : ""}`.trim()}
+      className={`${styles.arenaCore} ${warning ? styles.arenaTimerWarning : ""} ${revealActive ? styles.arenaCoreReveal : ""} ${vsImpact ? styles.arenaCoreVsImpact : ""}`.trim()}
       role={showProgress ? "timer" : undefined}
       aria-label={
         showProgress

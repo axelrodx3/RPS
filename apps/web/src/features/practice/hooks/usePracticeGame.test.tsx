@@ -7,6 +7,7 @@ import {
   MOVE_LOCKED_MS,
   REVEAL_DISPLAY_MS,
   REVEAL_PAUSE_MS,
+  ROUND_INTRO_MS,
   ROUND_RESULT_DISPLAY_MS,
   WAITING_CPU_MS,
   practiceReducer,
@@ -41,6 +42,9 @@ function reachCommitPhase(result: {
   });
   act(() => {
     vi.advanceTimersByTime(3000);
+  });
+  act(() => {
+    vi.advanceTimersByTime(ROUND_INTRO_MS);
   });
 }
 
@@ -115,6 +119,11 @@ describe("usePracticeGame", () => {
 
     act(() => {
       vi.advanceTimersByTime(100);
+    });
+    expect(result.current.state.phase).toBe("round_intro");
+
+    act(() => {
+      vi.advanceTimersByTime(ROUND_INTRO_MS);
     });
     expect(result.current.state.phase).toBe("commit");
     expect(result.current.state.countdown).toBe(0);

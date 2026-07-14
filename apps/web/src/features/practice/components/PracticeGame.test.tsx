@@ -27,6 +27,9 @@ async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(3000);
   });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(700);
+  });
 }
 
 function mockActiveMatch(
@@ -95,7 +98,13 @@ describe("PracticeGame", () => {
 
     const rock = screen.getByRole("button", { name: /Choose Rock/i });
     await user.click(rock);
-    expect(screen.queryByRole("button", { name: /Choose Rock/i })).toBeNull();
+    expect(rock).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Choose Paper/i }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Choose Scissors/i }),
+    ).toBeDisabled();
   });
 
   it("does not show Get ready between ordinary rounds", () => {
@@ -108,8 +117,10 @@ describe("PracticeGame", () => {
       transitionMessage: "Next round",
     };
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
-    expect(state.phase).toBe("commit");
+    expect(state.phase).toBe("round_intro");
     expect(state.countdown).toBe(0);
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_INTRO" });
+    expect(state.phase).toBe("commit");
   });
 
   it("updates the score after a resolved round", () => {
@@ -153,6 +164,9 @@ describe("PracticeGame", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(700);
+    });
 
     expect(screen.getByRole("group", { name: "Choose move" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Choose Rock/i })).toBeEnabled();
@@ -182,8 +196,13 @@ describe("PracticeGame", () => {
 });
 
 describe("battle arena presentation", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -218,7 +237,7 @@ describe("battle arena presentation", () => {
     hook.mockRestore();
   });
 
-  it("renders reveal stage with both moves and outcome styling", () => {
+  it("renders reveal stage with both moves and outcome styling", async () => {
     const hook = mockActiveMatch(createInitialMatchState(), {
       phase: "reveal",
       playerMove: "rock",
@@ -227,6 +246,9 @@ describe("battle arena presentation", () => {
     });
 
     const { container } = renderWithProviders(<PracticeGame />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
     expect(container.querySelector(`.${styles.battlePodWin}`)).toBeTruthy();
     expect(container.querySelector(`.${styles.battlePodLoss}`)).toBeTruthy();
     expect(container.querySelector(`.${styles.arenaCoreVs}`)).toBeTruthy();
@@ -278,7 +300,7 @@ describe("battle arena presentation", () => {
   });
 
   it.each([
-    ["move_locked", "Move locked"],
+    ["move_locked", "LOCKED IN"],
     ["waiting_cpu", "Your move is ready"],
     ["reveal_pause", "Your move is ready"],
   ] as const)(
@@ -328,6 +350,69 @@ describe("battle arena presentation", () => {
     expect(container.querySelectorAll(`.${styles.concealedMark}`).length).toBe(
       2,
     );
+    hook.mockRestore();
+  });
+
+  it("renders contextual round intro labels", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_intro",
+      round: 1,
+      playerScore: 0,
+      cpuScore: 0,
+    });
+
+    renderWithProviders(<PracticeGame />);
+    const overlay = screen.getByTestId("round-intro-overlay");
+    expect(overlay).toBeInTheDocument();
+    expect(overlay).toHaveTextContent("ROUND 1");
+    hook.mockRestore();
+  });
+
+  it("begins move timer only after round intro completes", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderWithProviders(<PracticeGame />);
+    await user.click(
+      screen.getByRole("button", { name: "Start Practice Match" }),
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(screen.getByTestId("round-intro-overlay")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Choose move" })).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(700);
+    });
+    expect(screen.getByRole("group", { name: "Choose move" })).toBeTruthy();
+  });
+
+  it("highlights the newest timeline entry once", async () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_result",
+      history: [
+        {
+          round: 1,
+          playerMove: "rock",
+          cpuMove: "scissors",
+          outcome: "player",
+          playerTimedOut: false,
+          cpuTimedOut: false,
+        },
+      ],
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.getByTestId("timeline-entry-newest")).toBeInTheDocument();
+    expect(container.querySelector(`.${styles.timelineEntryNew}`)).toBeTruthy();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600);
+    });
+    expect(container.querySelector(`.${styles.timelineEntryNew}`)).toBeNull();
     hook.mockRestore();
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/design-system/components";
 import buttonStyles from "@/design-system/components/button.module.css";
 import {
@@ -27,20 +27,35 @@ function ResultBackgroundLayer({
   matchKey,
   variant,
   reducedMotion,
+  persistent,
 }: {
   background: (typeof MATCH_RESULT_BACKGROUNDS)[MatchResultVariant];
   matchKey: string;
   variant: MatchResultVariant;
   reducedMotion: boolean;
+  persistent: boolean;
 }) {
   const isVictory = variant === "victory";
 
   return (
     <div
-      className={`${styles.cinematicResultBackdrop} ${
-        reducedMotion ? styles.cinematicResultBackdropStatic : ""
-      }`.trim()}
+      className={[
+        styles.cinematicResultBackdrop,
+        reducedMotion ? styles.cinematicResultBackdropStatic : "",
+        persistent && !reducedMotion
+          ? styles.cinematicResultBackdropPersistent
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-hidden="true"
+      data-testid={
+        persistent
+          ? isVictory
+            ? "victory-persistent-effects"
+            : "defeat-persistent-effects"
+          : undefined
+      }
     >
       <picture className={styles.cinematicResultBleedPicture}>
         <source srcSet={background.webp} type="image/webp" />
@@ -93,6 +108,33 @@ function ResultBackgroundLayer({
             : styles.cinematicResultAtmosphereDefeat
         }
       />
+
+      {persistent && !reducedMotion ? (
+        <div
+          className={
+            isVictory
+              ? styles.cinematicResultPersistentVictory
+              : styles.cinematicResultPersistentDefeat
+          }
+          aria-hidden="true"
+        >
+          <span className={styles.cinematicResultRay} />
+          <span className={styles.cinematicResultParticle} />
+          <span className={styles.cinematicResultParticleAlt} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MatchSummaryPill({ label, value }: { label: string; value: number }) {
+  return (
+    <div
+      className={styles.matchSummaryPill}
+      data-testid={`match-summary-${label.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <span className={styles.matchSummaryLabel}>{label}</span>
+      <strong className={styles.matchSummaryValue}>{value}</strong>
     </div>
   );
 }
@@ -112,10 +154,25 @@ export function CinematicResultScreen({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const playHover = useHoverSound(false);
   const playHoverRematch = useHoverSound(false);
+  const [persistent, setPersistent] = useState(false);
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
   }, [matchKey]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setPersistent(true);
+    }, 1200);
+    return () => {
+      window.clearTimeout(timer);
+      window.setTimeout(() => setPersistent(false), 0);
+    };
+  }, [matchKey, reducedMotion]);
 
   const panelClass = isVictory
     ? styles.cinematicResultVictory
@@ -129,10 +186,18 @@ export function CinematicResultScreen({
   const motionClass = reducedMotion
     ? styles.cinematicResultReduced
     : styles.cinematicResultEnter;
+  const titlePersistentClass =
+    persistent && !reducedMotion
+      ? isVictory
+        ? styles.matchVictoryPersistent
+        : styles.matchDefeatPersistent
+      : "";
 
   return (
     <section
-      className={`${styles.cinematicResult} ${panelClass} ${motionClass}`.trim()}
+      className={`${styles.cinematicResult} ${panelClass} ${motionClass} ${
+        persistent && !reducedMotion ? styles.cinematicResultPersistent : ""
+      }`.trim()}
       role="status"
       aria-labelledby={`match-result-heading-${matchKey}`}
       data-result-variant={variant}
@@ -143,6 +208,7 @@ export function CinematicResultScreen({
         matchKey={matchKey}
         variant={variant}
         reducedMotion={reducedMotion}
+        persistent={persistent}
       />
 
       <div className={styles.cinematicResultContent}>
@@ -156,7 +222,7 @@ export function CinematicResultScreen({
           id={`match-result-heading-${matchKey}`}
           ref={headingRef}
           tabIndex={-1}
-          className={`${styles.matchCompleteTitle} ${titleClass} ${titleMotionClass}`.trim()}
+          className={`${styles.matchCompleteTitle} ${titleClass} ${titleMotionClass} ${titlePersistentClass}`.trim()}
         >
           {isVictory ? "VICTORY" : "DEFEAT"}
         </h2>
@@ -165,9 +231,13 @@ export function CinematicResultScreen({
           <p className={styles.matchCompleteScore}>
             Final score {playerScore} – {cpuScore}
           </p>
-          <p className={styles.matchCompleteMeta}>
-            Tied rounds {tiedRounds} · Automatic moves {automaticMoves}
-          </p>
+          <div
+            className={styles.matchSummaryRow}
+            data-testid="match-summary-row"
+          >
+            <MatchSummaryPill label="TIED ROUNDS" value={tiedRounds} />
+            <MatchSummaryPill label="AUTOMATIC MOVES" value={automaticMoves} />
+          </div>
         </div>
 
         <div
@@ -175,7 +245,7 @@ export function CinematicResultScreen({
         >
           <Button
             size="lg"
-            className={styles.matchActionButton}
+            className={`${styles.matchActionButton} ${styles.matchActionPrimary}`.trim()}
             onClick={onRematch}
             onPointerEnter={playHoverRematch}
           >

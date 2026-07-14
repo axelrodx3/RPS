@@ -107,8 +107,9 @@ describe("audioEngine custom assets", () => {
     audioEngine.play("match_win", levels);
     audioEngine.play("match_loss", levels);
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(2);
-    expect(SOUND_REGISTRY.round_win.enabled).toBe(false);
-    expect(SOUND_REGISTRY.round_loss.enabled).toBe(false);
+    expect(SOUND_REGISTRY.round_win.enabled).toBe(true);
+    expect(SOUND_REGISTRY.round_loss.enabled).toBe(true);
+    expect(SOUND_REGISTRY.reveal.enabled).toBe(true);
   });
 
   it("plays generated ui hover tones quieter than button clicks", () => {

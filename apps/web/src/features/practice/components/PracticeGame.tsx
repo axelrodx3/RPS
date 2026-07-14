@@ -8,6 +8,7 @@ import {
   countAutomaticMoves,
   countTiedRounds,
   isMoveSelectionLocked,
+  type RoundOutcome,
 } from "@/features/practice/engine/practice-engine";
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
 import { PracticeStatsPanel } from "@/features/practice/components/PracticeStatsPanel";
@@ -17,7 +18,10 @@ import { BattleStage } from "@/features/practice/components/battle-arena/BattleS
 import { MatchCompletePanel } from "@/features/practice/components/battle-arena/MatchCompletePanel";
 import { MoveDock } from "@/features/practice/components/battle-arena/MoveDock";
 import { PlayerStrip } from "@/features/practice/components/battle-arena/PlayerStrip";
+import { RoundIntroOverlay } from "@/features/practice/components/battle-arena/RoundIntroOverlay";
 import { RoundTimeline } from "@/features/practice/components/battle-arena/RoundTimeline";
+import { getRoundIntroLabel } from "@/features/practice/utils/round-intro-label";
+import { useSettings } from "@/providers/SettingsProvider";
 import styles from "./practice-game.module.css";
 
 function phaseLabel(
@@ -27,6 +31,8 @@ function phaseLabel(
   switch (phase) {
     case "countdown":
       return "Round starting";
+    case "round_intro":
+      return "Round intro";
     case "commit":
       return "Choose your move";
     case "move_locked":
@@ -90,13 +96,59 @@ function useScorePulse(score: number) {
   return pulse;
 }
 
+function useScoreImpact(
+  historyLength: number,
+  lastOutcome: RoundOutcome | null,
+) {
+  const previousLength = useRef(historyLength);
+  const [impact, setImpact] = useState<"player" | "cpu" | null>(null);
+
+  useEffect(() => {
+    if (historyLength <= previousLength.current) {
+      previousLength.current = historyLength;
+      return undefined;
+    }
+
+    previousLength.current = historyLength;
+    if (lastOutcome !== "player" && lastOutcome !== "cpu") {
+      return undefined;
+    }
+
+    const startTimer = window.setTimeout(() => {
+      setImpact(lastOutcome);
+      const endTimer = window.setTimeout(() => setImpact(null), 620);
+      return () => window.clearTimeout(endTimer);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      window.setTimeout(() => setImpact(null), 0);
+    };
+  }, [historyLength, lastOutcome]);
+
+  return impact;
+}
+
+const MOVE_DOCK_PHASES = new Set([
+  "commit",
+  "move_locked",
+  "waiting_cpu",
+  "reveal_pause",
+]);
+
 export function PracticeGame() {
   const { state, startMatch, selectMove, rematch, winTarget, timerTotal } =
     usePracticeGame();
+  const { settings } = useSettings();
   const playPracticeHover = useHoverSound(false);
   const announcement = liveAnnouncement(state);
   const playerScorePulse = useScorePulse(state.playerScore);
   const cpuScorePulse = useScorePulse(state.cpuScore);
+  const lastHistoryEntry = state.history[state.history.length - 1];
+  const scoreImpact = useScoreImpact(
+    state.history.length,
+    lastHistoryEntry?.outcome ?? null,
+  );
 
   useEffect(() => {
     if (state.phase === "match_complete") return;
@@ -145,9 +197,19 @@ export function PracticeGame() {
     state.phase === "match_complete" && state.matchWinner === "player";
   const victoryMatchKey = `win-${state.playerScore}-${state.cpuScore}-${state.history.length}`;
   const resultMatchKey = `${state.matchWinner ?? "none"}-${state.playerScore}-${state.cpuScore}-${state.history.length}`;
+  const roundIntroLabel = getRoundIntroLabel(
+    state.round,
+    state.playerScore,
+    state.cpuScore,
+    winTarget,
+  );
+  const showMoveDock = MOVE_DOCK_PHASES.has(state.phase);
 
   return (
-    <div className={styles.pageStack}>
+    <div
+      className={styles.pageStack}
+      data-reduced-motion={settings.reducedMotion ? "true" : "false"}
+    >
       <div className={styles.srOnly} aria-live="polite">
         {announcement}
       </div>
@@ -184,6 +246,8 @@ export function PracticeGame() {
             phaseLabel={label}
             playerScorePulse={playerScorePulse}
             cpuScorePulse={cpuScorePulse}
+            playerIdentityPulse={scoreImpact === "player"}
+            playerIdentityImpact={scoreImpact === "cpu"}
           />
 
           {state.phase === "match_complete" && state.matchWinner ? (
@@ -198,6 +262,13 @@ export function PracticeGame() {
             />
           ) : (
             <>
+              {state.phase === "round_intro" ? (
+                <RoundIntroOverlay
+                  label={roundIntroLabel}
+                  reducedMotion={settings.reducedMotion}
+                />
+              ) : null}
+
               <BattleStage
                 phase={state.phase}
                 countdown={state.countdown}
@@ -209,8 +280,11 @@ export function PracticeGame() {
                 playerTimedOut={state.playerTimedOut}
                 transitionMessage={state.transitionMessage}
                 phaseLabel={label}
+                round={state.round}
+                reducedMotion={settings.reducedMotion}
               />
-              {state.phase === "commit" ? (
+
+              {showMoveDock ? (
                 <MoveDock
                   selectedMove={state.playerMove}
                   locked={locked}
@@ -222,7 +296,10 @@ export function PracticeGame() {
         </section>
 
         <aside className={styles.timelineAside}>
-          <RoundTimeline history={state.history} />
+          <RoundTimeline
+            history={state.history}
+            reducedMotion={settings.reducedMotion}
+          />
         </aside>
       </div>
 

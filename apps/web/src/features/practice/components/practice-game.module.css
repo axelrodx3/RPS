@@ -571,6 +571,51 @@
   animation: scorePop 520ms var(--motion-ease);
 }
 
+.stripIdentityPulse {
+  animation: identityLimePulse 620ms var(--motion-ease) 1;
+}
+
+.stripIdentityImpact {
+  animation: identityRedImpact 620ms var(--motion-ease) 1;
+}
+
+.winMarkerPulse {
+  animation: markerFill 420ms var(--motion-ease);
+}
+
+/* ── Round intro ── */
+.roundIntroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: rgb(0 0 0 / 42%);
+}
+
+.roundIntroEnter {
+  animation: roundIntroFade 700ms var(--motion-ease) 1;
+}
+
+.roundIntroReduced {
+  animation: roundIntroFadeReduced 450ms ease-out 1;
+}
+
+.roundIntroLabel {
+  margin: 0;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-brand-500);
+  text-shadow: 0 0 24px rgb(215 255 67 / 28%);
+}
+
+.roundIntroEnter .roundIntroLabel {
+  animation: roundIntroScale 700ms var(--motion-ease) 1;
+}
+
 /* ── Battle stage ── */
 .battleStage {
   position: relative;
@@ -581,6 +626,38 @@
   border-radius: var(--radius-lg);
   background: rgb(0 0 0 / 28%);
   overflow: hidden;
+}
+
+.battleStageCommit {
+  box-shadow: inset 0 0 60px rgb(215 255 67 / 4%);
+}
+
+.battleStageMoveLocked {
+  box-shadow: inset 48px 0 80px rgb(215 255 67 / 6%);
+}
+
+.battleStageWaitingCpu {
+  box-shadow: inset -48px 0 80px rgb(255 255 255 / 3%);
+}
+
+.battleStageRevealPrep {
+  box-shadow: inset 0 0 72px rgb(215 255 67 / 8%);
+}
+
+.battleStageReveal {
+  box-shadow: inset 0 0 48px rgb(215 255 67 / 10%);
+}
+
+.battleStageAnticipation .stageSpotlight {
+  animation: spotlightIntensify 900ms ease-in-out infinite alternate;
+}
+
+.battleStageImpact {
+  animation: arenaImpactShake 420ms ease-out 1;
+}
+
+.battleStageTie {
+  box-shadow: inset 0 0 56px rgb(108 180 255 / 10%);
 }
 
 .stageSpotlight {
@@ -603,6 +680,43 @@
     linear-gradient(90deg, rgb(255 255 255 / 20%) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
+  animation: gridDrift 18s linear infinite;
+}
+
+.stageScanline {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgb(255 255 255 / 8%) 3px,
+    rgb(255 255 255 / 8%) 4px
+  );
+  pointer-events: none;
+}
+
+.stageHaze {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgb(215 255 67 / 5%),
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.stageFieldRevealPrep {
+  transform: scale(1.01);
+  transition: transform 850ms var(--motion-ease);
+}
+
+.stageFieldReveal {
+  gap: var(--space-2);
+  transition: gap 480ms var(--motion-ease);
 }
 
 .stageField {
@@ -645,8 +759,22 @@
   animation: lockPulse 900ms var(--motion-ease) infinite;
 }
 
+.battlePodLockedFlash {
+  animation: lockFlash 520ms var(--motion-ease) 1;
+}
+
 .battlePodThinking {
   animation: panelBreath 1.2s ease-in-out infinite;
+}
+
+.moveRevealEnter {
+  animation: moveSlotEnter 480ms var(--motion-ease) 1 both;
+}
+
+.moveRevealArt {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
 }
 
 .battlePodConcealed {
@@ -862,6 +990,10 @@
   animation: vsPop 480ms var(--motion-ease) forwards;
 }
 
+.arenaCoreVsImpact {
+  animation: vsImpactPulse 360ms var(--motion-ease) 1;
+}
+
 .arenaCorePhase {
   max-width: 112px;
   font-size: 11px;
@@ -903,6 +1035,10 @@
   opacity: 0;
   transform: translateY(8px);
   animation: resultReveal 480ms var(--motion-ease) 380ms forwards;
+}
+
+.roundResultReveal {
+  animation: resultReveal 480ms var(--motion-ease) 120ms forwards;
 }
 
 .roundResultVisible {
@@ -1263,9 +1399,147 @@
   position: relative;
   z-index: 2;
   margin: 0;
+  padding: var(--space-2) var(--space-4);
   font-size: 18px;
   font-weight: 700;
+  color: rgb(255 255 255 / 96%);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 52%);
+  border: 1px solid rgb(255 255 255 / 12%);
   text-shadow: 0 2px 12px rgb(0 0 0 / 55%);
+}
+
+.matchSummaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  width: 100%;
+}
+
+.matchSummaryPill {
+  display: grid;
+  gap: 2px;
+  min-width: 132px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 58%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  text-align: center;
+}
+
+.matchSummaryLabel {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgb(255 255 255 / 58%);
+}
+
+.matchSummaryValue {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgb(255 255 255 / 96%);
+  font-variant-numeric: tabular-nums;
+}
+
+.matchVictoryPersistent {
+  animation: victoryTitleShimmer 6s ease-in-out infinite;
+}
+
+.matchDefeatPersistent {
+  animation: defeatTextGlow 6.5s ease-in-out infinite;
+}
+
+.cinematicResultPersistent .cinematicResultBleedImage,
+.cinematicResultPersistent .cinematicResultSharpImage {
+  animation: cinematicBackgroundPushPersistent 8s ease-in-out infinite alternate;
+}
+
+.cinematicResultBackdropPersistent .cinematicResultGlowVictory {
+  animation: victoryGlowBreathe 7s ease-in-out infinite;
+}
+
+.cinematicResultBackdropPersistent .cinematicResultGlowDefeat {
+  animation: defeatGlowBreathe 7s ease-in-out infinite;
+}
+
+.cinematicResultPersistentVictory,
+.cinematicResultPersistentDefeat {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cinematicResultRay {
+  position: absolute;
+  inset: -20% 0;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgb(215 255 67 / 10%) 50%,
+    transparent 60%
+  );
+  opacity: 0;
+  animation: resultRayPulse 6s ease-in-out infinite;
+}
+
+.cinematicResultParticle,
+.cinematicResultParticleAlt {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0.45;
+}
+
+.cinematicResultPersistentVictory .cinematicResultParticle {
+  left: 22%;
+  bottom: 18%;
+  background: rgb(215 255 67 / 70%);
+  animation: victoryParticleRise 9s linear infinite;
+}
+
+.cinematicResultPersistentVictory .cinematicResultParticleAlt {
+  right: 28%;
+  bottom: 24%;
+  background: rgb(255 255 255 / 55%);
+  animation: victoryParticleRise 11s linear infinite 2s;
+}
+
+.cinematicResultPersistentDefeat .cinematicResultParticle {
+  left: 30%;
+  bottom: 16%;
+  background: rgb(229 83 83 / 65%);
+  animation: defeatEmberRise 10s linear infinite;
+}
+
+.cinematicResultPersistentDefeat .cinematicResultParticleAlt {
+  right: 24%;
+  bottom: 20%;
+  background: rgb(255 255 255 / 28%);
+  animation: defeatDustFall 12s linear infinite 3s;
+}
+
+.matchActionPrimary {
+  position: relative;
+  overflow: hidden;
+}
+
+.matchActionPrimary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgb(255 255 255 / 18%) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%);
+  animation: rematchSweep 5s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .matchCompleteMeta {
@@ -1338,7 +1612,12 @@
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 28%);
   border: 1px solid rgb(255 255 255 / 6%);
-  animation: fadeUp 360ms var(--motion-ease);
+}
+
+.timelineEntryNew {
+  animation: timelineSlideIn 520ms var(--motion-ease) 1;
+  border-color: rgb(215 255 67 / 28%);
+  box-shadow: 0 0 16px rgb(215 255 67 / 10%);
 }
 
 .timelineRound {
@@ -1555,6 +1834,301 @@
   }
 }
 
+@keyframes roundIntroFade {
+  0% {
+    opacity: 0;
+  }
+
+  18%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes roundIntroFadeReduced {
+  0% {
+    opacity: 0;
+  }
+
+  20%,
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes roundIntroScale {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+
+  30% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes identityLimePulse {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  45% {
+    box-shadow: 0 0 24px rgb(215 255 67 / 28%);
+  }
+}
+
+@keyframes identityRedImpact {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  45% {
+    box-shadow: 0 0 20px rgb(229 83 83 / 22%);
+  }
+}
+
+@keyframes lockFlash {
+  0% {
+    box-shadow: 0 0 0 rgb(215 255 67 / 0%);
+  }
+
+  40% {
+    box-shadow: 0 0 36px rgb(215 255 67 / 32%);
+  }
+
+  100% {
+    box-shadow: 0 0 24px rgb(215 255 67 / 14%);
+  }
+}
+
+@keyframes moveSlotEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes vsImpactPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.14);
+    filter: brightness(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes arenaImpactShake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(2px, -2px);
+  }
+
+  50% {
+    transform: translate(-2px, 2px);
+  }
+
+  75% {
+    transform: translate(2px, 2px);
+  }
+}
+
+@keyframes spotlightIntensify {
+  from {
+    opacity: 0.75;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gridDrift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 32px 32px;
+  }
+}
+
+@keyframes timelineSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes victoryTitleShimmer {
+  0%,
+  88%,
+  100% {
+    filter: brightness(1);
+  }
+
+  92% {
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes defeatTextGlow {
+  0%,
+  90%,
+  100% {
+    text-shadow:
+      0 0 28px rgb(229 83 83 / 32%),
+      0 2px 18px rgb(0 0 0 / 65%);
+  }
+
+  94% {
+    text-shadow:
+      0 0 36px rgb(229 83 83 / 42%),
+      0 2px 18px rgb(0 0 0 / 65%);
+  }
+}
+
+@keyframes cinematicBackgroundPushPersistent {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes victoryGlowBreathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes defeatGlowBreathe {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes resultRayPulse {
+  0%,
+  84%,
+  100% {
+    opacity: 0;
+    transform: translateX(-30%);
+  }
+
+  88% {
+    opacity: 0.5;
+    transform: translateX(10%);
+  }
+}
+
+@keyframes victoryParticleRise {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.5;
+  }
+
+  to {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}
+
+@keyframes defeatEmberRise {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0.55;
+  }
+
+  to {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+}
+
+@keyframes defeatDustFall {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.35;
+  }
+
+  to {
+    transform: translateY(80px);
+    opacity: 0;
+  }
+}
+
+@keyframes rematchSweep {
+  0%,
+  78%,
+  100% {
+    transform: translateX(-120%);
+  }
+
+  84% {
+    transform: translateX(120%);
+  }
+}
+
 /* ── Mobile ── */
 @media (max-width: 960px) {
   .battleArena {
@@ -1566,17 +2140,12 @@
   }
 
   .timelineList {
-    display: flex;
+    display: grid;
     gap: var(--space-2);
-    overflow-x: auto;
-    padding-bottom: var(--space-1);
-    scroll-snap-type: x mandatory;
   }
 
   .timelineEntry {
-    flex: 0 0 auto;
-    min-width: 200px;
-    scroll-snap-align: start;
+    min-width: 0;
   }
 
   .roundTimeline {
@@ -1734,4 +2303,29 @@
 
 [data-reduced-motion="true"] .moveDockButton:hover:not(:disabled) {
   transform: none;
+}
+
+[data-reduced-motion="true"] .roundIntroEnter .roundIntroLabel,
+[data-reduced-motion="true"] .battleStageAnticipation .stageSpotlight,
+[data-reduced-motion="true"] .battleStageImpact,
+[data-reduced-motion="true"] .stageGrid,
+[data-reduced-motion="true"] .moveRevealEnter,
+[data-reduced-motion="true"] .arenaCoreVsImpact,
+[data-reduced-motion="true"] .timelineEntryNew,
+[data-reduced-motion="true"] .stripIdentityPulse,
+[data-reduced-motion="true"] .stripIdentityImpact,
+[data-reduced-motion="true"] .cinematicResultPersistent,
+[data-reduced-motion="true"]
+  .cinematicResultPersistent
+  .cinematicResultBleedImage,
+[data-reduced-motion="true"]
+  .cinematicResultPersistent
+  .cinematicResultSharpImage,
+[data-reduced-motion="true"] .matchVictoryPersistent,
+[data-reduced-motion="true"] .matchDefeatPersistent,
+[data-reduced-motion="true"] .matchActionPrimary::after,
+[data-reduced-motion="true"] .cinematicResultRay,
+[data-reduced-motion="true"] .cinematicResultParticle,
+[data-reduced-motion="true"] .cinematicResultParticleAlt {
+  animation: none !important;
 }

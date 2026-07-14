@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import {
   MOVE_EMOJI,
   MOVE_LABELS,
@@ -23,9 +24,40 @@ function timelineOutcomeShort(outcome: RoundOutcome): string {
 
 type RoundTimelineProps = {
   history: PracticeMatchState["history"];
+  reducedMotion?: boolean;
 };
 
-export function RoundTimeline({ history }: RoundTimelineProps) {
+export function RoundTimeline({
+  history,
+  reducedMotion = false,
+}: RoundTimelineProps) {
+  const previousLengthRef = useRef(0);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (history.length <= previousLengthRef.current) {
+      return undefined;
+    }
+
+    previousLengthRef.current = history.length;
+    const newestIndex = history.length - 1;
+    let endTimer: number | undefined;
+    const startTimer = window.setTimeout(() => {
+      setHighlightIndex(newestIndex);
+      endTimer = window.setTimeout(() => {
+        setHighlightIndex(null);
+      }, 520);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      if (endTimer) {
+        window.clearTimeout(endTimer);
+      }
+      window.setTimeout(() => setHighlightIndex(null), 0);
+    };
+  }, [history.length]);
+
   if (history.length === 0) {
     return (
       <div className={styles.roundTimeline}>
@@ -41,12 +73,23 @@ export function RoundTimeline({ history }: RoundTimelineProps) {
       <ol className={styles.timelineList}>
         {history.map((round, index) => {
           const chronologicalRound = index + 1;
+          const isNewest = index === history.length - 1;
+          const entryClass = [
+            styles.timelineEntry,
+            isNewest && highlightIndex === index && !reducedMotion
+              ? styles.timelineEntryNew
+              : "",
+            timelineBadgeClass(round.outcome),
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return (
             <li
               key={`${chronologicalRound}-${round.playerMove}-${round.cpuMove}-${round.outcome}`}
-              className={styles.timelineEntry}
+              className={entryClass}
               aria-label={formatRoundHistoryAccessibleLabel(round)}
+              data-testid={isNewest ? "timeline-entry-newest" : undefined}
             >
               <span className={styles.timelineRound}>
                 R{chronologicalRound}

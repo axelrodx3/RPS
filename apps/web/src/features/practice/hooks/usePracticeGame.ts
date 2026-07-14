@@ -12,6 +12,8 @@ import {
   REVEAL_DISPLAY_REDUCED_MS,
   REVEAL_PAUSE_MS,
   REVEAL_PAUSE_REDUCED_MS,
+  ROUND_INTRO_MS,
+  ROUND_INTRO_REDUCED_MS,
   ROUND_RESULT_DISPLAY_MS,
   ROUND_RESULT_DISPLAY_REDUCED_MS,
   TIMER_WARNING_SECONDS,
@@ -53,7 +55,10 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const timerWarningPlayedRef = useRef(false);
   const timeoutHandledRef = useRef(false);
   const moveLockedPlayedRef = useRef(false);
+  const roundIntroTimeoutRef = useRef<number | null>(null);
   const countdownAudioTickRef = useRef<number | null>(null);
+  const revealAudioPlayedRef = useRef(false);
+  const roundOutcomeAudioPlayedRef = useRef(false);
 
   const clearTimers = useCallback(() => {
     for (const ref of [
@@ -62,6 +67,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
       revealPauseTimeoutRef,
       revealTimeoutRef,
       roundResultTimeoutRef,
+      roundIntroTimeoutRef,
     ]) {
       if (ref.current) {
         window.clearTimeout(ref.current);
@@ -93,6 +99,8 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     timeoutHandledRef.current = false;
     moveLockedPlayedRef.current = false;
     countdownAudioTickRef.current = null;
+    revealAudioPlayedRef.current = false;
+    roundOutcomeAudioPlayedRef.current = false;
     clearTimers();
     dispatch({ type: "START_MATCH" });
     play("button");
@@ -117,6 +125,8 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     timeoutHandledRef.current = false;
     moveLockedPlayedRef.current = false;
     countdownAudioTickRef.current = null;
+    revealAudioPlayedRef.current = false;
+    roundOutcomeAudioPlayedRef.current = false;
     clearTimers();
     dispatch({ type: "REMATCH" });
     play("button");
@@ -137,6 +147,23 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
       play("countdown");
     }
   }, [state.phase, state.countdown, play]);
+
+  useEffect(() => {
+    if (state.phase !== "round_intro") return;
+
+    const duration = settings.reducedMotion
+      ? ROUND_INTRO_REDUCED_MS
+      : ROUND_INTRO_MS;
+    roundIntroTimeoutRef.current = window.setTimeout(() => {
+      dispatch({ type: "ADVANCE_FROM_ROUND_INTRO" });
+    }, duration);
+    return () => {
+      if (roundIntroTimeoutRef.current) {
+        window.clearTimeout(roundIntroTimeoutRef.current);
+        roundIntroTimeoutRef.current = null;
+      }
+    };
+  }, [state.phase, state.round, settings.reducedMotion]);
 
   useEffect(() => {
     if (state.phase !== "countdown") return;
@@ -202,6 +229,30 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     play,
     random,
   ]);
+
+  useEffect(() => {
+    if (state.phase !== "reveal") {
+      revealAudioPlayedRef.current = false;
+      roundOutcomeAudioPlayedRef.current = false;
+      return;
+    }
+
+    if (!revealAudioPlayedRef.current) {
+      revealAudioPlayedRef.current = true;
+      window.setTimeout(() => play("reveal"), 380);
+    }
+
+    if (!roundOutcomeAudioPlayedRef.current && state.roundOutcome) {
+      roundOutcomeAudioPlayedRef.current = true;
+      if (state.roundOutcome === "tie") {
+        play("round_tie");
+      } else if (state.roundOutcome === "player") {
+        play("round_win");
+      } else if (state.roundOutcome === "cpu") {
+        play("round_loss");
+      }
+    }
+  }, [state.phase, state.round, state.roundOutcome, play]);
 
   useEffect(() => {
     if (state.phase !== "move_locked" || !state.playerMove) return;

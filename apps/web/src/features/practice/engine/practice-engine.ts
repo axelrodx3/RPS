@@ -5,6 +5,7 @@ export type RoundOutcome = "player" | "cpu" | "tie";
 export type PracticePhase =
   | "idle"
   | "countdown"
+  | "round_intro"
   | "commit"
   | "move_locked"
   | "waiting_cpu"
@@ -54,6 +55,8 @@ export const REVEAL_DISPLAY_MS = 1000;
 export const REVEAL_DISPLAY_REDUCED_MS = 650;
 export const ROUND_RESULT_DISPLAY_MS = 1300;
 export const ROUND_RESULT_DISPLAY_REDUCED_MS = 950;
+export const ROUND_INTRO_MS = 700;
+export const ROUND_INTRO_REDUCED_MS = 450;
 export const RESULT_VISIBLE_TOTAL_MS =
   REVEAL_DISPLAY_MS + ROUND_RESULT_DISPLAY_MS;
 
@@ -166,6 +169,7 @@ export type PracticeAction =
   | { type: "ADVANCE_FROM_REVEAL_PAUSE" }
   | { type: "ADVANCE_FROM_REVEAL" }
   | { type: "ADVANCE_FROM_ROUND_RESULT" }
+  | { type: "ADVANCE_FROM_ROUND_INTRO" }
   | { type: "REMATCH" }
   | { type: "ABORT" };
 
@@ -185,10 +189,8 @@ export function practiceReducer(
       if (state.countdown <= 1) {
         return {
           ...state,
-          phase: "commit",
+          phase: "round_intro",
           countdown: 0,
-          timerSeconds: PRACTICE_TIMER_SECONDS,
-          commitStartedAt: Date.now(),
         };
       }
       return { ...state, countdown: state.countdown - 1 };
@@ -281,15 +283,22 @@ export function practiceReducer(
         }),
       };
 
+    case "ADVANCE_FROM_ROUND_INTRO":
+      if (state.phase !== "round_intro") return state;
+      return {
+        ...state,
+        phase: "commit",
+        timerSeconds: PRACTICE_TIMER_SECONDS,
+        commitStartedAt: Date.now(),
+      };
+
     case "ADVANCE_FROM_ROUND_RESULT": {
       if (state.phase !== "round_result") return state;
       return {
         ...state,
-        phase: "commit",
+        phase: "round_intro",
         countdown: 0,
         round: state.roundOutcome === "tie" ? state.round : state.round + 1,
-        timerSeconds: PRACTICE_TIMER_SECONDS,
-        commitStartedAt: Date.now(),
         playerMove: null,
         cpuMove: null,
         roundOutcome: null,

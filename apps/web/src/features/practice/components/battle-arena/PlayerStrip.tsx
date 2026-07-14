@@ -13,25 +13,32 @@ type PlayerStripProps = {
   phaseLabel: string;
   playerScorePulse: boolean;
   cpuScorePulse: boolean;
+  playerIdentityPulse?: boolean;
+  playerIdentityImpact?: boolean;
 };
 
 function WinMarkers({
   score,
   winTarget,
   side,
+  pulseIndex,
 }: {
   score: number;
   winTarget: number;
   side: "player" | "cpu";
+  pulseIndex: number | null;
 }) {
   return (
     <div className={styles.winMarkers} aria-hidden="true" data-side={side}>
       {Array.from({ length: winTarget }, (_, index) => (
         <span
           key={index}
-          className={
-            index < score ? styles.winMarkerFilled : styles.winMarkerEmpty
-          }
+          className={[
+            index < score ? styles.winMarkerFilled : styles.winMarkerEmpty,
+            pulseIndex === index ? styles.winMarkerPulse : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         />
       ))}
     </div>
@@ -46,13 +53,26 @@ export function PlayerStrip({
   phaseLabel,
   playerScorePulse,
   cpuScorePulse,
+  playerIdentityPulse = false,
+  playerIdentityImpact = false,
 }: PlayerStripProps) {
   const matchPointLabel = getMatchPointLabel(playerScore, cpuScore, winTarget);
+  const playerMarkerPulse =
+    playerScorePulse && playerScore > 0 ? playerScore - 1 : null;
+  const cpuMarkerPulse = cpuScorePulse && cpuScore > 0 ? cpuScore - 1 : null;
 
   return (
     <header className={styles.playerStrip} aria-label="Match scoreboard">
       <div className={styles.stripSide}>
-        <div className={styles.stripIdentity}>
+        <div
+          className={[
+            styles.stripIdentity,
+            playerIdentityPulse ? styles.stripIdentityPulse : "",
+            playerIdentityImpact ? styles.stripIdentityImpact : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <PlayerAvatar />
           <div className={styles.stripMeta}>
             <span className={styles.stripLabel}>YOU</span>
@@ -65,7 +85,12 @@ export function PlayerStrip({
             </strong>
           </div>
         </div>
-        <WinMarkers score={playerScore} winTarget={winTarget} side="player" />
+        <WinMarkers
+          score={playerScore}
+          winTarget={winTarget}
+          side="player"
+          pulseIndex={playerMarkerPulse}
+        />
       </div>
 
       <div className={styles.stripCenter}>
@@ -77,7 +102,12 @@ export function PlayerStrip({
       </div>
 
       <div className={`${styles.stripSide} ${styles.stripSideCpu}`.trim()}>
-        <WinMarkers score={cpuScore} winTarget={winTarget} side="cpu" />
+        <WinMarkers
+          score={cpuScore}
+          winTarget={winTarget}
+          side="cpu"
+          pulseIndex={cpuMarkerPulse}
+        />
         <div className={styles.stripIdentity}>
           <div className={styles.stripMeta}>
             <span className={styles.stripLabel}>CPU</span>
