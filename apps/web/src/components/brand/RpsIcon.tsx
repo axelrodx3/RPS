@@ -9,11 +9,11 @@ type RpsIconProps = {
 };
 
 export function RpsIcon({
-  size = 34,
+  size = 32,
   className = "",
   priority = false,
 }: RpsIconProps) {
-  const height = Math.round(size * 0.66);
+  const height = Math.round(size * 0.67);
 
   return (
     <Image

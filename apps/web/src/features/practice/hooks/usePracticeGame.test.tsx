@@ -71,23 +71,43 @@ describe("usePracticeGame", () => {
     act(() => {
       vi.advanceTimersByTime(500);
     });
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
 
     expect(result.current.state.phase).toBe("reveal");
     expect(result.current.state.cpuMove).not.toBeNull();
     expect(MOVES).toContain(result.current.state.cpuMove!);
   });
 
+  it("advances from round result directly into commit without another countdown", () => {
+    const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.startMatch();
+    });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    act(() => {
+      result.current.selectMove("rock");
+    });
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    act(() => {
+      vi.advanceTimersByTime(700);
+    });
+    expect(result.current.state.phase).toBe("round_result");
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+    expect(result.current.state.phase).toBe("commit");
+    expect(result.current.state.countdown).toBe(0);
+  });
+
   it("does not change score on ties", () => {
     let state = createInitialMatchState();
-    state = {
-      ...state,
-      phase: "reveal_countdown",
-      playerMove: "rock",
-      round: 1,
-    };
+    state = { ...state, phase: "waiting_reveal", playerMove: "rock", round: 1 };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "rock" });
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
@@ -98,7 +118,7 @@ describe("usePracticeGame", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "reveal_countdown",
+      phase: "waiting_reveal",
       playerMove: "rock",
       playerScore: 1,
       round: 2,

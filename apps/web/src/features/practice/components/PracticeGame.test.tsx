@@ -1,6 +1,8 @@
 /** @vitest-environment happy-dom */
 
-import { screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { PracticeGame } from "@/features/practice/components/PracticeGame";
@@ -9,7 +11,9 @@ import {
   practiceReducer,
   createInitialMatchState,
 } from "@/features/practice/engine/practice-engine";
+import * as usePracticeGameModule from "@/features/practice/hooks/usePracticeGame";
 import { renderWithProviders } from "@/test/render";
+import styles from "@/features/practice/components/practice-game.module.css";
 
 async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
@@ -24,6 +28,7 @@ describe("PracticeGame", () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
   });
 
@@ -35,7 +40,7 @@ describe("PracticeGame", () => {
       screen.getByRole("button", { name: "Start Practice Match" }),
     );
 
-    expect(screen.getByText("Get ready")).toBeInTheDocument();
+    expect(screen.getByText("Opening round")).toBeInTheDocument();
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("CPU")).toBeInTheDocument();
   });
@@ -66,10 +71,24 @@ describe("PracticeGame", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("does not show Get ready between ordinary rounds", () => {
+    let state = createInitialMatchState();
+    state = {
+      ...state,
+      phase: "round_result",
+      roundOutcome: "player",
+      playerScore: 1,
+      transitionMessage: "Next round",
+    };
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
+    expect(state.phase).toBe("commit");
+    expect(state.countdown).toBe(0);
+  });
+
   it("updates the score after a resolved round", () => {
     let state = createInitialMatchState();
     state = practiceReducer(state, { type: "START_MATCH" });
-    state = { ...state, phase: "reveal_countdown", playerMove: "rock" };
+    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
     expect(state.playerScore).toBe(1);
     expect(state.cpuScore).toBe(0);
@@ -77,7 +96,7 @@ describe("PracticeGame", () => {
 
   it("does not change the score on a tie", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "reveal_countdown", playerMove: "paper" };
+    state = { ...state, phase: "waiting_reveal", playerMove: "paper" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "paper" });
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
@@ -88,7 +107,7 @@ describe("PracticeGame", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "reveal_countdown",
+      phase: "waiting_reveal",
       playerMove: "scissors",
       playerScore: 1,
     };
@@ -129,5 +148,61 @@ describe("PracticeGame", () => {
 
     expect(fetchSpy).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
+  });
+});
+
+describe("round history presentation", () => {
+  it("renders emoji move pairs with accessible round labels", () => {
+    const state = {
+      ...createInitialMatchState(),
+      phase: "round_result" as const,
+      history: [
+        {
+          round: 1,
+          playerMove: "paper" as const,
+          cpuMove: "rock" as const,
+          outcome: "player" as const,
+          playerTimedOut: false,
+          cpuTimedOut: false as const,
+        },
+      ],
+    };
+
+    const hook = vi
+      .spyOn(usePracticeGameModule, "usePracticeGame")
+      .mockReturnValue({
+        state,
+        startMatch: vi.fn(),
+        selectMove: vi.fn(),
+        rematch: vi.fn(),
+        winTarget: 2,
+        timerTotal: 20,
+      });
+
+    renderWithProviders(<PracticeGame />);
+
+    const historyItem = screen.getByRole("listitem");
+    expect(historyItem).toHaveAttribute("aria-label");
+    expect(historyItem.getAttribute("aria-label")).toContain(
+      "Player chose Paper",
+    );
+    expect(screen.getByText(/✋ vs ✊/)).toBeInTheDocument();
+    hook.mockRestore();
+  });
+});
+
+describe("reveal outcome styles", () => {
+  it("defines win, loss, and tie outline classes", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/features/practice/components/practice-game.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+    expect(css).toContain("revealOutcomeWin");
+    expect(css).toContain("revealOutcomeLoss");
+    expect(css).toContain("revealOutcomeTie");
+    expect(styles.revealOutcomeWin).toBeTruthy();
+    expect(styles.revealOutcomeLoss).toBeTruthy();
+    expect(styles.revealOutcomeTie).toBeTruthy();
   });
 });

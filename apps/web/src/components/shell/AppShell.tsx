@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <header className={styles.header}>
         <Link href="/" className={styles.wordmark} aria-label="RPS Home">
-          <RpsIcon size={34} priority />
+          <RpsIcon priority />
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">

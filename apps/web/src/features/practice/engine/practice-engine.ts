@@ -7,7 +7,6 @@ export type PracticePhase =
   | "countdown"
   | "commit"
   | "waiting_reveal"
-  | "reveal_countdown"
   | "reveal"
   | "round_result"
   | "match_complete";
@@ -29,10 +28,10 @@ export type PracticeMatchState = {
   countdown: number;
   timerSeconds: number;
   commitStartedAt: number | null;
-  revealCountdown: number;
   playerMove: Move | null;
   cpuMove: Move | null;
   roundOutcome: RoundOutcome | null;
+  transitionMessage: string | null;
   history: RoundRecord[];
   matchWinner: "player" | "cpu" | null;
   playerTimedOut: boolean;
@@ -42,10 +41,13 @@ export type PracticeMatchState = {
 export const PRACTICE_WIN_TARGET = 2;
 export const PRACTICE_TIMER_SECONDS = 20;
 export const PRACTICE_COUNTDOWN_SECONDS = 3;
-export const PRACTICE_REVEAL_COUNTDOWN_SECONDS = 2;
 export const TIMER_WARNING_SECONDS = 5;
 export const CPU_REVEAL_DELAY_MIN_MS = 500;
 export const CPU_REVEAL_DELAY_MAX_MS = 1200;
+export const REVEAL_DISPLAY_MS = 700;
+export const REVEAL_DISPLAY_REDUCED_MS = 400;
+export const ROUND_RESULT_DISPLAY_MS = 600;
+export const ROUND_RESULT_DISPLAY_REDUCED_MS = 400;
 
 export const MOVES: readonly Move[] = ["rock", "paper", "scissors"] as const;
 
@@ -70,10 +72,10 @@ export function createInitialMatchState(): PracticeMatchState {
     countdown: PRACTICE_COUNTDOWN_SECONDS,
     timerSeconds: PRACTICE_TIMER_SECONDS,
     commitStartedAt: null,
-    revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
     playerMove: null,
     cpuMove: null,
     roundOutcome: null,
+    transitionMessage: null,
     history: [],
     matchWinner: null,
     playerTimedOut: false,
@@ -106,11 +108,33 @@ export function randomCpuRevealDelayMs(random = Math.random): number {
 export function isMoveSelectionLocked(phase: PracticePhase): boolean {
   return (
     phase === "waiting_reveal" ||
-    phase === "reveal_countdown" ||
     phase === "reveal" ||
     phase === "round_result" ||
     phase === "match_complete"
   );
+}
+
+export function getTransitionMessage(state: PracticeMatchState): string {
+  if (state.roundOutcome === "tie") {
+    return "Tie. Replay round.";
+  }
+  if (state.playerScore === 1 || state.cpuScore === 1) {
+    return "Match point";
+  }
+  return "Next round";
+}
+
+export function formatRoundHistoryAccessibleLabel(record: RoundRecord): string {
+  const player = MOVE_LABELS[record.playerMove];
+  const cpu = MOVE_LABELS[record.cpuMove];
+  const outcome =
+    record.outcome === "tie"
+      ? "Round tied."
+      : record.outcome === "player"
+        ? "Player won the round."
+        : "CPU won the round.";
+  const automatic = record.playerTimedOut ? " Player move was automatic." : "";
+  return `Player chose ${player}. CPU chose ${cpu}. ${outcome}${automatic}`;
 }
 
 export type PracticeAction =
@@ -119,8 +143,6 @@ export type PracticeAction =
   | { type: "SYNC_TIMER"; seconds: number }
   | { type: "SELECT_MOVE"; move: Move }
   | { type: "TIMEOUT_PLAYER"; move: Move }
-  | { type: "CPU_READY" }
-  | { type: "TICK_REVEAL_COUNTDOWN" }
   | { type: "CPU_REVEAL"; move: Move }
   | { type: "ADVANCE_FROM_REVEAL" }
   | { type: "ADVANCE_FROM_ROUND_RESULT" }
@@ -175,24 +197,9 @@ export function practiceReducer(
       };
     }
 
-    case "CPU_READY":
-      if (state.phase !== "waiting_reveal" || !state.playerMove) return state;
-      return {
-        ...state,
-        phase: "reveal_countdown",
-        revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
-      };
-
-    case "TICK_REVEAL_COUNTDOWN":
-      if (state.phase !== "reveal_countdown") return state;
-      if (state.revealCountdown <= 1) {
-        return { ...state, revealCountdown: 0 };
-      }
-      return { ...state, revealCountdown: state.revealCountdown - 1 };
-
     case "CPU_REVEAL": {
       if (
-        state.phase !== "reveal_countdown" ||
+        state.phase !== "waiting_reveal" ||
         !state.playerMove ||
         state.roundResolved
       )
@@ -237,23 +244,30 @@ export function practiceReducer(
       if (state.matchWinner) {
         return { ...state, phase: "match_complete" };
       }
-      return { ...state, phase: "round_result" };
+      return {
+        ...state,
+        phase: "round_result",
+        transitionMessage: getTransitionMessage({
+          ...state,
+          phase: "round_result",
+        }),
+      };
 
     case "ADVANCE_FROM_ROUND_RESULT": {
       if (state.phase !== "round_result") return state;
       return {
         ...state,
-        phase: "countdown",
+        phase: "commit",
+        countdown: 0,
         round: state.roundOutcome === "tie" ? state.round : state.round + 1,
-        countdown: PRACTICE_COUNTDOWN_SECONDS,
         timerSeconds: PRACTICE_TIMER_SECONDS,
-        commitStartedAt: null,
+        commitStartedAt: Date.now(),
         playerMove: null,
         cpuMove: null,
         roundOutcome: null,
+        transitionMessage: null,
         playerTimedOut: false,
         roundResolved: false,
-        revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
       };
     }
 

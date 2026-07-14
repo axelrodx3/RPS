@@ -4,7 +4,7 @@ export const brand = {
   description:
     "A production-quality Solana Rock Paper Scissors platform currently in foundation planning.",
   assets: {
-    icon: "/brand/rps-icon.png",
+    icon: "/brand/rps-icon-header.png",
     icon16: "/brand/rps-icon-16.png",
     icon32: "/brand/rps-icon-32.png",
     icon48: "/brand/rps-icon-48.png",

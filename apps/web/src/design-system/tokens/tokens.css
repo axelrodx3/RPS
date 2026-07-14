@@ -15,6 +15,9 @@
   --color-warning: #f2a93b;
   --color-danger: #e55353;
   --color-info: #4c8dff;
+  --color-outcome-win: #3dd68c;
+  --color-outcome-loss: #e55353;
+  --color-outcome-tie: #6cb4ff;
 
   --radius-sm: 10px;
   --radius-md: 18px;

@@ -6,7 +6,10 @@ import {
   PRACTICE_COUNTDOWN_SECONDS,
   PRACTICE_TIMER_SECONDS,
   PRACTICE_WIN_TARGET,
-  PRACTICE_REVEAL_COUNTDOWN_SECONDS,
+  REVEAL_DISPLAY_MS,
+  REVEAL_DISPLAY_REDUCED_MS,
+  ROUND_RESULT_DISPLAY_MS,
+  ROUND_RESULT_DISPLAY_REDUCED_MS,
   TIMER_WARNING_SECONDS,
   practiceReducer,
   createInitialMatchState,
@@ -44,6 +47,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const matchRecordedRef = useRef(false);
   const timerWarningPlayedRef = useRef(false);
   const timeoutHandledRef = useRef(false);
+  const moveLockedPlayedRef = useRef(false);
 
   const clearTimers = useCallback(() => {
     for (const ref of [
@@ -79,6 +83,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     matchRecordedRef.current = false;
     timerWarningPlayedRef.current = false;
     timeoutHandledRef.current = false;
+    moveLockedPlayedRef.current = false;
     clearTimers();
     dispatch({ type: "START_MATCH" });
     play("button");
@@ -90,8 +95,8 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
         return;
       }
       unlock();
+      moveLockedPlayedRef.current = true;
       dispatch({ type: "SELECT_MOVE", move });
-      play("move_selected");
       play("move_locked");
     },
     [play, unlock, state.phase, state.playerMove, state.roundResolved],
@@ -101,6 +106,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     matchRecordedRef.current = false;
     timerWarningPlayedRef.current = false;
     timeoutHandledRef.current = false;
+    moveLockedPlayedRef.current = false;
     clearTimers();
     dispatch({ type: "REMATCH" });
     play("button");
@@ -146,8 +152,11 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
 
       if (remaining === 0 && !timeoutHandledRef.current && !state.playerMove) {
         timeoutHandledRef.current = true;
+        if (!moveLockedPlayedRef.current) {
+          moveLockedPlayedRef.current = true;
+          play("move_locked");
+        }
         dispatch({ type: "TIMEOUT_PLAYER", move: random.move() });
-        play("move_locked");
       }
     };
 
@@ -174,7 +183,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     if (state.phase !== "waiting_reveal" || !state.playerMove) return;
     const delay = random.cpuDelayMs();
     cpuTimeoutRef.current = window.setTimeout(() => {
-      dispatch({ type: "CPU_READY" });
+      dispatch({ type: "CPU_REVEAL", move: random.move() });
     }, delay);
     return () => {
       if (cpuTimeoutRef.current) {
@@ -185,31 +194,11 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   }, [state.phase, state.playerMove, state.round, random]);
 
   useEffect(() => {
-    if (state.phase !== "reveal_countdown") return;
-    if (state.revealCountdown === PRACTICE_REVEAL_COUNTDOWN_SECONDS) {
-      play("countdown");
-    }
-    const id = window.setInterval(
-      () => dispatch({ type: "TICK_REVEAL_COUNTDOWN" }),
-      1000,
-    );
-    return () => window.clearInterval(id);
-  }, [state.phase, state.revealCountdown, play]);
-
-  useEffect(() => {
-    if (state.phase !== "reveal_countdown") return;
-    if (state.revealCountdown !== 0) return;
-    dispatch({ type: "CPU_REVEAL", move: random.move() });
-  }, [state.phase, state.revealCountdown, random]);
-
-  useEffect(() => {
     if (state.phase !== "reveal") return;
-    play("reveal");
-    if (state.roundOutcome === "player") play("round_win");
-    if (state.roundOutcome === "cpu") play("round_loss");
-    if (state.roundOutcome === "tie") play("round_tie");
 
-    const duration = settings.reducedMotion ? 600 : 1600;
+    const duration = settings.reducedMotion
+      ? REVEAL_DISPLAY_REDUCED_MS
+      : REVEAL_DISPLAY_MS;
     revealTimeoutRef.current = window.setTimeout(() => {
       dispatch({ type: "ADVANCE_FROM_REVEAL" });
     }, duration);
@@ -219,17 +208,14 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
         revealTimeoutRef.current = null;
       }
     };
-  }, [
-    state.phase,
-    state.roundOutcome,
-    state.round,
-    play,
-    settings.reducedMotion,
-  ]);
+  }, [state.phase, state.round, settings.reducedMotion]);
 
   useEffect(() => {
     if (state.phase !== "round_result") return;
-    const duration = settings.reducedMotion ? 500 : 1000;
+    moveLockedPlayedRef.current = false;
+    const duration = settings.reducedMotion
+      ? ROUND_RESULT_DISPLAY_REDUCED_MS
+      : ROUND_RESULT_DISPLAY_MS;
     roundResultTimeoutRef.current = window.setTimeout(() => {
       timerWarningPlayedRef.current = false;
       timeoutHandledRef.current = false;
@@ -241,7 +227,12 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
         roundResultTimeoutRef.current = null;
       }
     };
-  }, [state.phase, state.round, settings.reducedMotion]);
+  }, [
+    state.phase,
+    state.round,
+    state.transitionMessage,
+    settings.reducedMotion,
+  ]);
 
   useEffect(() => {
     if (state.phase !== "match_complete" || !state.matchWinner) return;

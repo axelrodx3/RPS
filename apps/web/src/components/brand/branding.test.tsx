@@ -91,4 +91,13 @@ describe("RpsWordmark motion styles", () => {
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("animation: none");
   });
+
+  it("renders a larger header icon footprint", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/components/brand/brand.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+    expect(css).toContain("height: 32px");
+  });
 });

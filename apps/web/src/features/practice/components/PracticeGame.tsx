@@ -4,10 +4,14 @@ import Link from "next/link";
 import { Button, Card } from "@/design-system/components";
 import {
   TIMER_WARNING_SECONDS,
+  MOVE_EMOJI,
+  MOVE_LABELS,
   countAutomaticMoves,
   countTiedRounds,
+  formatRoundHistoryAccessibleLabel,
   isMoveSelectionLocked,
   type Move,
+  type RoundOutcome,
 } from "@/features/practice/engine/practice-engine";
 import { MOVE_LIST } from "@/features/practice/moves/move-metadata";
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
@@ -17,6 +21,7 @@ import styles from "./practice-game.module.css";
 
 function phaseLabel(
   phase: ReturnType<typeof usePracticeGame>["state"]["phase"],
+  transitionMessage: string | null,
 ) {
   switch (phase) {
     case "countdown":
@@ -25,12 +30,10 @@ function phaseLabel(
       return "Choose your move";
     case "waiting_reveal":
       return "Move locked";
-    case "reveal_countdown":
-      return "Reveal countdown";
     case "reveal":
       return "Reveal";
     case "round_result":
-      return "Round result";
+      return transitionMessage ?? "Round result";
     case "match_complete":
       return "Match complete";
     default:
@@ -52,10 +55,30 @@ function liveAnnouncement(
     if (state.roundOutcome === "player") return "You win the round.";
     return "CPU wins the round.";
   }
+  if (state.phase === "round_result" && state.transitionMessage) {
+    return state.transitionMessage;
+  }
   if (state.phase === "match_complete" && state.matchWinner) {
     return state.matchWinner === "player" ? "Victory." : "Defeat.";
   }
   return "";
+}
+
+function revealCardClass(
+  side: "player" | "cpu",
+  outcome: RoundOutcome | null,
+): string {
+  const base = styles.revealCard ?? "";
+  if (!outcome) return base;
+  if (outcome === "tie") {
+    return `${base} ${styles.revealOutcomeTie ?? ""}`.trim();
+  }
+  const playerWon = outcome === "player";
+  const isWinner =
+    (side === "player" && playerWon) || (side === "cpu" && outcome === "cpu");
+  return `${base} ${
+    isWinner ? styles.revealOutcomeWin : styles.revealOutcomeLoss
+  }`.trim();
 }
 
 function MoveButton({
@@ -69,7 +92,7 @@ function MoveButton({
   locked: boolean;
   onSelect: (move: Move) => void;
 }) {
-  const { play, unlock } = useAudio();
+  const { unlock } = useAudio();
   const disabled = locked;
 
   return (
@@ -86,12 +109,6 @@ function MoveButton({
       aria-label={`Choose ${move.label}`}
       aria-pressed={selected}
       onClick={() => onSelect(move.id)}
-      onMouseEnter={() => {
-        if (!disabled) {
-          unlock();
-          play("move_hover");
-        }
-      }}
       onFocus={() => {
         if (!disabled) unlock();
       }}
@@ -121,10 +138,11 @@ function RoundHistory({
       {history.map((round) => (
         <li
           key={`${round.round}-${round.playerMove}-${round.cpuMove}-${round.outcome}`}
+          aria-label={formatRoundHistoryAccessibleLabel(round)}
         >
           <span>Round {round.round}</span>
-          <span>
-            {round.playerMove} vs {round.cpuMove}
+          <span aria-hidden="true" className={styles.historyMoves}>
+            {MOVE_EMOJI[round.playerMove]} vs {MOVE_EMOJI[round.cpuMove]}
           </span>
           <span>
             {round.outcome === "tie"
@@ -178,6 +196,10 @@ export function PracticeGame() {
     state.phase === "commit" && state.timerSeconds <= TIMER_WARNING_SECONDS;
   const tiedRounds = countTiedRounds(state.history);
   const automaticMoves = countAutomaticMoves(state.history);
+  const showRevealPanel =
+    (state.phase === "reveal" || state.phase === "round_result") &&
+    state.playerMove &&
+    state.cpuMove;
 
   return (
     <div className={styles.pageStack}>
@@ -206,7 +228,9 @@ export function PracticeGame() {
         </div>
 
         <div className={styles.phaseBar}>
-          <span className={styles.phaseLabel}>{phaseLabel(state.phase)}</span>
+          <span className={styles.phaseLabel}>
+            {phaseLabel(state.phase, state.transitionMessage)}
+          </span>
           {state.phase === "waiting_reveal" ? (
             <span className={styles.cpuThinking}>CPU preparing move…</span>
           ) : null}
@@ -214,7 +238,7 @@ export function PracticeGame() {
 
         {state.phase === "countdown" ? (
           <div className={styles.centerStage}>
-            <p className={styles.kicker}>Get ready</p>
+            <p className={styles.kicker}>Opening round</p>
             <div className={styles.countdown} aria-live="assertive">
               {state.countdown || "Go"}
             </div>
@@ -261,8 +285,11 @@ export function PracticeGame() {
           <div className={styles.centerStage}>
             <div className={styles.lockedPanel}>
               <span className={styles.kicker}>Move locked</span>
-              <strong className={styles.lockedMoveLabel}>
-                {state.playerMove}
+              <strong
+                className={styles.lockedMoveLabel}
+                aria-label={MOVE_LABELS[state.playerMove]}
+              >
+                <span aria-hidden="true">{MOVE_EMOJI[state.playerMove]}</span>
               </strong>
               {state.playerTimedOut ? (
                 <span className={styles.autoBadge}>Automatic selection</span>
@@ -271,47 +298,41 @@ export function PracticeGame() {
           </div>
         ) : null}
 
-        {state.phase === "reveal_countdown" ? (
-          <div className={styles.centerStage}>
-            <p className={styles.kicker}>Reveal countdown</p>
-            <div className={styles.countdown}>
-              {state.revealCountdown || "Reveal"}
-            </div>
-          </div>
-        ) : null}
-
-        {(state.phase === "reveal" || state.phase === "round_result") &&
-        state.playerMove &&
-        state.cpuMove ? (
+        {showRevealPanel ? (
           <div className={`${styles.centerStage} ${styles.revealStage}`}>
             <div className={styles.revealGrid}>
               <article
-                className={`${styles.revealCard} ${
-                  state.roundOutcome === "player" ? styles.revealWinner : ""
-                } ${state.roundOutcome === "tie" ? styles.revealTie : ""}`.trim()}
+                className={revealCardClass("player", state.roundOutcome)}
               >
                 <span>You</span>
-                <strong>{state.playerMove}</strong>
+                <strong aria-label={MOVE_LABELS[state.playerMove!]}>
+                  <span aria-hidden="true">
+                    {MOVE_EMOJI[state.playerMove!]}
+                  </span>
+                </strong>
                 {state.playerTimedOut ? (
                   <span className={styles.autoBadge}>Automatic</span>
                 ) : null}
               </article>
-              <article
-                className={`${styles.revealCard} ${
-                  state.roundOutcome === "cpu" ? styles.revealWinner : ""
-                } ${state.roundOutcome === "tie" ? styles.revealTie : ""}`.trim()}
-              >
+              <article className={revealCardClass("cpu", state.roundOutcome)}>
                 <span>CPU</span>
-                <strong>{state.cpuMove}</strong>
+                <strong aria-label={MOVE_LABELS[state.cpuMove!]}>
+                  <span aria-hidden="true">{MOVE_EMOJI[state.cpuMove!]}</span>
+                </strong>
               </article>
             </div>
-            <p className={styles.resultLine}>
-              {state.roundOutcome === "tie"
-                ? "Tie. Replaying this round."
-                : state.roundOutcome === "player"
-                  ? "You win the round."
-                  : "CPU wins the round."}
-            </p>
+            {state.phase === "reveal" ? (
+              <p className={styles.resultLine}>
+                {state.roundOutcome === "tie"
+                  ? "Tie. Replaying this round."
+                  : state.roundOutcome === "player"
+                    ? "You win the round."
+                    : "CPU wins the round."}
+              </p>
+            ) : null}
+            {state.phase === "round_result" && state.transitionMessage ? (
+              <p className={styles.transitionLine}>{state.transitionMessage}</p>
+            ) : null}
           </div>
         ) : null}
 

@@ -14,6 +14,7 @@ export type SoundId =
   | "match_win"
   | "match_loss"
   | "tutorial"
+  | "notification"
   | "lobby_filled"
   | "winnings_credited"
   | "withdrawal_confirmed";
@@ -22,44 +23,47 @@ export type SoundDefinition = {
   id: SoundId;
   category: SoundCategory;
   label: string;
-  /** Temporary generated tone frequencies until file assets are approved. */
-  frequencies: number[];
+  /** Approved custom asset path when available. */
+  src?: string;
+  /** Temporary generated tone frequencies when no file asset is mapped. */
+  frequencies?: number[];
   enabled: boolean;
+  volumeScale?: number;
 };
 
 export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
   button: {
     id: "button",
     category: "sfx",
-    label: "Button interaction",
-    frequencies: [520],
+    label: "UI click",
+    src: "/assets/audio/ui-click.mp3",
     enabled: true,
+    volumeScale: 0.85,
   },
   move_hover: {
     id: "move_hover",
     category: "sfx",
     label: "Move hover",
-    frequencies: [480],
-    enabled: true,
+    enabled: false,
   },
   move_selected: {
     id: "move_selected",
     category: "sfx",
     label: "Move selected",
-    frequencies: [560, 620],
-    enabled: true,
+    enabled: false,
   },
   move_locked: {
     id: "move_locked",
     category: "sfx",
-    label: "Move locked",
-    frequencies: [400, 460],
+    label: "Move lock confirmation",
+    src: "/assets/audio/move-lock.mp3",
     enabled: true,
+    volumeScale: 0.9,
   },
   countdown: {
     id: "countdown",
     category: "sfx",
-    label: "Countdown tick",
+    label: "Opening countdown tick",
     frequencies: [440, 520],
     enabled: true,
   },
@@ -67,77 +71,82 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     id: "countdown_warning",
     category: "sfx",
     label: "Timer warning",
-    frequencies: [660, 660, 660],
+    src: "/assets/audio/countdown-warning.mp3",
     enabled: true,
+    volumeScale: 0.75,
   },
   reveal: {
     id: "reveal",
     category: "sfx",
     label: "Reveal",
-    frequencies: [330, 440, 550],
-    enabled: true,
+    enabled: false,
   },
   round_tie: {
     id: "round_tie",
     category: "sfx",
     label: "Round tie",
-    frequencies: [350, 350],
-    enabled: true,
+    enabled: false,
   },
   round_win: {
     id: "round_win",
     category: "sfx",
     label: "Round win",
-    frequencies: [440, 660],
-    enabled: true,
+    enabled: false,
   },
   round_loss: {
     id: "round_loss",
     category: "sfx",
     label: "Round loss",
-    frequencies: [220, 180],
-    enabled: true,
+    enabled: false,
   },
   match_win: {
     id: "match_win",
     category: "sfx",
     label: "Match victory",
-    frequencies: [440, 554, 659, 880],
+    src: "/assets/audio/match-victory.mp3",
     enabled: true,
+    volumeScale: 0.85,
   },
   match_loss: {
     id: "match_loss",
     category: "sfx",
     label: "Match defeat",
-    frequencies: [220, 196, 165],
+    src: "/assets/audio/match-defeat.mp3",
     enabled: true,
+    volumeScale: 0.85,
   },
   tutorial: {
     id: "tutorial",
     category: "sfx",
     label: "Tutorial notification",
-    frequencies: [500, 600],
+    src: "/assets/audio/notification.mp3",
     enabled: true,
+    volumeScale: 0.7,
+  },
+  notification: {
+    id: "notification",
+    category: "sfx",
+    label: "Notification",
+    src: "/assets/audio/notification.mp3",
+    enabled: true,
+    volumeScale: 0.7,
   },
   lobby_filled: {
     id: "lobby_filled",
     category: "sfx",
     label: "Lobby filled",
-    frequencies: [520, 640],
     enabled: false,
   },
   winnings_credited: {
     id: "winnings_credited",
     category: "sfx",
     label: "Winnings credited",
-    frequencies: [660, 880],
     enabled: false,
   },
   withdrawal_confirmed: {
     id: "withdrawal_confirmed",
     category: "sfx",
     label: "Withdrawal confirmed",
-    frequencies: [440, 520, 620],
     enabled: false,
   },
 };

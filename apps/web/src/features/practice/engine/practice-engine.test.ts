@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   MOVES,
+  MOVE_EMOJI,
   PRACTICE_WIN_TARGET,
   createInitialMatchState,
+  formatRoundHistoryAccessibleLabel,
+  getTransitionMessage,
   pickRandomMove,
   practiceReducer,
   randomCpuRevealDelayMs,
@@ -43,6 +46,72 @@ describe("randomCpuRevealDelayMs", () => {
   });
 });
 
+describe("round history helpers", () => {
+  it("formats accessible labels with move names and outcomes", () => {
+    expect(
+      formatRoundHistoryAccessibleLabel({
+        round: 1,
+        playerMove: "paper",
+        cpuMove: "rock",
+        outcome: "player",
+        playerTimedOut: false,
+        cpuTimedOut: false,
+      }),
+    ).toBe("Player chose Paper. CPU chose Rock. Player won the round.");
+
+    expect(
+      formatRoundHistoryAccessibleLabel({
+        round: 2,
+        playerMove: "rock",
+        cpuMove: "rock",
+        outcome: "tie",
+        playerTimedOut: true,
+        cpuTimedOut: false,
+      }),
+    ).toBe(
+      "Player chose Rock. CPU chose Rock. Round tied. Player move was automatic.",
+    );
+  });
+
+  it("exposes emoji mapping for history display", () => {
+    expect(MOVE_EMOJI.paper).toBe("✋");
+    expect(MOVE_EMOJI.rock).toBe("✊");
+    expect(MOVE_EMOJI.scissors).toBe("✌️");
+  });
+});
+
+describe("transition messages", () => {
+  it("returns tie replay copy for tied rounds", () => {
+    const state = {
+      ...createInitialMatchState(),
+      roundOutcome: "tie" as const,
+      playerScore: 0,
+      cpuScore: 0,
+    };
+    expect(getTransitionMessage(state)).toBe("Tie. Replay round.");
+  });
+
+  it("returns match point when either side has one win", () => {
+    const state = {
+      ...createInitialMatchState(),
+      roundOutcome: "player" as const,
+      playerScore: 1,
+      cpuScore: 0,
+    };
+    expect(getTransitionMessage(state)).toBe("Match point");
+  });
+
+  it("returns next round for ordinary progress", () => {
+    const state = {
+      ...createInitialMatchState(),
+      roundOutcome: "player" as const,
+      playerScore: 0,
+      cpuScore: 0,
+    };
+    expect(getTransitionMessage(state)).toBe("Next round");
+  });
+});
+
 describe("practiceReducer", () => {
   it("starts in idle and moves into countdown", () => {
     const next = practiceReducer(createInitialMatchState(), {
@@ -59,24 +128,40 @@ describe("practiceReducer", () => {
   });
 
   it("awards no score on ties and replays the same round number", () => {
-    let state = practiceReducer(createInitialMatchState(), {
-      type: "START_MATCH",
-    });
-    state = { ...state, phase: "reveal_countdown", playerMove: "rock" };
+    let state = createInitialMatchState();
+    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "rock" });
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL" });
+    expect(state.transitionMessage).toBe("Tie. Replay round.");
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
+    expect(state.phase).toBe("commit");
     expect(state.round).toBe(1);
+  });
+
+  it("opens the next commit phase directly after round result", () => {
+    let state = createInitialMatchState();
+    state = {
+      ...state,
+      phase: "round_result",
+      roundOutcome: "player",
+      round: 1,
+      playerScore: 1,
+      cpuScore: 0,
+    };
+    state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
+    expect(state.phase).toBe("commit");
+    expect(state.round).toBe(2);
+    expect(state.countdown).toBe(0);
   });
 
   it("declares a player match win at the target score", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "reveal_countdown",
+      phase: "waiting_reveal",
       playerMove: "rock",
       playerScore: 1,
       round: 2,
