@@ -1,4 +1,5 @@
 import { Card } from "@/design-system/components";
+import { RpsWordmark } from "@/components/brand";
 import { GuideTabs } from "@/features/guide/GuideTabs";
 import styles from "./guide.module.css";
 
@@ -13,6 +14,19 @@ export default function GuidePage() {
           same scoring logic with on chain commit reveal when enabled.
         </p>
       </header>
+
+      <section
+        className={styles.brandSection}
+        aria-labelledby="guide-brand-title"
+      >
+        <p className={styles.kicker}>Brand preview</p>
+        <h2 id="guide-brand-title">Lime wordmark in context</h2>
+        <p className={styles.brandCopy}>
+          Secondary lime branding shown at guide scale for visual comparison
+          against the dark interface.
+        </p>
+        <RpsWordmark variant="lime" width={420} />
+      </section>
 
       <div className={styles.grid}>
         <Card padding="lg">

@@ -14,14 +14,22 @@ const siteUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: brand.name,
   title: {
-    default: `${brand.name} — Built for verifiable competition`,
+    default: brand.name,
     template: `%s · ${brand.name}`,
   },
   description: brand.description,
-  icons: { icon: brand.assets.favicon },
+  icons: {
+    icon: [
+      { url: brand.assets.icon16, sizes: "16x16", type: "image/png" },
+      { url: brand.assets.icon32, sizes: "32x32", type: "image/png" },
+      { url: brand.assets.icon48, sizes: "48x48", type: "image/png" },
+    ],
+    apple: [{ url: brand.assets.icon180, sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
-    title: `${brand.name} — Built for verifiable competition`,
+    title: brand.name,
     description: brand.description,
     images: [brand.assets.socialPreview],
   },

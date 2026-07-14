@@ -1,0 +1,69 @@
+.icon {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 34px;
+  max-height: 34px;
+  object-fit: contain;
+}
+
+.wordmarkImage {
+  display: block;
+  width: min(100%, 640px);
+  height: auto;
+  margin-inline: auto;
+}
+
+.wordmarkInteractive {
+  display: inline-block;
+  max-width: min(100%, 640px);
+  margin-inline: auto;
+  outline: none;
+  cursor: default;
+}
+
+.wordmarkInteractive:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 6px;
+}
+
+.wordmarkInteractive:hover .wordmarkImage,
+.wordmarkInteractive:focus-visible .wordmarkImage {
+  animation: rpsWordmarkJitter 130ms ease-out 1;
+}
+
+.wordmarkInteractive:hover .wordmarkImage,
+.wordmarkInteractive:focus-visible .wordmarkImage {
+  filter: drop-shadow(0 0 10px rgb(215 255 67 / 28%));
+}
+
+@keyframes rpsWordmarkJitter {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate(1px, -2px) rotate(-0.35deg);
+  }
+
+  50% {
+    transform: translate(-2px, 1px) rotate(0.4deg);
+  }
+
+  75% {
+    transform: translate(2px, 1px) rotate(-0.25deg);
+  }
+
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmarkInteractive:hover .wordmarkImage,
+  .wordmarkInteractive:focus-visible .wordmarkImage {
+    animation: none;
+    filter: none;
+  }
+}

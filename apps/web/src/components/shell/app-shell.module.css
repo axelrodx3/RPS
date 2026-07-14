@@ -49,21 +49,9 @@
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-}
-
-.mark {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 9px;
-  background: var(--color-text);
-  color: var(--color-canvas);
-  letter-spacing: 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px;
 }
 
 .desktopNav {

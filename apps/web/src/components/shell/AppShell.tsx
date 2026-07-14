@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { RpsIcon } from "@/components/brand";
 import { brand, environment } from "@/config/brand";
 import { Drawer } from "@/design-system/components";
 import { AudioControl } from "@/components/AudioControl";
@@ -55,14 +56,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <header className={styles.header}>
-        <Link
-          href="/"
-          className={styles.wordmark}
-          aria-label={`${brand.name} home`}
-        >
-          <span className={styles.mark} aria-hidden="true">
-            R
-          </span>
+        <Link href="/" className={styles.wordmark} aria-label="RPS Home">
+          <RpsIcon size={34} priority />
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">

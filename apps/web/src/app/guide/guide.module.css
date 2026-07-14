@@ -25,6 +25,27 @@
   text-transform: uppercase;
 }
 
+.brandSection {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgb(215 255 67 / 4%);
+}
+
+.brandCopy {
+  margin: 0;
+  max-width: 560px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.brandSection h2 {
+  margin: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

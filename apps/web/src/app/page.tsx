@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { brand } from "@/config/brand";
+import { RpsWordmark } from "@/components/brand";
 import { Button, Card, MatchCard } from "@/design-system/components";
 import styles from "./home.module.css";
 
@@ -42,13 +42,8 @@ const SUMMARIES = [
 export default function HomePage() {
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
-        <p className={styles.kicker}>Competitive Rock Paper Scissors</p>
-        <h1>
-          Rock. Paper. Scissors.
-          <span>Built for verifiable competition.</span>
-        </h1>
-        <p className={styles.lead}>{brand.tagline}</p>
+      <section className={styles.hero} aria-label="RPS home hero">
+        <RpsWordmark variant="white" animated priority width={640} />
         <div className={styles.heroActions}>
           <Link href="/practice">
             <Button size="lg">Practice</Button>
