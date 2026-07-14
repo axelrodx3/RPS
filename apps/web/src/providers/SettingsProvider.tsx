@@ -12,6 +12,7 @@ import type {
   UserSettings,
   PracticeStatistics,
 } from "@/lib/storage/local-storage";
+import type { Move } from "@/features/practice/engine/practice-engine";
 import {
   DEFAULT_PRACTICE_STATS,
   DEFAULT_SETTINGS,
@@ -20,6 +21,7 @@ import {
   writePracticeStats,
   writeSettings,
   recordPracticeMatchResult,
+  resetPracticeStats,
 } from "@/lib/storage/local-storage";
 
 type SettingsContextValue = {
@@ -29,8 +31,13 @@ type SettingsContextValue = {
   completeTutorial: () => void;
   recordMatch: (
     winner: "player" | "cpu",
-    history: { outcome: "player" | "cpu" | "tie"; playerTimedOut: boolean }[],
+    history: {
+      outcome: "player" | "cpu" | "tie";
+      playerTimedOut: boolean;
+      playerMove: Move;
+    }[],
   ) => void;
+  resetStats: () => void;
   ready: boolean;
 };
 
@@ -93,7 +100,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const recordMatch = useCallback(
     (
       winner: "player" | "cpu",
-      history: { outcome: "player" | "cpu" | "tie"; playerTimedOut: boolean }[],
+      history: {
+        outcome: "player" | "cpu" | "tie";
+        playerTimedOut: boolean;
+        playerMove: Move;
+      }[],
     ) => {
       setStats((current) => {
         const next = recordPracticeMatchResult(current, winner, history);
@@ -104,6 +115,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const resetStats = useCallback(() => {
+    const next = resetPracticeStats();
+    writePracticeStats(window.localStorage, next);
+    setStats(next);
+  }, []);
+
   const value = useMemo(
     () => ({
       settings,
@@ -111,9 +128,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateSettings,
       completeTutorial,
       recordMatch,
+      resetStats,
       ready,
     }),
-    [settings, stats, updateSettings, completeTutorial, recordMatch, ready],
+    [
+      settings,
+      stats,
+      updateSettings,
+      completeTutorial,
+      recordMatch,
+      resetStats,
+      ready,
+    ],
   );
 
   return (

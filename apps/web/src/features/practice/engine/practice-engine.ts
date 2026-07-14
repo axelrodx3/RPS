@@ -7,6 +7,7 @@ export type PracticePhase =
   | "countdown"
   | "commit"
   | "waiting_reveal"
+  | "reveal_countdown"
   | "reveal"
   | "round_result"
   | "match_complete";
@@ -27,17 +28,22 @@ export type PracticeMatchState = {
   cpuScore: number;
   countdown: number;
   timerSeconds: number;
+  commitStartedAt: number | null;
+  revealCountdown: number;
   playerMove: Move | null;
   cpuMove: Move | null;
   roundOutcome: RoundOutcome | null;
   history: RoundRecord[];
   matchWinner: "player" | "cpu" | null;
   playerTimedOut: boolean;
+  roundResolved: boolean;
 };
 
 export const PRACTICE_WIN_TARGET = 2;
 export const PRACTICE_TIMER_SECONDS = 20;
 export const PRACTICE_COUNTDOWN_SECONDS = 3;
+export const PRACTICE_REVEAL_COUNTDOWN_SECONDS = 2;
+export const TIMER_WARNING_SECONDS = 5;
 export const CPU_REVEAL_DELAY_MIN_MS = 500;
 export const CPU_REVEAL_DELAY_MAX_MS = 1200;
 
@@ -63,12 +69,15 @@ export function createInitialMatchState(): PracticeMatchState {
     cpuScore: 0,
     countdown: PRACTICE_COUNTDOWN_SECONDS,
     timerSeconds: PRACTICE_TIMER_SECONDS,
+    commitStartedAt: null,
+    revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
     playerMove: null,
     cpuMove: null,
     roundOutcome: null,
     history: [],
     matchWinner: null,
     playerTimedOut: false,
+    roundResolved: false,
   };
 }
 
@@ -94,16 +103,29 @@ export function randomCpuRevealDelayMs(random = Math.random): number {
   return CPU_REVEAL_DELAY_MIN_MS + Math.floor(random() * (range + 1));
 }
 
+export function isMoveSelectionLocked(phase: PracticePhase): boolean {
+  return (
+    phase === "waiting_reveal" ||
+    phase === "reveal_countdown" ||
+    phase === "reveal" ||
+    phase === "round_result" ||
+    phase === "match_complete"
+  );
+}
+
 export type PracticeAction =
   | { type: "START_MATCH" }
   | { type: "TICK_COUNTDOWN" }
-  | { type: "TICK_TIMER" }
+  | { type: "SYNC_TIMER"; seconds: number }
   | { type: "SELECT_MOVE"; move: Move }
-  | { type: "TIMEOUT_PLAYER" }
+  | { type: "TIMEOUT_PLAYER"; move: Move }
+  | { type: "CPU_READY" }
+  | { type: "TICK_REVEAL_COUNTDOWN" }
   | { type: "CPU_REVEAL"; move: Move }
   | { type: "ADVANCE_FROM_REVEAL" }
   | { type: "ADVANCE_FROM_ROUND_RESULT" }
-  | { type: "REMATCH" };
+  | { type: "REMATCH" }
+  | { type: "ABORT" };
 
 export function practiceReducer(
   state: PracticeMatchState,
@@ -124,19 +146,18 @@ export function practiceReducer(
           phase: "commit",
           countdown: 0,
           timerSeconds: PRACTICE_TIMER_SECONDS,
+          commitStartedAt: Date.now(),
         };
       }
       return { ...state, countdown: state.countdown - 1 };
 
-    case "TICK_TIMER":
-      if (state.phase !== "commit") return state;
-      if (state.timerSeconds <= 1) {
-        return { ...state, timerSeconds: 0 };
-      }
-      return { ...state, timerSeconds: state.timerSeconds - 1 };
+    case "SYNC_TIMER":
+      if (state.phase !== "commit" || state.playerMove) return state;
+      return { ...state, timerSeconds: action.seconds };
 
     case "SELECT_MOVE":
-      if (state.phase !== "commit" || state.playerMove) return state;
+      if (state.phase !== "commit" || state.playerMove || state.roundResolved)
+        return state;
       return {
         ...state,
         playerMove: action.move,
@@ -144,18 +165,38 @@ export function practiceReducer(
       };
 
     case "TIMEOUT_PLAYER": {
-      if (state.phase !== "commit" || state.playerMove) return state;
-      const move = pickRandomMove();
+      if (state.phase !== "commit" || state.playerMove || state.roundResolved)
+        return state;
       return {
         ...state,
-        playerMove: move,
+        playerMove: action.move,
         playerTimedOut: true,
         phase: "waiting_reveal",
       };
     }
 
-    case "CPU_REVEAL": {
+    case "CPU_READY":
       if (state.phase !== "waiting_reveal" || !state.playerMove) return state;
+      return {
+        ...state,
+        phase: "reveal_countdown",
+        revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
+      };
+
+    case "TICK_REVEAL_COUNTDOWN":
+      if (state.phase !== "reveal_countdown") return state;
+      if (state.revealCountdown <= 1) {
+        return { ...state, revealCountdown: 0 };
+      }
+      return { ...state, revealCountdown: state.revealCountdown - 1 };
+
+    case "CPU_REVEAL": {
+      if (
+        state.phase !== "reveal_countdown" ||
+        !state.playerMove ||
+        state.roundResolved
+      )
+        return state;
       const outcome = resolveRound(state.playerMove, action.move);
       let playerScore = state.playerScore;
       let cpuScore = state.cpuScore;
@@ -187,6 +228,7 @@ export function practiceReducer(
         history: [...state.history, record],
         phase: "reveal",
         matchWinner,
+        roundResolved: true,
       };
     }
 
@@ -205,17 +247,31 @@ export function practiceReducer(
         round: state.roundOutcome === "tie" ? state.round : state.round + 1,
         countdown: PRACTICE_COUNTDOWN_SECONDS,
         timerSeconds: PRACTICE_TIMER_SECONDS,
+        commitStartedAt: null,
         playerMove: null,
         cpuMove: null,
         roundOutcome: null,
         playerTimedOut: false,
+        roundResolved: false,
+        revealCountdown: PRACTICE_REVEAL_COUNTDOWN_SECONDS,
       };
     }
 
     case "REMATCH":
       return { ...createInitialMatchState(), phase: "countdown" };
 
+    case "ABORT":
+      return createInitialMatchState();
+
     default:
       return state;
   }
+}
+
+export function countTiedRounds(history: RoundRecord[]): number {
+  return history.filter((round) => round.outcome === "tie").length;
+}
+
+export function countAutomaticMoves(history: RoundRecord[]): number {
+  return history.filter((round) => round.playerTimedOut).length;
 }

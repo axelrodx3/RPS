@@ -14,9 +14,21 @@ function wrapper({ children }: { children: React.ReactNode }) {
   return <AppProviders>{children}</AppProviders>;
 }
 
+const deterministicRandom = {
+  move: (() => {
+    let index = 0;
+    return () => MOVES[index++ % MOVES.length]!;
+  })(),
+  cpuDelayMs: () => 500,
+};
+
 describe("usePracticeGame", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    deterministicRandom.move = (() => {
+      let index = 0;
+      return () => MOVES[index++ % MOVES.length]!;
+    })();
   });
 
   afterEach(() => {
@@ -24,7 +36,9 @@ describe("usePracticeGame", () => {
   });
 
   it("enters countdown after startMatch", () => {
-    const { result } = renderHook(() => usePracticeGame(), { wrapper });
+    const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
+      wrapper,
+    });
     expect(result.current.state.phase).toBe("idle");
 
     act(() => {
@@ -36,7 +50,9 @@ describe("usePracticeGame", () => {
   });
 
   it("selects rock and resolves a scored round", () => {
-    const { result } = renderHook(() => usePracticeGame(), { wrapper });
+    const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
+      wrapper,
+    });
 
     act(() => {
       result.current.startMatch();
@@ -53,7 +69,10 @@ describe("usePracticeGame", () => {
     expect(result.current.state.playerMove).toBe("rock");
 
     act(() => {
-      vi.advanceTimersByTime(1200);
+      vi.advanceTimersByTime(500);
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
     });
 
     expect(result.current.state.phase).toBe("reveal");
@@ -63,7 +82,12 @@ describe("usePracticeGame", () => {
 
   it("does not change score on ties", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock", round: 1 };
+    state = {
+      ...state,
+      phase: "reveal_countdown",
+      playerMove: "rock",
+      round: 1,
+    };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "rock" });
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
@@ -74,7 +98,7 @@ describe("usePracticeGame", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "waiting_reveal",
+      phase: "reveal_countdown",
       playerMove: "rock",
       playerScore: 1,
       round: 2,
@@ -85,7 +109,9 @@ describe("usePracticeGame", () => {
   });
 
   it("rematch resets to countdown", () => {
-    const { result } = renderHook(() => usePracticeGame(), { wrapper });
+    const { result } = renderHook(() => usePracticeGame(deterministicRandom), {
+      wrapper,
+    });
     act(() => {
       result.current.startMatch();
     });
@@ -96,12 +122,22 @@ describe("usePracticeGame", () => {
     expect(result.current.state.playerScore).toBe(0);
   });
 
-  it("timeouts choose a valid automatic move", () => {
+  it("timeouts choose a valid automatic move once", () => {
     let state = createInitialMatchState();
     state = { ...state, phase: "commit", timerSeconds: 0 };
-    state = practiceReducer(state, { type: "TIMEOUT_PLAYER" });
+    state = practiceReducer(state, {
+      type: "TIMEOUT_PLAYER",
+      move: "scissors",
+    });
+    expect(state.playerMove).toBe("scissors");
     expect(state.playerTimedOut).toBe(true);
-    expect(MOVES).toContain(state.playerMove!);
-    expect(state.phase).toBe("waiting_reveal");
+  });
+
+  it("ignores duplicate move selection in the reducer", () => {
+    let state = createInitialMatchState();
+    state = { ...state, phase: "commit" };
+    state = practiceReducer(state, { type: "SELECT_MOVE", move: "rock" });
+    state = practiceReducer(state, { type: "SELECT_MOVE", move: "paper" });
+    expect(state.playerMove).toBe("rock");
   });
 });

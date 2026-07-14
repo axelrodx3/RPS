@@ -51,11 +51,18 @@ describe("practiceReducer", () => {
     expect(next.phase).toBe("countdown");
   });
 
+  it("ignores duplicate move selection", () => {
+    let state = createInitialMatchState();
+    state = { ...state, phase: "commit", playerMove: "rock" };
+    state = practiceReducer(state, { type: "SELECT_MOVE", move: "paper" });
+    expect(state.playerMove).toBe("rock");
+  });
+
   it("awards no score on ties and replays the same round number", () => {
     let state = practiceReducer(createInitialMatchState(), {
       type: "START_MATCH",
     });
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = { ...state, phase: "reveal_countdown", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "rock" });
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
@@ -69,7 +76,7 @@ describe("practiceReducer", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "waiting_reveal",
+      phase: "reveal_countdown",
       playerMove: "rock",
       playerScore: 1,
       round: 2,
@@ -79,11 +86,11 @@ describe("practiceReducer", () => {
     expect(state.matchWinner).toBe("player");
   });
 
-  it("uses a random move when the player times out", () => {
+  it("uses a provided move when the player times out", () => {
     let state = createInitialMatchState();
     state = { ...state, phase: "commit", timerSeconds: 0 };
-    state = practiceReducer(state, { type: "TIMEOUT_PLAYER" });
-    expect(state.playerMove).not.toBeNull();
+    state = practiceReducer(state, { type: "TIMEOUT_PLAYER", move: "paper" });
+    expect(state.playerMove).toBe("paper");
     expect(state.playerTimedOut).toBe(true);
     expect(state.phase).toBe("waiting_reveal");
   });

@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
+import { usePathname } from "next/navigation";
 import {
   PRACTICE_COUNTDOWN_SECONDS,
   PRACTICE_TIMER_SECONDS,
   PRACTICE_WIN_TARGET,
+  PRACTICE_REVEAL_COUNTDOWN_SECONDS,
+  TIMER_WARNING_SECONDS,
   practiceReducer,
   createInitialMatchState,
   pickRandomMove,
@@ -12,35 +15,70 @@ import {
   type Move,
   type PracticeMatchState,
 } from "@/features/practice/engine/practice-engine";
+import { computeRemainingSeconds } from "@/lib/storage/local-storage";
 import { useAudio } from "@/providers/AudioProvider";
 import { useSettings } from "@/providers/SettingsProvider";
 
-export function usePracticeGame() {
+type RandomSource = {
+  move: () => Move;
+  cpuDelayMs: () => number;
+};
+
+const defaultRandom: RandomSource = {
+  move: () => pickRandomMove(),
+  cpuDelayMs: () => randomCpuRevealDelayMs(),
+};
+
+export function usePracticeGame(random: RandomSource = defaultRandom) {
   const [state, dispatch] = useReducer(
     practiceReducer,
     null,
     createInitialMatchState,
   );
-  const { play, unlock } = useAudio();
+  const { play, unlock, stopAll } = useAudio();
   const { recordMatch, settings } = useSettings();
+  const pathname = usePathname();
   const cpuTimeoutRef = useRef<number | null>(null);
   const revealTimeoutRef = useRef<number | null>(null);
+  const roundResultTimeoutRef = useRef<number | null>(null);
   const matchRecordedRef = useRef(false);
+  const timerWarningPlayedRef = useRef(false);
+  const timeoutHandledRef = useRef(false);
 
   const clearTimers = useCallback(() => {
-    if (cpuTimeoutRef.current) {
-      window.clearTimeout(cpuTimeoutRef.current);
-      cpuTimeoutRef.current = null;
-    }
-    if (revealTimeoutRef.current) {
-      window.clearTimeout(revealTimeoutRef.current);
-      revealTimeoutRef.current = null;
+    for (const ref of [
+      cpuTimeoutRef,
+      revealTimeoutRef,
+      roundResultTimeoutRef,
+    ]) {
+      if (ref.current) {
+        window.clearTimeout(ref.current);
+        ref.current = null;
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (pathname !== "/practice") {
+      clearTimers();
+      stopAll();
+      dispatch({ type: "ABORT" });
+    }
+  }, [pathname, clearTimers, stopAll]);
+
+  useEffect(
+    () => () => {
+      clearTimers();
+      stopAll();
+    },
+    [clearTimers, stopAll],
+  );
 
   const startMatch = useCallback(() => {
     unlock();
     matchRecordedRef.current = false;
+    timerWarningPlayedRef.current = false;
+    timeoutHandledRef.current = false;
     clearTimers();
     dispatch({ type: "START_MATCH" });
     play("button");
@@ -48,21 +86,25 @@ export function usePracticeGame() {
 
   const selectMove = useCallback(
     (move: Move) => {
+      if (state.phase !== "commit" || state.playerMove || state.roundResolved) {
+        return;
+      }
       unlock();
       dispatch({ type: "SELECT_MOVE", move });
-      play("button");
+      play("move_selected");
+      play("move_locked");
     },
-    [play, unlock],
+    [play, unlock, state.phase, state.playerMove, state.roundResolved],
   );
 
   const rematch = useCallback(() => {
     matchRecordedRef.current = false;
+    timerWarningPlayedRef.current = false;
+    timeoutHandledRef.current = false;
     clearTimers();
     dispatch({ type: "REMATCH" });
     play("button");
   }, [clearTimers, play]);
-
-  useEffect(() => clearTimers, [clearTimers]);
 
   useEffect(() => {
     if (state.phase !== "countdown") return;
@@ -77,25 +119,62 @@ export function usePracticeGame() {
   }, [state.phase, state.countdown, play]);
 
   useEffect(() => {
-    if (state.phase !== "commit") return;
-    const id = window.setInterval(() => {
-      dispatch({ type: "TICK_TIMER" });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [state.phase, state.round]);
-
-  useEffect(() => {
-    if (state.phase !== "commit") return;
-    if (state.timerSeconds === 0 && !state.playerMove) {
-      dispatch({ type: "TIMEOUT_PLAYER" });
+    if (
+      state.phase !== "commit" ||
+      !state.commitStartedAt ||
+      state.playerMove
+    ) {
+      return;
     }
-  }, [state.phase, state.timerSeconds, state.playerMove]);
+
+    const sync = () => {
+      const remaining = computeRemainingSeconds(
+        state.commitStartedAt!,
+        PRACTICE_TIMER_SECONDS,
+        Date.now(),
+      );
+      dispatch({ type: "SYNC_TIMER", seconds: remaining });
+
+      if (
+        remaining <= TIMER_WARNING_SECONDS &&
+        remaining > 0 &&
+        !timerWarningPlayedRef.current
+      ) {
+        timerWarningPlayedRef.current = true;
+        play("countdown_warning");
+      }
+
+      if (remaining === 0 && !timeoutHandledRef.current && !state.playerMove) {
+        timeoutHandledRef.current = true;
+        dispatch({ type: "TIMEOUT_PLAYER", move: random.move() });
+        play("move_locked");
+      }
+    };
+
+    sync();
+    const id = window.setInterval(sync, 250);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [
+    state.phase,
+    state.commitStartedAt,
+    state.playerMove,
+    state.round,
+    play,
+    random,
+  ]);
 
   useEffect(() => {
     if (state.phase !== "waiting_reveal" || !state.playerMove) return;
-    const delay = randomCpuRevealDelayMs();
+    const delay = random.cpuDelayMs();
     cpuTimeoutRef.current = window.setTimeout(() => {
-      dispatch({ type: "CPU_REVEAL", move: pickRandomMove() });
+      dispatch({ type: "CPU_READY" });
     }, delay);
     return () => {
       if (cpuTimeoutRef.current) {
@@ -103,7 +182,25 @@ export function usePracticeGame() {
         cpuTimeoutRef.current = null;
       }
     };
-  }, [state.phase, state.playerMove, state.round]);
+  }, [state.phase, state.playerMove, state.round, random]);
+
+  useEffect(() => {
+    if (state.phase !== "reveal_countdown") return;
+    if (state.revealCountdown === PRACTICE_REVEAL_COUNTDOWN_SECONDS) {
+      play("countdown");
+    }
+    const id = window.setInterval(
+      () => dispatch({ type: "TICK_REVEAL_COUNTDOWN" }),
+      1000,
+    );
+    return () => window.clearInterval(id);
+  }, [state.phase, state.revealCountdown, play]);
+
+  useEffect(() => {
+    if (state.phase !== "reveal_countdown") return;
+    if (state.revealCountdown !== 0) return;
+    dispatch({ type: "CPU_REVEAL", move: random.move() });
+  }, [state.phase, state.revealCountdown, random]);
 
   useEffect(() => {
     if (state.phase !== "reveal") return;
@@ -112,7 +209,7 @@ export function usePracticeGame() {
     if (state.roundOutcome === "cpu") play("round_loss");
     if (state.roundOutcome === "tie") play("round_tie");
 
-    const duration = settings.reducedMotion ? 600 : 1800;
+    const duration = settings.reducedMotion ? 600 : 1600;
     revealTimeoutRef.current = window.setTimeout(() => {
       dispatch({ type: "ADVANCE_FROM_REVEAL" });
     }, duration);
@@ -132,21 +229,33 @@ export function usePracticeGame() {
 
   useEffect(() => {
     if (state.phase !== "round_result") return;
-    const id = window.setTimeout(
-      () => {
-        dispatch({ type: "ADVANCE_FROM_ROUND_RESULT" });
-      },
-      settings.reducedMotion ? 500 : 1200,
-    );
-    return () => window.clearTimeout(id);
-  }, [state.phase, settings.reducedMotion]);
+    const duration = settings.reducedMotion ? 500 : 1000;
+    roundResultTimeoutRef.current = window.setTimeout(() => {
+      timerWarningPlayedRef.current = false;
+      timeoutHandledRef.current = false;
+      dispatch({ type: "ADVANCE_FROM_ROUND_RESULT" });
+    }, duration);
+    return () => {
+      if (roundResultTimeoutRef.current) {
+        window.clearTimeout(roundResultTimeoutRef.current);
+        roundResultTimeoutRef.current = null;
+      }
+    };
+  }, [state.phase, state.round, settings.reducedMotion]);
 
   useEffect(() => {
     if (state.phase !== "match_complete" || !state.matchWinner) return;
     if (matchRecordedRef.current) return;
     matchRecordedRef.current = true;
     play(state.matchWinner === "player" ? "match_win" : "match_loss");
-    recordMatch(state.matchWinner, state.history);
+    recordMatch(
+      state.matchWinner,
+      state.history.map((round) => ({
+        outcome: round.outcome,
+        playerTimedOut: round.playerTimedOut,
+        playerMove: round.playerMove,
+      })),
+    );
   }, [state.phase, state.matchWinner, state.history, play, recordMatch]);
 
   return {

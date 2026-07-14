@@ -1,0 +1,26 @@
+.panel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.drawer {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}

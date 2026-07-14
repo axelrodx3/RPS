@@ -1,0 +1,50 @@
+[
+  {
+    "assetName": "Rock move placeholder icon",
+    "filePath": "apps/web/public/assets/moves/rock.svg",
+    "source": "Original project asset",
+    "author": "RPS project",
+    "sourceUrl": null,
+    "license": "Project internal placeholder",
+    "attributionRequired": false,
+    "dateDownloaded": null,
+    "modifications": "Generated for Prompt 2B placeholder use",
+    "approvalStatus": "approved-placeholder"
+  },
+  {
+    "assetName": "Paper move placeholder icon",
+    "filePath": "apps/web/public/assets/moves/paper.svg",
+    "source": "Original project asset",
+    "author": "RPS project",
+    "sourceUrl": null,
+    "license": "Project internal placeholder",
+    "attributionRequired": false,
+    "dateDownloaded": null,
+    "modifications": "Generated for Prompt 2B placeholder use",
+    "approvalStatus": "approved-placeholder"
+  },
+  {
+    "assetName": "Scissors move placeholder icon",
+    "filePath": "apps/web/public/assets/moves/scissors.svg",
+    "source": "Original project asset",
+    "author": "RPS project",
+    "sourceUrl": null,
+    "license": "Project internal placeholder",
+    "attributionRequired": false,
+    "dateDownloaded": null,
+    "modifications": "Generated for Prompt 2B placeholder use",
+    "approvalStatus": "approved-placeholder"
+  },
+  {
+    "assetName": "Temporary Web Audio practice tones",
+    "filePath": "apps/web/src/lib/audio/audio-engine.ts",
+    "source": "Original generated tones",
+    "author": "RPS project",
+    "sourceUrl": null,
+    "license": "Project internal generated audio",
+    "attributionRequired": false,
+    "dateDownloaded": null,
+    "modifications": "Oscillator based fallback until licensed assets are approved",
+    "approvalStatus": "approved-temporary"
+  }
+]

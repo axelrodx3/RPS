@@ -36,7 +36,8 @@ describe("PracticeGame", () => {
     );
 
     expect(screen.getByText("Get ready")).toBeInTheDocument();
-    expect(screen.getByLabelText("Match scoreboard")).toBeInTheDocument();
+    expect(screen.getByText("You")).toBeInTheDocument();
+    expect(screen.getByText("CPU")).toBeInTheDocument();
   });
 
   it.each(["Rock", "Paper", "Scissors"] as const)(
@@ -47,14 +48,28 @@ describe("PracticeGame", () => {
       await startCommitPhase(user);
 
       await user.click(screen.getByRole("button", { name: `Choose ${label}` }));
-      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getAllByText("CPU preparing move…").length).toBeGreaterThan(
+        0,
+      );
     },
   );
+
+  it("locks move controls after selection", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderWithProviders(<PracticeGame />);
+    await startCommitPhase(user);
+
+    const rock = screen.getByRole("button", { name: "Choose Rock" });
+    await user.click(rock);
+    expect(
+      screen.queryByRole("button", { name: "Choose Rock" }),
+    ).not.toBeInTheDocument();
+  });
 
   it("updates the score after a resolved round", () => {
     let state = createInitialMatchState();
     state = practiceReducer(state, { type: "START_MATCH" });
-    state = { ...state, phase: "waiting_reveal", playerMove: "rock" };
+    state = { ...state, phase: "reveal_countdown", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
     expect(state.playerScore).toBe(1);
     expect(state.cpuScore).toBe(0);
@@ -62,7 +77,7 @@ describe("PracticeGame", () => {
 
   it("does not change the score on a tie", () => {
     let state = createInitialMatchState();
-    state = { ...state, phase: "waiting_reveal", playerMove: "paper" };
+    state = { ...state, phase: "reveal_countdown", playerMove: "paper" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "paper" });
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
@@ -73,7 +88,7 @@ describe("PracticeGame", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
-      phase: "waiting_reveal",
+      phase: "reveal_countdown",
       playerMove: "scissors",
       playerScore: 1,
     };
@@ -101,7 +116,7 @@ describe("PracticeGame", () => {
   it("uses a valid automatic move when the timer expires", () => {
     let state = createInitialMatchState();
     state = { ...state, phase: "commit", timerSeconds: 0 };
-    state = practiceReducer(state, { type: "TIMEOUT_PLAYER" });
+    state = practiceReducer(state, { type: "TIMEOUT_PLAYER", move: "rock" });
     expect(MOVES).toContain(state.playerMove!);
     expect(state.playerTimedOut).toBe(true);
   });

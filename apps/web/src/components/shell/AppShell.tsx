@@ -6,6 +6,7 @@ import { useState } from "react";
 import { brand, environment } from "@/config/brand";
 import { Drawer } from "@/design-system/components";
 import { AudioControl } from "@/components/AudioControl";
+import { AudioSettingsPanel } from "@/components/AudioSettingsPanel";
 import styles from "./app-shell.module.css";
 
 const NAV_ITEMS: { href: string; label: string; soon?: boolean }[] = [
@@ -94,6 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           aria-label="Mobile primary"
         >
           <NavLinks onNavigate={() => setMenuOpen(false)} />
+          <AudioSettingsPanel layout="drawer" />
         </nav>
       </Drawer>
 

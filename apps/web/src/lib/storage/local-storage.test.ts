@@ -1,79 +1,90 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_PRACTICE_STATS,
   DEFAULT_SETTINGS,
+  computeRemainingSeconds,
   parsePracticeStats,
   parseSettings,
   recordPracticeMatchResult,
+  resetPracticeStats,
 } from "@/lib/storage/local-storage";
 
 describe("parseSettings", () => {
-  it("returns defaults for empty input", () => {
-    expect(parseSettings(null)).toEqual(DEFAULT_SETTINGS);
+  it("returns defaults for invalid input", () => {
+    expect(parseSettings("{bad")).toEqual(DEFAULT_SETTINGS);
   });
 
-  it("parses persisted settings safely", () => {
+  it("migrates legacy volume and muted fields", () => {
     expect(
-      parseSettings(
-        JSON.stringify({
-          volume: 0.8,
-          muted: true,
-          tutorialCompleted: true,
-          reducedMotion: true,
-          highContrast: true,
-          theme: "light",
-          wagerPresetLamports: 1000000,
-        }),
-      ),
+      parseSettings(JSON.stringify({ volume: 0.4, muted: true })),
     ).toMatchObject({
-      volume: 0.8,
-      muted: true,
-      tutorialCompleted: true,
-      reducedMotion: true,
-      highContrast: true,
-      theme: "light",
-      wagerPresetLamports: 1000000,
+      masterVolume: 0.4,
+      masterMuted: true,
     });
   });
 });
 
 describe("parsePracticeStats", () => {
-  it("records practice-only statistics", () => {
-    const stats = recordPracticeMatchResult(
-      parsePracticeStats(null),
-      "player",
-      [
-        { outcome: "player", playerTimedOut: false },
-        { outcome: "tie", playerTimedOut: false },
-        { outcome: "player", playerTimedOut: true },
-      ],
-    );
-    expect(stats.matchesPlayed).toBe(1);
-    expect(stats.matchesWon).toBe(1);
-    expect(stats.roundsPlayed).toBe(3);
-    expect(stats.ties).toBe(1);
-    expect(stats.timeouts).toBe(1);
+  it("returns defaults for invalid input", () => {
+    expect(parsePracticeStats("{bad")).toEqual(DEFAULT_PRACTICE_STATS);
+  });
+
+  it("migrates legacy stats shape", () => {
+    expect(
+      parsePracticeStats(
+        JSON.stringify({
+          matchesPlayed: 3,
+          matchesWon: 2,
+          matchesLost: 1,
+          ties: 1,
+          timeouts: 2,
+        }),
+      ),
+    ).toMatchObject({
+      matchesPlayed: 3,
+      wins: 2,
+      losses: 1,
+      tiedRounds: 1,
+      automaticMoveCount: 2,
+    });
   });
 });
 
-describe("localStorage persistence", () => {
-  it("round-trips settings through storage helpers", async () => {
-    const store = new Map<string, string>();
-    const storage = {
-      getItem: (key: string) => store.get(key) ?? null,
-      setItem: (key: string, value: string) => {
-        store.set(key, value);
+describe("recordPracticeMatchResult", () => {
+  it("updates extended practice statistics once", () => {
+    const next = recordPracticeMatchResult(DEFAULT_PRACTICE_STATS, "player", [
+      {
+        outcome: "player",
+        playerTimedOut: false,
+        playerMove: "rock",
       },
-      removeItem: (key: string) => {
-        store.delete(key);
+      {
+        outcome: "tie",
+        playerTimedOut: true,
+        playerMove: "paper",
       },
-      clear: () => store.clear(),
-      key: () => null,
-      length: 0,
-    } as Storage;
+    ]);
 
-    const { readSettings, writeSettings } =
-      await import("@/lib/storage/local-storage");
-    writeSettings(storage, { ...DEFAULT_SETTINGS, tutorialCompleted: true });
-    expect(readSettings(storage).tutorialCompleted).toBe(true);
+    expect(next.matchesPlayed).toBe(1);
+    expect(next.wins).toBe(1);
+    expect(next.currentWinStreak).toBe(1);
+    expect(next.rockSelections).toBe(1);
+    expect(next.paperSelections).toBe(1);
+    expect(next.tiedRounds).toBe(1);
+    expect(next.automaticMoveCount).toBe(1);
+    expect(next.mostUsedMove).toBe("rock");
+  });
+});
+
+describe("resetPracticeStats", () => {
+  it("returns a fresh stats object", () => {
+    expect(resetPracticeStats()).toEqual(DEFAULT_PRACTICE_STATS);
+  });
+});
+
+describe("computeRemainingSeconds", () => {
+  it("uses elapsed wall clock time", () => {
+    expect(computeRemainingSeconds(1000, 20, 6000)).toBe(15);
+    expect(computeRemainingSeconds(1000, 20, 22000)).toBe(0);
   });
 });
