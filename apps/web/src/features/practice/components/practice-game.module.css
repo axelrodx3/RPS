@@ -48,9 +48,13 @@
 .arenaShell {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 20%, 260px);
   gap: var(--space-4);
   align-items: start;
+}
+
+.battleArenaResult {
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 18%, 240px);
 }
 
 .battleShell {
@@ -67,6 +71,10 @@
     0 32px 80px rgb(0 0 0 / 55%),
     inset 0 1px 0 rgb(255 255 255 / 5%);
   overflow: hidden;
+}
+
+.battleShellResult {
+  min-height: auto;
 }
 
 .arenaEnvironment {
@@ -157,14 +165,15 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  justify-items: center;
+  justify-items: stretch;
   width: 100%;
-  max-width: min(100%, 640px);
-  min-height: clamp(420px, 72vh, 560px);
-  margin-inline: auto;
+  aspect-ratio: 16 / 10;
+  min-height: clamp(300px, 42vw, 480px);
+  max-height: min(72vh, 560px);
   border-radius: var(--radius-lg);
   overflow: hidden;
   text-align: center;
+  background: rgb(0 0 0 / 92%);
 }
 
 .cinematicResultVictory {
@@ -189,33 +198,54 @@
   pointer-events: none;
 }
 
-.cinematicResultBackdropStatic .cinematicResultImage,
+.cinematicResultBackdropStatic .cinematicResultBleedImage,
+.cinematicResultBackdropStatic .cinematicResultSharpImage,
 .cinematicResultBackdropStatic .cinematicResultOverlay,
 .cinematicResultBackdropStatic .cinematicResultGlowVictory,
-.cinematicResultBackdropStatic .cinematicResultGlowDefeat {
+.cinematicResultBackdropStatic .cinematicResultGlowDefeat,
+.cinematicResultBackdropStatic .cinematicResultAtmosphereVictory,
+.cinematicResultBackdropStatic .cinematicResultAtmosphereDefeat {
   animation: none !important;
 }
 
-.cinematicResultPicture {
+.cinematicResultEnter .cinematicResultBackdrop {
+  animation: cinematicBackdropFade 420ms ease-out both;
+}
+
+.cinematicResultReduced .cinematicResultBackdrop {
+  animation: cinematicBackdropFade 280ms ease-out both;
+}
+
+.cinematicResultBleedPicture,
+.cinematicResultSharpPicture {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
-.cinematicResultPicture,
-.cinematicResultImage {
+.cinematicResultBleedImage,
+.cinematicResultSharpImage {
   display: block;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
-.cinematicResultImage {
+.cinematicResultBleedImage {
   object-fit: cover;
-  object-position: var(--result-bg-position, center center);
-  transform: scale(1);
-  animation: cinematicBackgroundBreath 24s ease-in-out infinite alternate;
+  object-position: var(--result-bleed-position, center 62%);
+  filter: blur(24px) brightness(0.52) saturate(1.12);
+  transform: scale(1.1);
+  animation: cinematicBackgroundPushBleed 6s ease-out forwards;
+}
+
+.cinematicResultSharpImage {
+  object-fit: contain;
+  object-position: var(--result-sharp-position, center 88%);
+  animation: cinematicBackgroundPush 6s ease-out forwards;
 }
 
 .cinematicResultOverlay {
@@ -224,30 +254,27 @@
   background:
     linear-gradient(
       180deg,
-      rgb(0 0 0 / 72%) 0%,
-      rgb(0 0 0 / 38%) 38%,
-      rgb(0 0 0 / 58%) 100%
+      rgb(0 0 0 / 78%) 0%,
+      rgb(0 0 0 / 18%) 42%,
+      rgb(0 0 0 / 24%) 58%,
+      rgb(0 0 0 / 72%) 100%
     ),
-    radial-gradient(
-      circle at 50% 46%,
-      rgb(0 0 0 / 10%) 0%,
-      rgb(0 0 0 / 55%) 72%
-    );
-  animation: cinematicOverlayPulse 8s ease-in-out infinite alternate;
+    radial-gradient(circle at 50% 58%, rgb(0 0 0 / 8%) 0%, rgb(0 0 0 / 42%) 72%);
 }
 
 .cinematicResultVictory .cinematicResultOverlay {
   background:
     linear-gradient(
       180deg,
-      rgb(0 0 0 / 74%) 0%,
-      rgb(8 24 8 / 42%) 40%,
-      rgb(0 0 0 / 62%) 100%
+      rgb(0 0 0 / 80%) 0%,
+      rgb(8 24 8 / 12%) 44%,
+      rgb(0 0 0 / 20%) 62%,
+      rgb(0 0 0 / 74%) 100%
     ),
     radial-gradient(
-      circle at 50% 44%,
-      rgb(215 255 67 / 8%) 0%,
-      rgb(0 0 0 / 58%) 70%
+      circle at 50% 62%,
+      rgb(215 255 67 / 10%) 0%,
+      rgb(0 0 0 / 48%) 70%
     );
 }
 
@@ -255,14 +282,15 @@
   background:
     linear-gradient(
       180deg,
-      rgb(0 0 0 / 76%) 0%,
-      rgb(24 8 8 / 44%) 40%,
-      rgb(0 0 0 / 66%) 100%
+      rgb(0 0 0 / 82%) 0%,
+      rgb(24 8 8 / 14%) 44%,
+      rgb(0 0 0 / 22%) 62%,
+      rgb(0 0 0 / 76%) 100%
     ),
     radial-gradient(
-      circle at 50% 56%,
-      rgb(229 83 83 / 10%) 0%,
-      rgb(0 0 0 / 60%) 72%
+      circle at 50% 60%,
+      rgb(229 83 83 / 12%) 0%,
+      rgb(0 0 0 / 50%) 72%
     );
 }
 
@@ -272,23 +300,72 @@
   inset: 0;
   pointer-events: none;
   mix-blend-mode: screen;
-  animation: cinematicGlowPulse 10s ease-in-out infinite alternate;
+  opacity: 0;
+  animation: cinematicGlowRise 900ms ease-out 320ms 2 alternate forwards;
 }
 
 .cinematicResultGlowVictory {
   background: radial-gradient(
-    circle at 50% 42%,
-    rgb(215 255 67 / 18%) 0%,
+    circle at 50% 62%,
+    rgb(215 255 67 / 22%) 0%,
     transparent 58%
   );
 }
 
 .cinematicResultGlowDefeat {
   background: radial-gradient(
-    circle at 50% 58%,
-    rgb(229 83 83 / 16%) 0%,
+    circle at 50% 60%,
+    rgb(229 83 83 / 20%) 0%,
     transparent 58%
   );
+}
+
+.cinematicResultAtmosphereVictory,
+.cinematicResultAtmosphereDefeat {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.cinematicResultAtmosphereVictory {
+  background:
+    radial-gradient(
+      circle at 18% 78%,
+      rgb(215 255 67 / 16%) 0 2px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 72% 68%,
+      rgb(215 255 67 / 12%) 0 1px,
+      transparent 2px
+    ),
+    linear-gradient(180deg, transparent 55%, rgb(215 255 67 / 8%) 100%);
+  background-size:
+    180px 180px,
+    140px 140px,
+    100% 100%;
+  animation: victoryParticleDrift 9s linear infinite;
+}
+
+.cinematicResultAtmosphereDefeat {
+  background:
+    radial-gradient(
+      circle at 24% 72%,
+      rgb(229 83 83 / 18%) 0 2px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 68% 64%,
+      rgb(255 120 80 / 12%) 0 1px,
+      transparent 2px
+    ),
+    linear-gradient(180deg, transparent 50%, rgb(229 83 83 / 6%) 100%);
+  background-size:
+    160px 160px,
+    120px 120px,
+    100% 100%;
+  animation: defeatSmokeDrift 11s linear infinite;
 }
 
 .cinematicResultContent {
@@ -299,9 +376,38 @@
   justify-items: center;
   align-content: center;
   width: 100%;
-  min-height: inherit;
-  padding: clamp(var(--space-4), 5vw, var(--space-6))
+  min-height: 100%;
+  padding: clamp(var(--space-4), 4vw, var(--space-6))
     clamp(var(--space-3), 4vw, var(--space-5));
+}
+
+.cinematicResultEnter .cinematicResultKicker {
+  animation: resultContentFadeUp 480ms ease-out 120ms both;
+}
+
+.cinematicResultEnter .cinematicResultDetails {
+  animation: resultContentFadeUp 520ms ease-out 670ms both;
+}
+
+.cinematicResultEnter .cinematicResultActions {
+  animation: resultContentFadeUp 520ms ease-out 870ms both;
+}
+
+.cinematicResultReduced .cinematicResultKicker,
+.cinematicResultReduced .cinematicResultDetails,
+.cinematicResultReduced .cinematicResultActions {
+  animation: cinematicBackdropFade 320ms ease-out both;
+}
+
+.cinematicResultEnter.cinematicResultDefeat {
+  animation: defeatArenaShake 320ms ease-out 360ms 1;
+}
+
+.cinematicResultDetails {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  width: 100%;
 }
 
 .matchComplete {
@@ -959,25 +1065,42 @@
 .matchVictoryImpact {
   display: inline-block;
   transform-origin: center center;
-  animation: victoryTitleImpact 650ms ease-out 1;
+  position: relative;
+  overflow: hidden;
+  animation: victoryTitleImpact 620ms ease-out 420ms 1 both;
+}
+
+.matchVictoryImpact::after {
+  content: "";
+  position: absolute;
+  inset: -20% -40%;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgb(255 255 255 / 42%) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%);
+  animation: victoryLightSweep 680ms ease-out 540ms 1;
+  pointer-events: none;
 }
 
 .matchDefeatImpact {
   display: inline-block;
   transform-origin: center center;
-  animation: defeatTitleImpact 580ms ease-out 1;
+  animation: defeatTitleImpact 600ms ease-out 420ms 1 both;
 }
 
 @keyframes victoryTitleImpact {
   0% {
-    transform: scale(0.88) translateY(10px);
-    opacity: 0.72;
-    filter: brightness(0.85);
+    transform: scale(0.92) translateY(8px);
+    opacity: 0.76;
+    filter: brightness(0.88);
   }
 
   45% {
-    transform: scale(1.06) translateY(-4px);
-    filter: brightness(1.15);
+    transform: scale(1.05) translateY(-3px);
+    filter: brightness(1.12);
   }
 
   100% {
@@ -989,8 +1112,8 @@
 
 @keyframes defeatTitleImpact {
   0% {
-    transform: scale(1.14) translateX(0);
-    filter: brightness(1.2);
+    transform: scale(1.12) translateX(0);
+    filter: brightness(1.18);
   }
 
   14% {
@@ -1019,33 +1142,120 @@
   }
 }
 
-@keyframes cinematicBackgroundBreath {
-  0% {
-    transform: scale(1);
+@keyframes cinematicBackdropFade {
+  from {
+    opacity: 0;
   }
 
-  100% {
-    transform: scale(1.06);
-  }
-}
-
-@keyframes cinematicOverlayPulse {
-  0% {
-    opacity: 0.92;
-  }
-
-  100% {
+  to {
     opacity: 1;
   }
 }
 
-@keyframes cinematicGlowPulse {
-  0% {
-    opacity: 0.55;
+@keyframes cinematicBackgroundPush {
+  from {
+    transform: scale(1);
   }
 
+  to {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes cinematicBackgroundPushBleed {
+  from {
+    transform: scale(1.1);
+  }
+
+  to {
+    transform: scale(1.125);
+  }
+}
+
+@keyframes cinematicGlowRise {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.75;
+  }
+}
+
+@keyframes resultContentFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes victoryLightSweep {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes defeatArenaShake {
+  0%,
   100% {
-    opacity: 0.85;
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-2px);
+  }
+
+  40% {
+    transform: translateX(2px);
+  }
+
+  60% {
+    transform: translateX(-1px);
+  }
+
+  80% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes victoryParticleDrift {
+  from {
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 -120px,
+      0 -80px,
+      0 0;
+  }
+}
+
+@keyframes defeatSmokeDrift {
+  from {
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 -90px,
+      0 -60px,
+      0 0;
   }
 }
 
@@ -1376,11 +1586,17 @@
 
 @media (max-width: 720px) {
   .cinematicResult {
-    min-height: clamp(380px, 78vh, 520px);
+    aspect-ratio: 4 / 5;
+    min-height: clamp(360px, 88vw, 520px);
+    max-height: none;
   }
 
-  .cinematicResultImage {
-    object-position: var(--result-bg-position-mobile, center center);
+  .cinematicResultBleedImage {
+    object-position: var(--result-bleed-position-mobile, center 58%);
+  }
+
+  .cinematicResultSharpImage {
+    object-position: var(--result-sharp-position-mobile, center 84%);
   }
 
   .matchCompleteActions {
@@ -1465,10 +1681,18 @@
   .timelineEntry,
   .matchVictoryImpact,
   .matchDefeatImpact,
-  .cinematicResultImage,
+  .cinematicResultBleedImage,
+  .cinematicResultSharpImage,
   .cinematicResultOverlay,
   .cinematicResultGlowVictory,
-  .cinematicResultGlowDefeat {
+  .cinematicResultGlowDefeat,
+  .cinematicResultAtmosphereVictory,
+  .cinematicResultAtmosphereDefeat,
+  .cinematicResultEnter,
+  .cinematicResultKicker,
+  .cinematicResultDetails,
+  .cinematicResultActions,
+  .matchVictoryImpact::after {
     animation: none !important;
     transition: none !important;
   }
@@ -1492,10 +1716,18 @@
 [data-reduced-motion="true"] .timelineEntry,
 [data-reduced-motion="true"] .matchVictoryImpact,
 [data-reduced-motion="true"] .matchDefeatImpact,
-[data-reduced-motion="true"] .cinematicResultImage,
+[data-reduced-motion="true"] .cinematicResultBleedImage,
+[data-reduced-motion="true"] .cinematicResultSharpImage,
 [data-reduced-motion="true"] .cinematicResultOverlay,
 [data-reduced-motion="true"] .cinematicResultGlowVictory,
-[data-reduced-motion="true"] .cinematicResultGlowDefeat {
+[data-reduced-motion="true"] .cinematicResultGlowDefeat,
+[data-reduced-motion="true"] .cinematicResultAtmosphereVictory,
+[data-reduced-motion="true"] .cinematicResultAtmosphereDefeat,
+[data-reduced-motion="true"] .cinematicResultEnter,
+[data-reduced-motion="true"] .cinematicResultKicker,
+[data-reduced-motion="true"] .cinematicResultDetails,
+[data-reduced-motion="true"] .cinematicResultActions,
+[data-reduced-motion="true"] .matchVictoryImpact::after {
   animation: none !important;
   transition: none !important;
 }

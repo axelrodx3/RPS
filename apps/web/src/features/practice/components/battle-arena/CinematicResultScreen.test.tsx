@@ -5,7 +5,10 @@ import path from "node:path";
 import { cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CinematicResultScreen } from "@/features/practice/components/battle-arena/CinematicResultScreen";
-import { MATCH_RESULT_BACKGROUNDS } from "@/features/practice/assets/match-result-backgrounds";
+import {
+  MATCH_RESULT_ASPECT_RATIO,
+  MATCH_RESULT_BACKGROUNDS,
+} from "@/features/practice/assets/match-result-backgrounds";
 import styles from "@/features/practice/components/practice-game.module.css";
 import { renderWithProviders } from "@/test/render";
 
@@ -23,7 +26,7 @@ describe("CinematicResultScreen", () => {
     onRematch: vi.fn(),
   };
 
-  it("renders victory background asset for player victory", () => {
+  it("renders layered victory background assets for player victory", () => {
     const { container } = renderWithProviders(
       <CinematicResultScreen
         {...baseProps}
@@ -38,16 +41,17 @@ describe("CinematicResultScreen", () => {
       ),
     ).toBeTruthy();
     expect(
-      container.querySelector(
-        `img[src="${MATCH_RESULT_BACKGROUNDS.victory.png}"]`,
-      ),
-    ).toBeTruthy();
+      container.querySelectorAll(`.${styles.cinematicResultBleedImage}`).length,
+    ).toBe(1);
+    expect(
+      container.querySelectorAll(`.${styles.cinematicResultSharpImage}`).length,
+    ).toBe(1);
     expect(
       container.querySelector('[data-result-variant="victory"]'),
     ).toBeTruthy();
   });
 
-  it("renders defeat background asset for player defeat", () => {
+  it("renders layered defeat background assets for player defeat", () => {
     const { container } = renderWithProviders(
       <CinematicResultScreen
         {...baseProps}
@@ -62,13 +66,30 @@ describe("CinematicResultScreen", () => {
       ),
     ).toBeTruthy();
     expect(
-      container.querySelector(
-        `img[src="${MATCH_RESULT_BACKGROUNDS.defeat.png}"]`,
-      ),
-    ).toBeTruthy();
+      container.querySelectorAll(`.${styles.cinematicResultBleedImage}`).length,
+    ).toBe(1);
+    expect(
+      container.querySelectorAll(`.${styles.cinematicResultSharpImage}`).length,
+    ).toBe(1);
     expect(
       container.querySelector('[data-result-variant="defeat"]'),
     ).toBeTruthy();
+  });
+
+  it("uses wide cinematic layout and focal positioning configuration", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/features/practice/components/practice-game.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+
+    expect(MATCH_RESULT_ASPECT_RATIO).toBe("16 / 10");
+    expect(css).toContain("aspect-ratio: 16 / 10");
+    expect(MATCH_RESULT_BACKGROUNDS.victory.bleedPosition).toBe("center 62%");
+    expect(MATCH_RESULT_BACKGROUNDS.defeat.bleedPosition).toBe("center 60%");
+    expect(css).toContain(".cinematicResultBleedImage");
+    expect(css).toContain(".cinematicResultSharpImage");
+    expect(css).toContain("object-fit: contain");
   });
 
   it("keeps victory and defeat headings as real HTML", () => {
@@ -97,7 +118,7 @@ describe("CinematicResultScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("centers the result composition", () => {
+  it("applies sequenced entrance classes when motion is allowed", () => {
     const { container } = renderWithProviders(
       <CinematicResultScreen
         {...baseProps}
@@ -106,9 +127,17 @@ describe("CinematicResultScreen", () => {
       />,
     );
 
-    expect(container.querySelector(`.${styles.cinematicResult}`)).toBeTruthy();
     expect(
-      container.querySelector(`.${styles.cinematicResultContent}`),
+      container.querySelector(`.${styles.cinematicResultEnter}`),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.matchVictoryImpact}`),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.cinematicResultDetails}`),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.cinematicResultActions}`),
     ).toBeTruthy();
   });
 
@@ -149,11 +178,14 @@ describe("CinematicResultScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("uses static backdrop styling under reduced motion", () => {
+  it("uses static reduced motion presentation without impact classes", () => {
     const { container } = renderWithProviders(
       <CinematicResultScreen {...baseProps} variant="defeat" reducedMotion />,
     );
 
+    expect(
+      container.querySelector(`.${styles.cinematicResultReduced}`),
+    ).toBeTruthy();
     expect(
       container.querySelector(`.${styles.cinematicResultBackdropStatic}`),
     ).toBeTruthy();

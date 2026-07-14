@@ -427,6 +427,10 @@ describe("reveal outcome styles", () => {
     expect(css).toContain("matchVictoryImpact");
     expect(css).toContain("cinematicResult");
     expect(css).toContain("cinematicResultBackdrop");
+    expect(css).toContain("aspect-ratio: 16 / 10");
+    expect(css).toContain("battleArenaResult");
+    expect(css).toContain("cinematicResultDetails");
+    expect(css).toContain("cinematicResultActions");
   });
 });
 
@@ -503,6 +507,18 @@ describe("match result presentation", () => {
     vi.restoreAllMocks();
   });
 
+  it("uses a wider main result column than the timeline on desktop layouts", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/features/practice/components/practice-game.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+    expect(css).toContain(
+      "grid-template-columns: minmax(0, 1fr) clamp(180px, 20%, 260px)",
+    );
+    expect(css).toContain(".battleArenaResult");
+  });
+
   it("shows victory cinematic background only on full match victory", () => {
     const hook = mockActiveMatch(createInitialMatchState(), {
       phase: "match_complete",
@@ -519,6 +535,9 @@ describe("match result presentation", () => {
     ).toBeTruthy();
     expect(
       container.querySelector('[data-result-variant="victory"]'),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.cinematicResultEnter}`),
     ).toBeTruthy();
     expect(
       container.querySelector('[data-result-variant="defeat"]'),
@@ -605,6 +624,12 @@ describe("match result presentation", () => {
     const { container } = renderWithProviders(<PracticeGame />);
     expect(
       container.querySelector(`.${styles.matchDefeatImpact}`),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.cinematicResultDetails}`),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(`.${styles.cinematicResultActions}`),
     ).toBeTruthy();
     hook.mockRestore();
   });

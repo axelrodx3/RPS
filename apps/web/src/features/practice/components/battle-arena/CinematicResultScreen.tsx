@@ -22,6 +22,81 @@ export type CinematicResultScreenProps = {
   onRematch: () => void;
 };
 
+function ResultBackgroundLayer({
+  background,
+  matchKey,
+  variant,
+  reducedMotion,
+}: {
+  background: (typeof MATCH_RESULT_BACKGROUNDS)[MatchResultVariant];
+  matchKey: string;
+  variant: MatchResultVariant;
+  reducedMotion: boolean;
+}) {
+  const isVictory = variant === "victory";
+
+  return (
+    <div
+      className={`${styles.cinematicResultBackdrop} ${
+        reducedMotion ? styles.cinematicResultBackdropStatic : ""
+      }`.trim()}
+      aria-hidden="true"
+    >
+      <picture className={styles.cinematicResultBleedPicture}>
+        <source srcSet={background.webp} type="image/webp" />
+        <img
+          key={`${matchKey}-bleed`}
+          className={styles.cinematicResultBleedImage}
+          src={background.png}
+          alt=""
+          decoding="async"
+          loading="eager"
+          style={
+            {
+              "--result-bleed-position": background.bleedPosition,
+              "--result-bleed-position-mobile": background.bleedPositionMobile,
+            } as React.CSSProperties
+          }
+        />
+      </picture>
+
+      <picture className={styles.cinematicResultSharpPicture}>
+        <source srcSet={background.webp} type="image/webp" />
+        <img
+          key={`${matchKey}-sharp`}
+          className={styles.cinematicResultSharpImage}
+          src={background.png}
+          alt=""
+          decoding="async"
+          loading="eager"
+          style={
+            {
+              "--result-sharp-position": background.sharpPosition,
+              "--result-sharp-position-mobile": background.sharpPositionMobile,
+            } as React.CSSProperties
+          }
+        />
+      </picture>
+
+      <div className={styles.cinematicResultOverlay} />
+      <div
+        className={
+          isVictory
+            ? styles.cinematicResultGlowVictory
+            : styles.cinematicResultGlowDefeat
+        }
+      />
+      <div
+        className={
+          isVictory
+            ? styles.cinematicResultAtmosphereVictory
+            : styles.cinematicResultAtmosphereDefeat
+        }
+      />
+    </div>
+  );
+}
+
 export function CinematicResultScreen({
   variant,
   playerScore,
@@ -51,50 +126,31 @@ export function CinematicResultScreen({
     : isVictory
       ? styles.matchVictoryImpact
       : styles.matchDefeatImpact;
-  const backdropMotionClass = reducedMotion
-    ? styles.cinematicResultBackdropStatic
-    : "";
+  const motionClass = reducedMotion
+    ? styles.cinematicResultReduced
+    : styles.cinematicResultEnter;
 
   return (
     <section
-      className={`${styles.cinematicResult} ${panelClass}`.trim()}
+      className={`${styles.cinematicResult} ${panelClass} ${motionClass}`.trim()}
       role="status"
       aria-labelledby={`match-result-heading-${matchKey}`}
       data-result-variant={variant}
+      data-testid="cinematic-result-screen"
     >
-      <div
-        className={`${styles.cinematicResultBackdrop} ${backdropMotionClass}`.trim()}
-        aria-hidden="true"
-      >
-        <picture className={styles.cinematicResultPicture}>
-          <source srcSet={background.webp} type="image/webp" />
-          <img
-            key={matchKey}
-            className={styles.cinematicResultImage}
-            src={background.png}
-            alt=""
-            decoding="async"
-            loading="eager"
-            style={
-              {
-                "--result-bg-position": background.objectPosition,
-                "--result-bg-position-mobile": background.objectPositionMobile,
-              } as React.CSSProperties
-            }
-          />
-        </picture>
-        <div className={styles.cinematicResultOverlay} />
-        <div
-          className={
-            isVictory
-              ? styles.cinematicResultGlowVictory
-              : styles.cinematicResultGlowDefeat
-          }
-        />
-      </div>
+      <ResultBackgroundLayer
+        background={background}
+        matchKey={matchKey}
+        variant={variant}
+        reducedMotion={reducedMotion}
+      />
 
       <div className={styles.cinematicResultContent}>
-        <p className={styles.matchCompleteKicker}>Match complete</p>
+        <p
+          className={`${styles.matchCompleteKicker} ${styles.cinematicResultKicker}`.trim()}
+        >
+          Match complete
+        </p>
 
         <h2
           id={`match-result-heading-${matchKey}`}
@@ -105,14 +161,18 @@ export function CinematicResultScreen({
           {isVictory ? "VICTORY" : "DEFEAT"}
         </h2>
 
-        <p className={styles.matchCompleteScore}>
-          Final score {playerScore} – {cpuScore}
-        </p>
-        <p className={styles.matchCompleteMeta}>
-          Tied rounds {tiedRounds} · Automatic moves {automaticMoves}
-        </p>
+        <div className={styles.cinematicResultDetails}>
+          <p className={styles.matchCompleteScore}>
+            Final score {playerScore} – {cpuScore}
+          </p>
+          <p className={styles.matchCompleteMeta}>
+            Tied rounds {tiedRounds} · Automatic moves {automaticMoves}
+          </p>
+        </div>
 
-        <div className={styles.matchCompleteActions}>
+        <div
+          className={`${styles.matchCompleteActions} ${styles.cinematicResultActions}`.trim()}
+        >
           <Button
             size="lg"
             className={styles.matchActionButton}

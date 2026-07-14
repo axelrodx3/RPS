@@ -12,6 +12,7 @@ import {
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
 import { PracticeStatsPanel } from "@/features/practice/components/PracticeStatsPanel";
 import { VictoryConfetti } from "@/features/practice/components/VictoryConfetti";
+import { preloadMatchResultAsset } from "@/features/practice/assets/match-result-backgrounds";
 import { BattleStage } from "@/features/practice/components/battle-arena/BattleStage";
 import { MatchCompletePanel } from "@/features/practice/components/battle-arena/MatchCompletePanel";
 import { MoveDock } from "@/features/practice/components/battle-arena/MoveDock";
@@ -97,6 +98,16 @@ export function PracticeGame() {
   const playerScorePulse = useScorePulse(state.playerScore);
   const cpuScorePulse = useScorePulse(state.cpuScore);
 
+  useEffect(() => {
+    if (state.phase === "match_complete") return;
+    if (state.playerScore >= winTarget - 1) {
+      preloadMatchResultAsset("victory");
+    }
+    if (state.cpuScore >= winTarget - 1) {
+      preloadMatchResultAsset("defeat");
+    }
+  }, [state.phase, state.playerScore, state.cpuScore, winTarget]);
+
   if (state.phase === "idle") {
     return (
       <div className={styles.pageStack}>
@@ -141,7 +152,11 @@ export function PracticeGame() {
         {announcement}
       </div>
 
-      <div className={styles.battleArena}>
+      <div
+        className={`${styles.battleArena} ${
+          state.phase === "match_complete" ? styles.battleArenaResult : ""
+        }`.trim()}
+      >
         <div className={styles.arenaEnvironment} aria-hidden="true">
           <div className={styles.arenaGlow} />
           <div className={styles.arenaBeams} />
@@ -150,7 +165,12 @@ export function PracticeGame() {
           <div className={styles.arenaParticles} />
         </div>
 
-        <section className={styles.battleShell} aria-label="Practice match">
+        <section
+          className={`${styles.battleShell} ${
+            state.phase === "match_complete" ? styles.battleShellResult : ""
+          }`.trim()}
+          aria-label="Practice match"
+        >
           <VictoryConfetti
             active={showPlayerVictoryConfetti}
             matchKey={victoryMatchKey}
