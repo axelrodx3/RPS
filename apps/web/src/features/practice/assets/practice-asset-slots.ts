@@ -66,13 +66,13 @@ export const PRACTICE_ASSET_SLOTS: Record<
     label: "Scissors reveal art",
   },
   playerAvatar: {
-    path: null,
-    fallback: "P",
+    path: "/assets/avatars/robot-head.svg",
+    fallback: "🤖",
     label: "Player avatar",
   },
   cpuAvatar: {
-    path: null,
-    fallback: "⬡",
+    path: "/brand/rps-icon-header.png",
+    fallback: "R",
     label: "CPU avatar",
   },
   vsEffect: {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/design-system/components";
+import buttonStyles from "@/design-system/components/button.module.css";
 import styles from "../practice-game.module.css";
 
 type MatchCompletePanelProps = {
@@ -28,24 +29,35 @@ export function MatchCompletePanel({
       className={`${styles.matchComplete} ${isVictory ? styles.matchCompleteVictory : styles.matchCompleteDefeat}`.trim()}
       role="status"
     >
-      <p className={styles.matchCompleteKicker}>Match complete</p>
-      <h2
-        className={`${styles.matchCompleteTitle} ${
-          isVictory ? styles.matchVictory : styles.matchDefeat
-        }`.trim()}
-      >
-        {isVictory ? "VICTORY" : "DEFEAT"}
-      </h2>
-      <p className={styles.matchCompleteScore}>
-        Final score {playerScore} – {cpuScore}
-      </p>
-      <p className={styles.matchCompleteMeta}>
-        Tied rounds {tiedRounds} · Automatic moves {automaticMoves}
-      </p>
+      <div className={styles.matchCompleteBody}>
+        <p className={styles.matchCompleteKicker}>Match complete</p>
+        <h2
+          className={`${styles.matchCompleteTitle} ${
+            isVictory ? styles.matchVictory : styles.matchDefeat
+          }`.trim()}
+        >
+          {isVictory ? "VICTORY" : "DEFEAT"}
+        </h2>
+        <p className={styles.matchCompleteScore}>
+          Final score {playerScore} – {cpuScore}
+        </p>
+        <p className={styles.matchCompleteMeta}>
+          Tied rounds {tiedRounds} · Automatic moves {automaticMoves}
+        </p>
+      </div>
       <div className={styles.matchCompleteActions}>
-        <Button onClick={onRematch}>Rematch</Button>
-        <Link href="/">
-          <Button variant="secondary">Return Home</Button>
+        <Button
+          size="lg"
+          className={styles.matchActionButton}
+          onClick={onRematch}
+        >
+          Rematch
+        </Button>
+        <Link
+          href="/"
+          className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.lg} ${styles.matchActionButton} ${styles.matchActionLink}`.trim()}
+        >
+          Return Home
         </Link>
       </div>
     </div>

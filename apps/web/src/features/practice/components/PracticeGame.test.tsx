@@ -62,7 +62,7 @@ describe("PracticeGame", () => {
       screen.getByRole("button", { name: "Start Practice Match" }),
     );
 
-    expect(screen.getByText("Opening round")).toBeInTheDocument();
+    expect(screen.getByText("Round starting")).toBeInTheDocument();
     expect(screen.getByLabelText("Match scoreboard")).toBeInTheDocument();
     expect(screen.getAllByText("YOU").length).toBeGreaterThan(0);
     expect(screen.getAllByText("CPU").length).toBeGreaterThan(0);
@@ -225,7 +225,7 @@ describe("battle arena presentation", () => {
     const { container } = renderWithProviders(<PracticeGame />);
     expect(container.querySelector(`.${styles.battlePodWin}`)).toBeTruthy();
     expect(container.querySelector(`.${styles.battlePodLoss}`)).toBeTruthy();
-    expect(container.querySelector(`.${styles.vsImpact}`)).toBeTruthy();
+    expect(container.querySelector(`.${styles.arenaCoreVs}`)).toBeTruthy();
     hook.mockRestore();
   });
 
@@ -270,6 +270,135 @@ describe("battle arena presentation", () => {
 
     const { container } = renderWithProviders(<PracticeGame />);
     expect(container.querySelector(`.${styles.moveDock}`)).toBeTruthy();
+    hook.mockRestore();
+  });
+
+  it.each([
+    ["move_locked", "Move locked"],
+    ["waiting_cpu", "Your move is ready"],
+    ["reveal_pause", "Your move is ready"],
+  ] as const)(
+    "shows the selected player move during %s",
+    (phase, statusText) => {
+      const hook = mockActiveMatch(createInitialMatchState(), {
+        phase,
+        playerMove: "rock",
+      });
+
+      renderWithProviders(<PracticeGame />);
+      expect(screen.getAllByText(statusText).length).toBeGreaterThan(0);
+      expect(screen.getByLabelText("Rock")).toBeInTheDocument();
+      expect(screen.getAllByText("✊").length).toBeGreaterThan(0);
+      hook.mockRestore();
+    },
+  );
+
+  it.each(["move_locked", "waiting_cpu", "reveal_pause"] as const)(
+    "keeps the CPU move concealed during %s",
+    (phase) => {
+      const hook = mockActiveMatch(createInitialMatchState(), {
+        phase,
+        playerMove: "paper",
+      });
+
+      const { container } = renderWithProviders(<PracticeGame />);
+      const cpuPod = container.querySelector(`.${styles.battlePodCpu}`);
+      expect(cpuPod?.querySelector(`.${styles.concealedMark}`)).toBeTruthy();
+      expect(screen.getByLabelText("Paper")).toBeInTheDocument();
+      hook.mockRestore();
+    },
+  );
+
+  it("clears the player move at the start of the next commit round", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      round: 2,
+      timerSeconds: 18,
+      commitStartedAt: Date.now(),
+      playerMove: null,
+      cpuMove: null,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(screen.queryByLabelText("Rock")).toBeNull();
+    expect(container.querySelectorAll(`.${styles.concealedMark}`).length).toBe(
+      2,
+    );
+    hook.mockRestore();
+  });
+
+  it("renders contextual match point labels", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      playerScore: 1,
+      cpuScore: 0,
+      timerSeconds: 12,
+      commitStartedAt: Date.now(),
+    });
+
+    renderWithProviders(<PracticeGame />);
+    expect(screen.getByText("YOUR MATCH POINT")).toBeInTheDocument();
+    hook.mockRestore();
+  });
+
+  it("increments timeline round numbers chronologically through ties", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_result",
+      history: [
+        {
+          round: 1,
+          playerMove: "rock",
+          cpuMove: "rock",
+          outcome: "tie",
+          playerTimedOut: false,
+          cpuTimedOut: false,
+        },
+        {
+          round: 1,
+          playerMove: "paper",
+          cpuMove: "rock",
+          outcome: "player",
+          playerTimedOut: false,
+          cpuTimedOut: false,
+        },
+      ],
+    });
+
+    renderWithProviders(<PracticeGame />);
+    expect(screen.getByText("R1")).toBeInTheDocument();
+    expect(screen.getByText("R2")).toBeInTheDocument();
+    hook.mockRestore();
+  });
+
+  it("renders player robot and CPU R icon avatars", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "commit",
+      timerSeconds: 10,
+      commitStartedAt: Date.now(),
+    });
+
+    renderWithProviders(<PracticeGame />);
+    expect(screen.getByAltText("Robot avatar")).toBeInTheDocument();
+    expect(screen.getByAltText("CPU opponent")).toBeInTheDocument();
+    hook.mockRestore();
+  });
+
+  it("renders match complete actions in a shared container", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "match_complete",
+      matchWinner: "player",
+      playerScore: 2,
+      cpuScore: 1,
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    expect(
+      container.querySelector(`.${styles.matchCompleteActions}`),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Rematch" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Return Home" }),
+    ).toBeInTheDocument();
     hook.mockRestore();
   });
 });

@@ -1,6 +1,8 @@
 "use client";
 
-import { PRACTICE_ASSET_SLOTS } from "@/features/practice/assets/practice-asset-slots";
+import { BotAvatar } from "@/features/identity/components/BotAvatar";
+import { PlayerAvatar } from "@/features/identity/components/PlayerAvatar";
+import { getMatchPointLabel } from "@/features/practice/utils/match-point-label";
 import styles from "../practice-game.module.css";
 
 type PlayerStripProps = {
@@ -36,14 +38,6 @@ function WinMarkers({
   );
 }
 
-function isMatchPoint(
-  score: number,
-  opponentScore: number,
-  winTarget: number,
-): boolean {
-  return score === winTarget - 1 && opponentScore < winTarget - 1;
-}
-
 export function PlayerStrip({
   playerScore,
   cpuScore,
@@ -53,17 +47,13 @@ export function PlayerStrip({
   playerScorePulse,
   cpuScorePulse,
 }: PlayerStripProps) {
-  const showMatchPoint =
-    isMatchPoint(playerScore, cpuScore, winTarget) ||
-    isMatchPoint(cpuScore, playerScore, winTarget);
+  const matchPointLabel = getMatchPointLabel(playerScore, cpuScore, winTarget);
 
   return (
     <header className={styles.playerStrip} aria-label="Match scoreboard">
       <div className={styles.stripSide}>
         <div className={styles.stripIdentity}>
-          <div className={styles.playerAvatar} aria-hidden="true">
-            {PRACTICE_ASSET_SLOTS.playerAvatar.fallback}
-          </div>
+          <PlayerAvatar />
           <div className={styles.stripMeta}>
             <span className={styles.stripLabel}>YOU</span>
             <span className={styles.srOnly}>Score {playerScore}</span>
@@ -81,8 +71,8 @@ export function PlayerStrip({
       <div className={styles.stripCenter}>
         <span className={styles.stripRound}>ROUND {round}</span>
         <span className={styles.stripPhase}>{phaseLabel}</span>
-        {showMatchPoint ? (
-          <span className={styles.matchPointBadge}>Match point</span>
+        {matchPointLabel ? (
+          <span className={styles.matchPointBadge}>{matchPointLabel}</span>
         ) : null}
       </div>
 
@@ -99,9 +89,7 @@ export function PlayerStrip({
               {cpuScore}
             </strong>
           </div>
-          <div className={styles.cpuAvatar} aria-hidden="true">
-            {PRACTICE_ASSET_SLOTS.cpuAvatar.fallback}
-          </div>
+          <BotAvatar />
         </div>
       </div>
     </header>

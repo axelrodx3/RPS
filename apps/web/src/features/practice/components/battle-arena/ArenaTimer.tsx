@@ -3,32 +3,44 @@
 import { TIMER_WARNING_SECONDS } from "@/features/practice/engine/practice-engine";
 import styles from "../practice-game.module.css";
 
-type ArenaTimerProps = {
+export type ArenaCoreMode = "countdown" | "timer" | "phase" | "reveal";
+
+type ArenaCoreProps = {
+  mode: ArenaCoreMode;
   seconds: number;
   total: number;
   phaseLabel: string;
-  active: boolean;
+  subLabel?: string;
+  countdown?: number;
 };
 
 const RING_RADIUS = 54;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-export function ArenaTimer({
+export function ArenaCore({
+  mode,
   seconds,
   total,
   phaseLabel,
-  active,
-}: ArenaTimerProps) {
-  const progress = active ? seconds / total : 0;
+  subLabel,
+  countdown = 0,
+}: ArenaCoreProps) {
+  const showProgress = mode === "timer";
+  const progress = showProgress ? seconds / total : 0;
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
-  const warning = active && seconds <= TIMER_WARNING_SECONDS;
+  const warning = showProgress && seconds <= TIMER_WARNING_SECONDS;
+  const revealActive = mode === "reveal";
 
   return (
     <div
-      className={`${styles.arenaTimer} ${warning ? styles.arenaTimerWarning : ""}`.trim()}
-      role={active ? "timer" : undefined}
+      className={`${styles.arenaCore} ${warning ? styles.arenaTimerWarning : ""} ${revealActive ? styles.arenaCoreReveal : ""}`.trim()}
+      role={showProgress ? "timer" : undefined}
       aria-label={
-        active ? `${seconds} seconds remaining. ${phaseLabel}` : phaseLabel
+        showProgress
+          ? `${seconds} seconds remaining. ${phaseLabel}`
+          : subLabel
+            ? `${phaseLabel}. ${subLabel}`
+            : phaseLabel
       }
     >
       <svg
@@ -42,7 +54,7 @@ export function ArenaTimer({
           cy="60"
           r={RING_RADIUS}
         />
-        {active ? (
+        {showProgress ? (
           <circle
             className={styles.arenaTimerProgress}
             cx="60"
@@ -54,15 +66,39 @@ export function ArenaTimer({
         ) : null}
       </svg>
       <div className={styles.arenaTimerCore}>
-        {active ? (
+        {mode === "countdown" ? (
+          <strong className={styles.arenaCountdownValue}>
+            {countdown || "Go"}
+          </strong>
+        ) : null}
+
+        {mode === "timer" ? (
           <span className={styles.arenaTimerValue}>{seconds}</span>
-        ) : (
-          <span className={styles.arenaTimerPhase}>{phaseLabel}</span>
-        )}
-        {active ? (
+        ) : null}
+
+        {mode === "reveal" ? (
+          <span className={styles.arenaCoreVs} aria-hidden="true">
+            VS
+          </span>
+        ) : null}
+
+        {mode === "phase" ? (
+          <span className={styles.arenaCorePhase}>{phaseLabel}</span>
+        ) : null}
+
+        {mode === "timer" ? (
           <span className={styles.arenaTimerLabel}>{phaseLabel}</span>
+        ) : null}
+
+        {mode === "reveal" || mode === "phase" ? (
+          <span className={styles.arenaCoreSubLabel}>
+            {subLabel ?? (mode === "reveal" ? phaseLabel : "")}
+          </span>
         ) : null}
       </div>
     </div>
   );
 }
+
+/** @deprecated Use ArenaCore — kept for import stability within the arena module. */
+export const ArenaTimer = ArenaCore;

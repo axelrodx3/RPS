@@ -193,22 +193,26 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .playerAvatar {
   border: 1px solid rgb(215 255 67 / 35%);
-  background: linear-gradient(160deg, rgb(215 255 67 / 18%), rgb(0 0 0 / 50%));
-  color: var(--color-brand-500);
-  box-shadow: 0 0 20px rgb(215 255 67 / 12%);
+  background: linear-gradient(160deg, rgb(215 255 67 / 12%), rgb(0 0 0 / 50%));
+  box-shadow: 0 0 16px rgb(215 255 67 / 10%);
 }
 
 .cpuAvatar {
   border: 1px solid rgb(255 255 255 / 14%);
-  background: linear-gradient(160deg, rgb(255 255 255 / 8%), rgb(0 0 0 / 50%));
-  color: rgb(255 255 255 / 70%);
+  background: linear-gradient(160deg, rgb(255 255 255 / 6%), rgb(0 0 0 / 50%));
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .stripMeta {
@@ -423,10 +427,35 @@
   color: rgb(255 255 255 / 25%);
 }
 
+.battlePodAnticipation {
+  box-shadow: 0 0 28px rgb(215 255 67 / 10%);
+}
+
+.podStatus {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-brand-500);
+}
+
+.podStatusDots::after {
+  content: "";
+  animation: waitingDots 1.2s steps(4, end) infinite;
+}
+
 .moveRevealArt strong {
   font-size: clamp(48px, 8vw, 72px);
   line-height: 1;
   filter: drop-shadow(0 8px 20px rgb(0 0 0 / 45%));
+}
+
+.moveRevealName {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
 }
 
 .stageCenter {
@@ -437,33 +466,57 @@
 }
 
 .openingCountdown {
+  display: none;
+}
+
+.matchComplete {
   display: grid;
   justify-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+.matchCompleteBody {
+  display: grid;
   gap: var(--space-2);
+  justify-items: center;
 }
 
-.openingKicker {
-  color: var(--color-brand-500);
-  font-family: var(--font-mono), monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.matchCompleteActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--space-3);
+  width: min(100%, 420px);
+  margin-top: var(--space-2);
 }
 
-.openingCountdown strong {
-  font-size: clamp(72px, 16vw, 112px);
-  font-weight: 800;
-  line-height: 1;
-  text-shadow: 0 0 40px rgb(215 255 67 / 22%);
-  animation: pulse 1s var(--motion-ease) infinite;
+.matchActionButton {
+  width: 100%;
+  min-height: 52px;
+  text-align: center;
 }
 
-/* ── Arena timer ring ── */
+.matchActionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* ── Arena core (timer + VS) ── */
+.arenaCore,
 .arenaTimer {
   position: relative;
   width: clamp(120px, 22vw, 156px);
   height: clamp(120px, 22vw, 156px);
+}
+
+.arenaCoreReveal .arenaTimerTrack {
+  stroke: rgb(215 255 67 / 28%);
 }
 
 .arenaTimerRing {
@@ -503,17 +556,42 @@
   place-content: center;
   justify-items: center;
   gap: 2px;
+  padding: var(--space-3);
+  text-align: center;
 }
 
-.arenaTimerValue {
+.arenaTimerValue,
+.arenaCountdownValue {
   font-size: clamp(36px, 8vw, 48px);
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
+.arenaCountdownValue {
+  font-size: clamp(40px, 9vw, 52px);
+}
+
+.arenaCoreVs {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: var(--color-brand-500);
+  animation: vsPop 480ms var(--motion-ease) forwards;
+}
+
+.arenaCorePhase {
+  max-width: 112px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
 .arenaTimerLabel,
-.arenaTimerPhase {
+.arenaCoreSubLabel {
   max-width: 120px;
   font-size: 10px;
   font-weight: 700;
@@ -521,19 +599,18 @@
   text-transform: uppercase;
   text-align: center;
   color: var(--color-text-muted);
+  line-height: 1.25;
+}
+
+.arenaCoreSubLabel {
+  color: var(--color-brand-500);
 }
 
 .vsImpact {
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 900;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   color: var(--color-brand-500);
-  opacity: 0;
-  transform: scale(0.8);
-}
-
-.vsImpactActive {
-  animation: vsPop 480ms var(--motion-ease) 200ms forwards;
 }
 
 .roundResultPanel {
@@ -657,16 +734,6 @@
 }
 
 /* ── Match complete ── */
-.matchComplete {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-8) var(--space-4);
-  text-align: center;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(255 255 255 / 8%);
-}
-
 .matchCompleteVictory {
   background: linear-gradient(180deg, rgb(61 214 140 / 8%), rgb(0 0 0 / 35%));
   box-shadow: 0 0 48px rgb(61 214 140 / 12%);
@@ -711,14 +778,6 @@
   margin: 0;
   color: var(--color-text-muted);
   font-size: 13px;
-}
-
-.matchCompleteActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
 }
 
 .autoBadge {
@@ -939,6 +998,24 @@
   }
 }
 
+@keyframes waitingDots {
+  0% {
+    content: "";
+  }
+
+  25% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  75% {
+    content: "...";
+  }
+}
+
 @keyframes vsPop {
   0% {
     opacity: 0;
@@ -1011,6 +1088,10 @@
 }
 
 @media (max-width: 720px) {
+  .matchCompleteActions {
+    grid-template-columns: 1fr;
+  }
+
   .playerStrip {
     grid-template-columns: 1fr;
     gap: var(--space-2);

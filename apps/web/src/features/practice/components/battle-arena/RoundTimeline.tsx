@@ -39,30 +39,36 @@ export function RoundTimeline({ history }: RoundTimelineProps) {
     <div className={styles.roundTimeline}>
       <h2 className={styles.timelineTitle}>Match timeline</h2>
       <ol className={styles.timelineList}>
-        {history.map((round) => (
-          <li
-            key={`${round.round}-${round.playerMove}-${round.cpuMove}-${round.outcome}`}
-            className={styles.timelineEntry}
-            aria-label={formatRoundHistoryAccessibleLabel(round)}
-          >
-            <span className={styles.timelineRound}>R{round.round}</span>
-            <span className={styles.timelineMoves} aria-hidden="true">
-              {MOVE_EMOJI[round.playerMove]} VS {MOVE_EMOJI[round.cpuMove]}
-            </span>
-            <span
-              className={`${styles.timelineBadge} ${timelineBadgeClass(round.outcome)}`.trim()}
+        {history.map((round, index) => {
+          const chronologicalRound = index + 1;
+
+          return (
+            <li
+              key={`${chronologicalRound}-${round.playerMove}-${round.cpuMove}-${round.outcome}`}
+              className={styles.timelineEntry}
+              aria-label={formatRoundHistoryAccessibleLabel(round)}
             >
-              {timelineOutcomeShort(round.outcome)}
-            </span>
-            {round.playerTimedOut ? (
-              <span className={styles.timelineAuto}>AUTO</span>
-            ) : null}
-            <span className={styles.srOnly}>
-              {MOVE_LABELS[round.playerMove]} versus{" "}
-              {MOVE_LABELS[round.cpuMove]}
-            </span>
-          </li>
-        ))}
+              <span className={styles.timelineRound}>
+                R{chronologicalRound}
+              </span>
+              <span className={styles.timelineMoves} aria-hidden="true">
+                {MOVE_EMOJI[round.playerMove]} VS {MOVE_EMOJI[round.cpuMove]}
+              </span>
+              <span
+                className={`${styles.timelineBadge} ${timelineBadgeClass(round.outcome)}`.trim()}
+              >
+                {timelineOutcomeShort(round.outcome)}
+              </span>
+              {round.playerTimedOut ? (
+                <span className={styles.timelineAuto}>AUTO</span>
+              ) : null}
+              <span className={styles.srOnly}>
+                {MOVE_LABELS[round.playerMove]} versus{" "}
+                {MOVE_LABELS[round.cpuMove]}
+              </span>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

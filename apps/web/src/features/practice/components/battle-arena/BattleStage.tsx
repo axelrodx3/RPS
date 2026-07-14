@@ -1,6 +1,5 @@
 "use client";
 
-import { PRACTICE_ASSET_SLOTS } from "@/features/practice/assets/practice-asset-slots";
 import {
   MOVE_EMOJI,
   MOVE_LABELS,
@@ -8,7 +7,7 @@ import {
   type RoundOutcome,
   type PracticePhase,
 } from "@/features/practice/engine/practice-engine";
-import { ArenaTimer } from "./ArenaTimer";
+import { ArenaCore } from "./ArenaTimer";
 import styles from "../practice-game.module.css";
 
 type BattleStageProps = {
@@ -24,10 +23,29 @@ type BattleStageProps = {
   phaseLabel: string;
 };
 
+function playerShowsMove(
+  phase: PracticePhase,
+  playerMove: Move | null,
+): boolean {
+  if (!playerMove) return false;
+  return (
+    phase === "move_locked" ||
+    phase === "waiting_cpu" ||
+    phase === "reveal_pause" ||
+    phase === "reveal" ||
+    phase === "round_result"
+  );
+}
+
+function cpuShowsMove(phase: PracticePhase): boolean {
+  return phase === "reveal" || phase === "round_result";
+}
+
 function revealPodClass(
   side: "player" | "cpu",
   outcome: RoundOutcome | null,
   phase: PracticePhase,
+  playerMove: Move | null,
 ): string {
   const classes = [styles.battlePod];
   if (side === "player") classes.push(styles.battlePodPlayer);
@@ -50,7 +68,13 @@ function revealPodClass(
     }
   }
 
-  if (phase === "move_locked" && side === "player") {
+  if (
+    side === "player" &&
+    playerMove &&
+    (phase === "move_locked" ||
+      phase === "waiting_cpu" ||
+      phase === "reveal_pause")
+  ) {
     classes.push(styles.battlePodLocked);
   }
 
@@ -59,10 +83,31 @@ function revealPodClass(
   }
 
   if (phase === "reveal_pause") {
-    classes.push(styles.battlePodConcealed);
+    classes.push(styles.battlePodAnticipation);
+    if (side === "cpu") classes.push(styles.battlePodConcealed);
   }
 
   return classes.filter(Boolean).join(" ");
+}
+
+function podStatusLabel(
+  side: "player" | "cpu",
+  phase: PracticePhase,
+): string | null {
+  if (side === "player") {
+    if (phase === "move_locked") return "Move locked";
+    if (phase === "waiting_cpu" || phase === "reveal_pause") {
+      return "Your move is ready";
+    }
+  }
+
+  if (side === "cpu") {
+    if (phase === "move_locked") return "CPU locked";
+    if (phase === "waiting_cpu") return "Waiting on CPU";
+    if (phase === "reveal_pause") return "Reveal incoming";
+  }
+
+  return null;
 }
 
 function MoveDisplay({
@@ -70,11 +115,13 @@ function MoveDisplay({
   concealed,
   timedOut,
   side,
+  showName = false,
 }: {
   move: Move | null;
   concealed: boolean;
   timedOut?: boolean;
   side: "player" | "cpu";
+  showName?: boolean;
 }) {
   if (concealed || !move) {
     return (
@@ -89,11 +136,32 @@ function MoveDisplay({
       <strong aria-label={MOVE_LABELS[move]}>
         <span aria-hidden="true">{MOVE_EMOJI[move]}</span>
       </strong>
+      {showName ? (
+        <span className={styles.moveRevealName} aria-hidden="true">
+          {MOVE_LABELS[move]}
+        </span>
+      ) : null}
       {timedOut && side === "player" ? (
         <span className={styles.autoBadge}>AUTO</span>
       ) : null}
     </div>
   );
+}
+
+function phaseCoreMode(
+  phase: PracticePhase,
+): "countdown" | "timer" | "phase" | "reveal" {
+  if (phase === "countdown") return "countdown";
+  if (phase === "commit") return "timer";
+  if (phase === "reveal" || phase === "round_result") return "reveal";
+  return "phase";
+}
+
+function phaseCoreSubLabel(phase: PracticePhase): string | undefined {
+  if (phase === "move_locked") return "Move locked";
+  if (phase === "waiting_cpu") return "Waiting on CPU";
+  if (phase === "reveal_pause") return "Reveal incoming";
+  return undefined;
 }
 
 export function BattleStage({
@@ -108,22 +176,11 @@ export function BattleStage({
   transitionMessage,
   phaseLabel,
 }: BattleStageProps) {
-  const showTimer = phase === "commit";
-  const showCountdown = phase === "countdown";
-  const showVs =
-    phase === "reveal" || (phase === "round_result" && playerMove && cpuMove);
   const showResult =
     (phase === "reveal" || phase === "round_result") && roundOutcome;
-  const playerConcealed =
-    phase === "reveal_pause" ||
-    phase === "waiting_cpu" ||
-    (phase === "commit" && !playerMove);
-  const cpuConcealed =
-    phase === "reveal_pause" ||
-    phase === "move_locked" ||
-    phase === "waiting_cpu" ||
-    phase === "commit" ||
-    (phase === "reveal" && !cpuMove);
+  const playerVisible = playerShowsMove(phase, playerMove);
+  const cpuVisible = cpuShowsMove(phase);
+  const coreMode = phaseCoreMode(phase);
 
   const resultText =
     roundOutcome === "tie"
@@ -147,65 +204,33 @@ export function BattleStage({
       <div className={styles.stageGrid} aria-hidden="true" />
 
       <div className={styles.stageField}>
-        <div className={revealPodClass("player", roundOutcome, phase)}>
+        <div
+          className={revealPodClass("player", roundOutcome, phase, playerMove)}
+        >
           <span className={styles.podLabel}>YOU</span>
-          {phase === "move_locked" && playerMove ? (
-            <MoveDisplay
-              move={playerMove}
-              concealed={false}
-              timedOut={playerTimedOut}
-              side="player"
-            />
-          ) : phase === "reveal" || phase === "round_result" ? (
-            <MoveDisplay
-              move={playerMove}
-              concealed={false}
-              timedOut={playerTimedOut}
-              side="player"
-            />
-          ) : (
-            <MoveDisplay
-              move={playerMove}
-              concealed={playerConcealed}
-              side="player"
-            />
-          )}
+          {podStatusLabel("player", phase) ? (
+            <span className={styles.podStatus}>
+              {podStatusLabel("player", phase)}
+            </span>
+          ) : null}
+          <MoveDisplay
+            move={playerMove}
+            concealed={!playerVisible}
+            timedOut={playerTimedOut}
+            side="player"
+            showName={playerVisible}
+          />
         </div>
 
         <div className={styles.stageCenter}>
-          {showCountdown ? (
-            <div className={styles.openingCountdown} aria-live="assertive">
-              <span className={styles.openingKicker}>Opening round</span>
-              <strong>{countdown || "Go"}</strong>
-            </div>
-          ) : null}
-
-          {showTimer ? (
-            <ArenaTimer
-              seconds={timerSeconds}
-              total={timerTotal}
-              phaseLabel={phaseLabel}
-              active
-            />
-          ) : null}
-
-          {!showCountdown && !showTimer ? (
-            <ArenaTimer
-              seconds={0}
-              total={timerTotal}
-              phaseLabel={phaseLabel}
-              active={false}
-            />
-          ) : null}
-
-          {showVs ? (
-            <div
-              className={`${styles.vsImpact} ${showVs ? styles.vsImpactActive : ""}`.trim()}
-              aria-hidden="true"
-            >
-              {PRACTICE_ASSET_SLOTS.vsEffect.fallback}
-            </div>
-          ) : null}
+          <ArenaCore
+            mode={coreMode}
+            seconds={timerSeconds}
+            total={timerTotal}
+            phaseLabel={phaseLabel}
+            subLabel={phaseCoreSubLabel(phase)}
+            countdown={countdown}
+          />
 
           {showResult ? (
             <div
@@ -222,13 +247,21 @@ export function BattleStage({
           ) : null}
         </div>
 
-        <div className={revealPodClass("cpu", roundOutcome, phase)}>
+        <div className={revealPodClass("cpu", roundOutcome, phase, playerMove)}>
           <span className={styles.podLabel}>CPU</span>
-          {phase === "reveal" || phase === "round_result" ? (
-            <MoveDisplay move={cpuMove} concealed={false} side="cpu" />
-          ) : (
-            <MoveDisplay move={cpuMove} concealed={cpuConcealed} side="cpu" />
-          )}
+          {podStatusLabel("cpu", phase) ? (
+            <span
+              className={`${styles.podStatus} ${phase === "waiting_cpu" ? styles.podStatusDots : ""}`.trim()}
+            >
+              {podStatusLabel("cpu", phase)}
+            </span>
+          ) : null}
+          <MoveDisplay
+            move={cpuMove}
+            concealed={!cpuVisible}
+            side="cpu"
+            showName={cpuVisible}
+          />
         </div>
       </div>
     </div>

@@ -227,5 +227,20 @@
     "dateIntegrated": "2026-07-14",
     "modifications": "Copied to public assets as confetti-victory.svg",
     "approvalStatus": "approved-preview"
+  },
+  {
+    "assetName": "Default player robot avatar",
+    "sourceFile": "apps/web/public/assets/avatars/robot-head.svg",
+    "filePath": "apps/web/public/assets/avatars/robot-head.svg",
+    "intendedUse": "Default Practice player avatar placeholder in battle arena strip",
+    "format": "SVG",
+    "dimensions": "64x64 viewBox",
+    "source": "Project generated branding asset",
+    "author": "RPS project",
+    "license": "Project internal asset",
+    "attributionRequired": false,
+    "dateIntegrated": "2026-07-14",
+    "modifications": "Created for Prompt 3B repair player identity foundation",
+    "approvalStatus": "approved-preview"
   }
 ]
