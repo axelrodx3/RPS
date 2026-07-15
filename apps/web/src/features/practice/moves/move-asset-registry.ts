@@ -95,8 +95,8 @@ export const MOVE_PRESENTATION_SCALE: Record<Move, number> = {
 
 function skinPaths(moveId: Move, tier: number): MoveSkinPaths {
   const png = `/assets/moves/skins/${moveId}/tier-${tier}.png`;
-  const webp =
-    tier === 1 ? `/assets/moves/skins/${moveId}/tier-${tier}.webp` : null;
+  // WebP paths are reserved for future derivatives; omit until files exist in public/.
+  const webp = null;
 
   return {
     png,
