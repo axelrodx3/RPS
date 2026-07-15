@@ -10,6 +10,8 @@ import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
 import type { PracticeMatchState } from "@/features/practice/engine/practice-engine";
 import styles from "../practice-game.module.css";
 
+const TIMELINE_SCROLL_THRESHOLD = 3;
+
 function timelineBadgeClass(outcome: RoundOutcome): string {
   if (outcome === "player") return styles.timelineWin ?? "";
   if (outcome === "cpu") return styles.timelineLoss ?? "";
@@ -71,15 +73,27 @@ export function RoundTimeline({
         data-testid="match-timeline"
       >
         <h2 className={styles.timelineTitle}>Match timeline</h2>
-        <p className={styles.timelineEmpty}>No rounds yet.</p>
+        <div className={styles.timelineEmptyBody} role="status">
+          <span className={styles.timelineEmptyIcon} aria-hidden="true" />
+          <p className={styles.timelineEmpty}>No rounds yet.</p>
+        </div>
       </div>
     );
   }
 
+  const scrollable = history.length > TIMELINE_SCROLL_THRESHOLD;
+
   return (
     <div
-      className={`${styles.roundTimeline} ${styles.roundTimelineFilled}`.trim()}
+      className={[
+        styles.roundTimeline,
+        styles.roundTimelineFilled,
+        scrollable ? styles.roundTimelineScrollable : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       data-testid="match-timeline"
+      data-timeline-scrollable={scrollable ? "true" : "false"}
     >
       <h2 className={styles.timelineTitle}>Match timeline</h2>
       <ol ref={listRef} className={styles.timelineList}>

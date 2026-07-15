@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { act, cleanup, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { PracticeGame } from "@/features/practice/components/PracticeGame";
@@ -18,6 +18,7 @@ import {
   DEFAULT_SETTINGS,
 } from "@/lib/storage/local-storage";
 import { renderWithProviders } from "@/test/render";
+import { audioEngine } from "@/lib/audio/audio-engine";
 import styles from "@/features/practice/components/practice-game.module.css";
 
 async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
@@ -74,6 +75,32 @@ describe("PracticeGame", () => {
     expect(screen.getByLabelText("Match scoreboard")).toBeInTheDocument();
     expect(screen.getAllByText("YOU").length).toBeGreaterThan(0);
     expect(screen.getAllByText("CPU").length).toBeGreaterThan(0);
+  });
+
+  it("does not play practice hover audio when hovering Start Practice Match", () => {
+    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
+      matches: query.includes("hover: hover"),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    vi.spyOn(audioEngine, "play").mockImplementation(() => {});
+
+    renderWithProviders(<PracticeGame />);
+    const startButton = screen.getByRole("button", {
+      name: "Start Practice Match",
+    });
+
+    fireEvent.pointerEnter(startButton, { pointerType: "mouse" });
+
+    expect(audioEngine.play).not.toHaveBeenCalledWith(
+      "practice_hover",
+      expect.any(Object),
+    );
   });
 
   it.each(["Rock", "Paper", "Scissors"] as const)(
@@ -664,10 +691,12 @@ describe("match result presentation", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: minmax(0, 1fr) clamp(190px, 18vw, 210px)",
+      "grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 200px)",
     );
     expect(css).toContain(".battleArenaResult");
-    expect(css).toContain("clamp(180px, 16vw, 200px)");
+    expect(css).toContain("clamp(170px, 15vw, 190px)");
+    expect(css).toContain("align-self: start");
+    expect(css).not.toContain("align-self: stretch");
   });
 
   it("shows victory cinematic background only on full match victory", () => {

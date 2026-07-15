@@ -1,5 +1,7 @@
 /** @vitest-environment happy-dom */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BattleStage } from "@/features/practice/components/battle-arena/BattleStage";
@@ -92,5 +94,37 @@ describe("BattleStage round result feedback", () => {
       container.querySelector(`.${styles.arenaCoreCheckStatic}`),
     ).toBeTruthy();
     expect(container.querySelector(`.${styles.arenaCoreCheckDraw}`)).toBeNull();
+  });
+
+  it("uses success green for player round win, not brand lime", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/features/practice/components/practice-game.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+    const winTrackBlock = css.match(
+      /\.arenaCoreWin \.arenaTimerTrack\s*\{[^}]+\}/,
+    )?.[0];
+
+    expect(winTrackBlock).toBeTruthy();
+    expect(winTrackBlock).toContain("var(--color-outcome-win-ring)");
+    expect(winTrackBlock).not.toContain("215 255 67");
+    expect(css).toContain(".arenaCoreWin .arenaCorePrimaryLabel");
+    expect(css).toContain("color: var(--color-outcome-win)");
+  });
+
+  it("keeps cpu round win red and tie light blue", () => {
+    const cssPath = path.resolve(
+      process.cwd(),
+      "src/features/practice/components/practice-game.module.css",
+    );
+    const css = readFileSync(cssPath, "utf8");
+
+    expect(css).toMatch(/\.arenaCoreLoss \.arenaTimerTrack[\s\S]*229 83 83/);
+    expect(css).toMatch(
+      /\.arenaCoreTieState \.arenaTimerTrack[\s\S]*108 180 255/,
+    );
+    expect(css).toContain(".arenaCoreLoss .arenaCorePrimaryLabel");
+    expect(css).toContain(".arenaCoreTieState .arenaCorePrimaryLabel");
   });
 });

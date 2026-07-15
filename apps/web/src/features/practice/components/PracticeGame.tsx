@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card } from "@/design-system/components";
-import { usePracticeHoverSound } from "@/lib/audio/use-practice-hover-sound";
 import {
   SELECTION_COUNTDOWN_SECONDS,
   TIMER_WARNING_SECONDS,
@@ -163,7 +162,6 @@ export function PracticeGame() {
     timerTotal,
   } = usePracticeGame();
   const { settings } = useSettings();
-  const playPracticeHover = usePracticeHoverSound(false);
   const announcement = liveAnnouncement(state);
   const playerScorePulse = useScorePulse(state.playerScore);
   const cpuScorePulse = useScorePulse(state.cpuScore);
@@ -199,11 +197,7 @@ export function PracticeGame() {
             <li>Ties replay the round without changing the score.</li>
             <li>CPU plays fairly with equal random probability.</li>
           </ul>
-          <Button
-            size="lg"
-            onClick={startMatch}
-            onPointerEnter={playPracticeHover}
-          >
+          <Button size="lg" onClick={startMatch}>
             Start Practice Match
           </Button>
         </Card>

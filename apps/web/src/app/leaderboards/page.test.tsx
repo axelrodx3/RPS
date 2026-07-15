@@ -34,9 +34,9 @@ describe("Match timeline layout", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: minmax(0, 1fr) clamp(190px, 18vw, 210px)",
+      "grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 200px)",
     );
-    expect(css).toContain(".roundTimelineFilled");
+    expect(css).toContain(".roundTimelineScrollable");
     expect(css).toContain("overflow-y: auto");
     expect(css).toContain("overflow-x: hidden");
   });
@@ -44,6 +44,8 @@ describe("Match timeline layout", () => {
   it("defines compact timeline entry and empty state classes", () => {
     expect(styles.roundTimelineEmpty).toBeTruthy();
     expect(styles.roundTimelineFilled).toBeTruthy();
+    expect(styles.roundTimelineScrollable).toBeTruthy();
+    expect(styles.timelineEmptyBody).toBeTruthy();
     expect(styles.timelineEntry).toBeTruthy();
   });
 });

@@ -16,6 +16,10 @@
   --color-danger: #e55353;
   --color-info: #4c8dff;
   --color-outcome-win: #3dd68c;
+  --color-outcome-win-ring: rgb(61 214 140 / 42%);
+  --color-outcome-win-glow: rgb(61 214 140 / 35%);
+  --color-outcome-win-surface: rgb(61 214 140 / 14%);
+  --color-outcome-win-border: rgb(61 214 140 / 22%);
   --color-outcome-loss: #e55353;
   --color-outcome-tie: #6cb4ff;
 
