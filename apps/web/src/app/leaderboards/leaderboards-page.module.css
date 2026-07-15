@@ -1,7 +1,5 @@
 .page {
-  display: grid;
-  gap: var(--space-6);
-  width: min(100%, 960px);
+  width: min(100%, 1024px);
   margin: 0 auto;
 }
 

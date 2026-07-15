@@ -297,6 +297,9 @@ describe("battle arena presentation", () => {
       "Player chose Paper",
     );
     expect(
+      container.querySelector(`.${styles.roundTimelineFilled}`),
+    ).toBeTruthy();
+    expect(
       container.querySelector(
         'img[src="/assets/moves/skins/paper/tier-1.png"]',
       ),
@@ -657,10 +660,10 @@ describe("match result presentation", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: minmax(0, 1fr) clamp(220px, 24%, 300px)",
+      "grid-template-columns: minmax(0, 1fr) clamp(190px, 18vw, 210px)",
     );
     expect(css).toContain(".battleArenaResult");
-    expect(css).toContain("clamp(200px, 22%, 280px)");
+    expect(css).toContain("clamp(180px, 16vw, 200px)");
   });
 
   it("shows victory cinematic background only on full match victory", () => {

@@ -29,7 +29,7 @@ export function LeaderboardPanel({
   const playHover = usePracticeHoverSound(false);
 
   const tabs: { id: LeaderboardPanelTab; label: string }[] = [
-    { id: "leaderboard", label: "Leaderboard" },
+    { id: "leaderboard", label: "Global Ranking" },
     { id: "stats", label: "My Stats" },
   ];
 
@@ -55,18 +55,17 @@ export function LeaderboardPanel({
   return (
     <section
       className={`${styles.panel} ${variant === "sidebar" ? styles.sidebar : styles.page}`.trim()}
-      aria-label="Leaderboard"
+      aria-labelledby={`${baseId}-page-title`}
       data-testid="leaderboard-panel"
     >
-      <div className={styles.panelHeader}>
-        <p className={styles.panelKicker}>Competitive hub</p>
-        <h2 className={styles.panelTitle}>Leaderboard</h2>
-      </div>
+      <h1 id={`${baseId}-page-title`} className={styles.pageTitle}>
+        LEADERBOARDS
+      </h1>
 
       <div
         className={styles.tabList}
         role="tablist"
-        aria-label="Leaderboard sections"
+        aria-label="Leaderboards sections"
       >
         {tabs.map((tab, index) => {
           const selected = activeTab === tab.id;
@@ -102,10 +101,10 @@ export function LeaderboardPanel({
         >
           <div className={styles.leaderboardPlaceholder}>
             <span className={styles.placeholderBadge}>Coming soon</span>
-            <h3>Wagered leaderboards</h3>
-            <p>
-              Finalized wager statistics will appear after real-value play is
-              enabled and audited. Practice stats stay local.
+            <p className={styles.placeholderCopy}>
+              Global rankings will appear here when accounts and competitive
+              play are available. Practice statistics remain saved locally on
+              this device.
             </p>
           </div>
         </section>

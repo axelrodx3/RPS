@@ -33,6 +33,8 @@ export function RoundTimeline({
 }: RoundTimelineProps) {
   const previousLengthRef = useRef(0);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const newestEntryRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
     if (history.length <= previousLengthRef.current) {
@@ -44,6 +46,10 @@ export function RoundTimeline({
     let endTimer: number | undefined;
     const startTimer = window.setTimeout(() => {
       setHighlightIndex(newestIndex);
+      newestEntryRef.current?.scrollIntoView({
+        block: "nearest",
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
       endTimer = window.setTimeout(() => {
         setHighlightIndex(null);
       }, 520);
@@ -56,11 +62,14 @@ export function RoundTimeline({
       }
       window.setTimeout(() => setHighlightIndex(null), 0);
     };
-  }, [history.length]);
+  }, [history.length, reducedMotion]);
 
   if (history.length === 0) {
     return (
-      <div className={styles.roundTimeline}>
+      <div
+        className={`${styles.roundTimeline} ${styles.roundTimelineEmpty}`.trim()}
+        data-testid="match-timeline"
+      >
         <h2 className={styles.timelineTitle}>Match timeline</h2>
         <p className={styles.timelineEmpty}>No rounds yet.</p>
       </div>
@@ -68,9 +77,12 @@ export function RoundTimeline({
   }
 
   return (
-    <div className={styles.roundTimeline}>
+    <div
+      className={`${styles.roundTimeline} ${styles.roundTimelineFilled}`.trim()}
+      data-testid="match-timeline"
+    >
       <h2 className={styles.timelineTitle}>Match timeline</h2>
-      <ol className={styles.timelineList}>
+      <ol ref={listRef} className={styles.timelineList}>
         {history.map((round, index) => {
           const chronologicalRound = index + 1;
           const isNewest = index === history.length - 1;
@@ -87,6 +99,7 @@ export function RoundTimeline({
           return (
             <li
               key={`${chronologicalRound}-${round.playerMove}-${round.cpuMove}-${round.outcome}`}
+              ref={isNewest ? newestEntryRef : undefined}
               className={entryClass}
               aria-label={formatRoundHistoryAccessibleLabel(round)}
               data-testid={isNewest ? "timeline-entry-newest" : undefined}

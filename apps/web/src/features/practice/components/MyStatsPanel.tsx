@@ -57,18 +57,20 @@ export function MyStatsPanel({
   return (
     <div className={styles.myStatsPanel} data-source={viewModel.source}>
       <div className={styles.myStatsHeader}>
-        <p className={styles.myStatsKicker}>Practice local stats</p>
+        <p className={styles.myStatsKicker}>Practice stats</p>
         <p className={styles.myStatsNote}>
-          Saved on this device only. Account stats will appear here later.
+          Saved on this device only. Account statistics will appear here later.
         </p>
       </div>
 
       <div className={styles.metricGrid}>
         {metrics.map((metric) => (
           <article key={metric.id} className={styles.metricCard}>
-            <span className={styles.metricIcon} aria-hidden="true">
-              {metric.icon}
-            </span>
+            <span
+              className={styles.metricIcon}
+              data-icon={metric.iconKey}
+              aria-hidden="true"
+            />
             <div className={styles.metricCopy}>
               <p className={styles.metricLabel}>{metric.label}</p>
               <AnimatedMetricValue

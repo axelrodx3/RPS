@@ -48,13 +48,13 @@
 .arenaShell {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(220px, 24%, 300px);
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) clamp(190px, 18vw, 210px);
+  gap: 18px;
   align-items: start;
 }
 
 .battleArenaResult {
-  grid-template-columns: minmax(0, 1fr) clamp(200px, 22%, 280px);
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 200px);
 }
 
 .battleShell {
@@ -1743,17 +1743,38 @@
 
 .roundTimeline {
   display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: var(--space-2);
+  padding: var(--space-3);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-md);
   background: rgb(255 255 255 / 3%);
-  overflow: visible;
+  overflow: hidden;
+}
+
+.roundTimelineEmpty {
+  padding-block: var(--space-3);
+}
+
+.roundTimelineFilled {
+  max-height: min(56vh, 520px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(215 255 67 / 28%) transparent;
+}
+
+.roundTimelineFilled::-webkit-scrollbar {
+  width: 6px;
+}
+
+.roundTimelineFilled::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: rgb(215 255 67 / 22%);
 }
 
 @media (min-width: 961px) {
-  .roundTimeline {
-    max-height: none;
+  .roundTimelineFilled {
+    max-height: min(56vh, 520px);
   }
 }
 
@@ -1770,6 +1791,7 @@
   margin: 0;
   color: var(--color-text-subtle);
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .timelineList {
@@ -1781,16 +1803,15 @@
 }
 
 .timelineEntry {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
-  gap: var(--space-2) var(--space-3);
+  display: flex;
   align-items: center;
-  padding: var(--space-3);
-  min-height: 76px;
+  gap: 6px;
+  padding: 6px 8px;
+  min-height: 40px;
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 28%);
   border: 1px solid rgb(255 255 255 / 6%);
+  overflow: hidden;
 }
 
 .timelineEntryNew {
@@ -1800,44 +1821,41 @@
 }
 
 .timelineRound {
-  grid-column: 1;
-  grid-row: 1;
-  font-size: 10px;
+  flex: 0 0 auto;
+  min-width: 22px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--color-text-subtle);
 }
 
 .timelineMoves {
-  grid-column: 1 / -1;
-  grid-row: 2;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 4px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .timelineBadge {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  padding: 2px 8px;
+  flex: 0 0 auto;
+  padding: 2px 6px;
   border-radius: var(--radius-pill);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .timelineAuto {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  justify-self: start;
+  flex: 0 0 auto;
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--color-brand-500);
+  white-space: nowrap;
 }
 
 .timelineWin {
@@ -2390,23 +2408,15 @@
 @media (max-width: 960px) {
   .battleArena {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
   .timelineAside {
     order: 3;
   }
 
-  .timelineList {
-    display: grid;
-    gap: var(--space-2);
-  }
-
-  .timelineEntry {
-    min-width: 0;
-  }
-
-  .roundTimeline {
-    max-height: none;
+  .roundTimelineFilled {
+    max-height: min(40vh, 360px);
   }
 }
 

@@ -18,7 +18,7 @@ export type PlayerStatsViewModel = {
 
 export type StatsMetric = {
   id: string;
-  icon: string;
+  iconKey: string;
   label: string;
   value: string;
   numericValue?: number;

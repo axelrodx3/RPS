@@ -16,20 +16,31 @@ describe("LeaderboardPanel", () => {
     window.localStorage.clear();
   });
 
-  it("shows leaderboard placeholder and my stats tabs", async () => {
+  it("renders a single LEADERBOARDS page heading and Global Ranking tab", async () => {
     const user = userEvent.setup();
     renderWithProviders(<LeaderboardPanel reducedMotion={false} />);
     const panel = screen.getByTestId("leaderboard-panel");
 
-    expect(panel).toBeInTheDocument();
     expect(
-      within(panel).getByRole("tab", { name: "Leaderboard" }),
+      screen.getByRole("heading", { level: 1, name: "LEADERBOARDS" }),
     ).toBeInTheDocument();
-    expect(within(panel).getByText("Wagered leaderboards")).toBeInTheDocument();
+    expect(screen.queryByText(/competitive hub/i)).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Leaderboard" })).toBeNull();
+    expect(
+      within(panel).getByRole("tab", { name: "Global Ranking" }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByRole("tab", { name: "My Stats" }),
+    ).toBeInTheDocument();
+    expect(
+      within(panel).getByText(/Global rankings will appear here/i),
+    ).toBeInTheDocument();
+    expect(within(panel).queryByText(/Wagered leaderboards/i)).toBeNull();
 
     await user.click(within(panel).getByRole("tab", { name: "My Stats" }));
     expect(within(panel).getByText("Favorite Move")).toBeInTheDocument();
     expect(within(panel).getByText("Average Match Length")).toBeInTheDocument();
+    expect(within(panel).getByText(/practice stats/i)).toBeInTheDocument();
   });
 
   it("requires confirmation before resetting statistics", async () => {
