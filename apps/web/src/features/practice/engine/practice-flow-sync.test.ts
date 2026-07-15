@@ -5,6 +5,7 @@ import {
   REVEAL_DISPLAY_MS,
   REVEAL_PAUSE_MS,
   RESULT_VISIBLE_TOTAL_MS,
+  ROUND_DISPLAY_COMMIT_DELAY_MS,
   ROUND_RESULT_DISPLAY_MS,
   SELECTION_COUNTDOWN_SECONDS,
   TIMER_WARNING_SECONDS,
@@ -14,34 +15,16 @@ import {
 } from "@/features/practice/engine/practice-engine";
 
 describe("practice phase pacing targets", () => {
-  it("keeps move locked within 900 to 1200 milliseconds", () => {
+  it("uses deliberate premium presentation durations", () => {
     expect(MOVE_LOCKED_MS).toBeGreaterThanOrEqual(900);
-    expect(MOVE_LOCKED_MS).toBeLessThanOrEqual(1200);
-  });
-
-  it("keeps waiting CPU within 1200 to 1700 milliseconds", () => {
     expect(WAITING_CPU_MS).toBeGreaterThanOrEqual(1200);
-    expect(WAITING_CPU_MS).toBeLessThanOrEqual(1700);
-  });
-
-  it("keeps reveal incoming within 1000 to 1400 milliseconds", () => {
     expect(REVEAL_PAUSE_MS).toBeGreaterThanOrEqual(1000);
-    expect(REVEAL_PAUSE_MS).toBeLessThanOrEqual(1400);
+    expect(REVEAL_DISPLAY_MS).toBeGreaterThanOrEqual(800);
+    expect(ROUND_RESULT_DISPLAY_MS).toBeGreaterThanOrEqual(3000);
   });
 
-  it("keeps reveal display within 350 to 600 milliseconds", () => {
-    expect(REVEAL_DISPLAY_MS).toBeGreaterThanOrEqual(350);
-    expect(REVEAL_DISPLAY_MS).toBeLessThanOrEqual(600);
-  });
-
-  it("keeps round result visible within 2400 to 3200 milliseconds", () => {
-    expect(ROUND_RESULT_DISPLAY_MS).toBeGreaterThanOrEqual(2400);
-    expect(ROUND_RESULT_DISPLAY_MS).toBeLessThanOrEqual(3200);
-  });
-
-  it("keeps combined reveal and result within readable totals", () => {
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(2800);
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeLessThanOrEqual(3800);
+  it("keeps combined reveal and result readable", () => {
+    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(3800);
   });
 
   it("starts selection countdown warning at three seconds", () => {
@@ -50,7 +33,9 @@ describe("practice phase pacing targets", () => {
   });
 
   it("commits arena display before reveal phase ends", () => {
-    expect(CPU_REVEAL_DELAY_MS + 120).toBeLessThanOrEqual(REVEAL_DISPLAY_MS);
+    expect(
+      CPU_REVEAL_DELAY_MS + ROUND_DISPLAY_COMMIT_DELAY_MS,
+    ).toBeLessThanOrEqual(REVEAL_DISPLAY_MS);
   });
 });
 

@@ -41,15 +41,24 @@ describe("audioEngine custom assets", () => {
     );
   });
 
-  it("uses generated tones for move lock and opening countdown", () => {
-    expect(SOUND_REGISTRY.move_locked.src).toBeUndefined();
-    expect(SOUND_REGISTRY.move_locked.frequencies?.length).toBeGreaterThan(0);
+  it("uses generated tones for opening countdown", () => {
     expect(SOUND_REGISTRY.countdown.frequencies?.length).toBeGreaterThan(0);
   });
 
-  it("does not register the old target lock asset as active", () => {
-    expect(SOUND_REGISTRY.move_locked.src).not.toBe(
-      "/assets/audio/move-lock.mp3",
+  it("registers practice move lock and reveal impact assets", () => {
+    expect(SOUND_REGISTRY.move_lock_rock.src).toBe(
+      "/assets/audio/move-lock-rock.mp3",
+    );
+    expect(SOUND_REGISTRY.move_lock_paper.src).toBe(
+      "/assets/audio/move-lock-paper.mp3",
+    );
+    expect(SOUND_REGISTRY.move_lock_scissors.src).toBe(
+      "/assets/audio/move-lock-scissors.mp3",
+    );
+    expect(SOUND_REGISTRY.reveal.src).toBe("/assets/audio/reveal-impact.mp3");
+    expect(SOUND_REGISTRY.round_tie.src).toBe("/assets/audio/round-tie.mp3");
+    expect(SOUND_REGISTRY.practice_hover.src).toBe(
+      "/assets/audio/practice-hover.mp3",
     );
   });
 
@@ -58,7 +67,7 @@ describe("audioEngine custom assets", () => {
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
-  it("plays generated move lock tones without file playback", () => {
+  it("plays move lock file assets", () => {
     const start = vi.fn();
     const stop = vi.fn();
     const connect = vi.fn();
@@ -86,10 +95,10 @@ describe("audioEngine custom assets", () => {
       destination: {},
     } as unknown as AudioContext);
 
-    audioEngine.play("move_locked", levels);
-    audioEngine.play("move_locked", levels);
-    expect(start).toHaveBeenCalledTimes(2);
-    expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    audioEngine.play("move_lock_rock", levels);
+    audioEngine.play("move_lock_rock", levels);
+    expect(start).toHaveBeenCalledTimes(0);
+    expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
 
   it("respects mute settings", () => {

@@ -3,7 +3,7 @@
 import type { Move } from "@/features/practice/engine/practice-engine";
 import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
 import { MOVE_LIST } from "@/features/practice/moves/move-metadata";
-import { useHoverSound } from "@/lib/audio/use-hover-sound";
+import { usePracticeHoverSound } from "@/lib/audio/use-practice-hover-sound";
 import { useAudio } from "@/providers/AudioProvider";
 import styles from "../practice-game.module.css";
 
@@ -15,7 +15,7 @@ type MoveDockProps = {
 
 export function MoveDock({ selectedMove, locked, onSelect }: MoveDockProps) {
   const { unlock } = useAudio();
-  const playHover = useHoverSound(locked);
+  const playHover = usePracticeHoverSound(locked);
   const hasSelection = selectedMove !== null;
 
   return (

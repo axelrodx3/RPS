@@ -30,6 +30,7 @@ import {
   type PracticePhase,
 } from "@/features/practice/engine/practice-engine";
 import { computeRemainingSeconds } from "@/lib/storage/local-storage";
+import { MOVE_LOCK_SOUND, type SoundId } from "@/lib/audio/sound-registry";
 import { useAudio } from "@/providers/AudioProvider";
 import { useSettings } from "@/providers/SettingsProvider";
 
@@ -41,10 +42,7 @@ const defaultRandom: RandomSource = {
   move: () => pickRandomMove(),
 };
 
-const PHASE_SOUND: Partial<
-  Record<PracticePhase, Parameters<ReturnType<typeof useAudio>["play"]>[0]>
-> = {
-  move_locked: "move_locked",
+const PHASE_SOUND: Partial<Record<PracticePhase, SoundId>> = {
   waiting_cpu: "waiting_cpu",
   reveal_pause: "reveal_incoming",
 };
@@ -70,6 +68,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const roundIntroTimeoutRef = useRef<number | null>(null);
   const countdownAudioTickRef = useRef<number | null>(null);
   const selectionCountdownTickRef = useRef<number | null>(null);
+  const moveLockAudioPlayedRef = useRef<string | null>(null);
   const phaseAudioPlayedRef = useRef<PracticePhase | null>(null);
   const revealImpactAudioPlayedRef = useRef(false);
   const roundOutcomeAudioPlayedRef = useRef(false);
@@ -95,6 +94,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const resetAudioGuards = useCallback(() => {
     countdownAudioTickRef.current = null;
     selectionCountdownTickRef.current = null;
+    moveLockAudioPlayedRef.current = null;
     phaseAudioPlayedRef.current = null;
     revealImpactAudioPlayedRef.current = false;
     roundOutcomeAudioPlayedRef.current = false;
@@ -265,17 +265,23 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
       roundOutcomeAudioPlayedRef.current = false;
     }
 
+    if (state.phase === "move_locked" && state.playerMove) {
+      const lockKey = `${state.round}-${state.playerMove}`;
+      if (moveLockAudioPlayedRef.current !== lockKey) {
+        stopSelectionCountdown();
+        stopPhaseCues();
+        moveLockAudioPlayedRef.current = lockKey;
+        play(MOVE_LOCK_SOUND[state.playerMove]);
+      }
+      return;
+    }
+
     const soundId = PHASE_SOUND[state.phase];
     if (!soundId || phaseAudioPlayedRef.current === state.phase) {
       return;
     }
 
-    if (state.phase === "move_locked") {
-      stopSelectionCountdown();
-    } else {
-      stopPhaseCues();
-    }
-
+    stopPhaseCues();
     phaseAudioPlayedRef.current = state.phase;
     play(soundId);
   }, [
@@ -287,10 +293,15 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     stopSelectionCountdown,
   ]);
 
+  const onBothMovesRevealed = useCallback(() => {
+    if (revealImpactAudioPlayedRef.current) return;
+    revealImpactAudioPlayedRef.current = true;
+    stopPhaseCues();
+    play("reveal");
+  }, [play, stopPhaseCues]);
+
   useEffect(() => {
     if (state.phase !== "reveal") {
-      revealImpactAudioPlayedRef.current = false;
-      roundOutcomeAudioPlayedRef.current = false;
       if (roundDisplayCommitTimeoutRef.current) {
         window.clearTimeout(roundDisplayCommitTimeoutRef.current);
         roundDisplayCommitTimeoutRef.current = null;
@@ -298,21 +309,13 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
       return;
     }
 
-    const revealDelay = settings.reducedMotion
-      ? CPU_REVEAL_DELAY_REDUCED_MS
-      : CPU_REVEAL_DELAY_MS;
-
-    if (!revealImpactAudioPlayedRef.current) {
-      revealImpactAudioPlayedRef.current = true;
-      window.setTimeout(() => {
-        stopPhaseCues();
-        play("reveal");
-      }, revealDelay);
-    }
-
     if (!state.pendingRound) {
       return;
     }
+
+    const revealDelay = settings.reducedMotion
+      ? CPU_REVEAL_DELAY_REDUCED_MS
+      : CPU_REVEAL_DELAY_MS;
 
     roundDisplayCommitTimeoutRef.current = window.setTimeout(() => {
       dispatch({ type: "COMMIT_ROUND_DISPLAY" });
@@ -324,14 +327,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
         roundDisplayCommitTimeoutRef.current = null;
       }
     };
-  }, [
-    state.phase,
-    state.round,
-    state.pendingRound,
-    play,
-    settings.reducedMotion,
-    stopPhaseCues,
-  ]);
+  }, [state.phase, state.round, state.pendingRound, settings.reducedMotion]);
 
   useEffect(() => {
     if (state.phase !== "reveal" || !state.roundOutcome) return;
@@ -352,7 +348,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
           play("round_loss");
         }
       },
-      revealDelay + ROUND_DISPLAY_COMMIT_DELAY_MS + 80,
+      revealDelay + ROUND_DISPLAY_COMMIT_DELAY_MS + 120,
     );
   }, [
     state.phase,
@@ -479,6 +475,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     startMatch,
     selectMove,
     rematch,
+    onBothMovesRevealed,
     winTarget: PRACTICE_WIN_TARGET,
     timerTotal: PRACTICE_TIMER_SECONDS,
   };

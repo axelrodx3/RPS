@@ -77,10 +77,17 @@ export class AudioEngine {
     this.stopSound("selection_countdown_tick");
   }
 
+  stopMoveLockSounds(): void {
+    this.stopSound("move_lock_rock");
+    this.stopSound("move_lock_paper");
+    this.stopSound("move_lock_scissors");
+  }
+
   stopPhaseCues(): void {
     this.stopSound("waiting_cpu");
     this.stopSound("reveal_incoming");
     this.stopSound("reveal");
+    this.stopSound("round_tie");
   }
 
   private resolveVolume(id: SoundId, levels: AudioLevels): number {

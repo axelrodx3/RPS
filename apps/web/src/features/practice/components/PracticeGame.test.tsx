@@ -28,7 +28,7 @@ async function startCommitPhase(user: ReturnType<typeof userEvent.setup>) {
     await vi.advanceTimersByTimeAsync(3000);
   });
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(700);
+    await vi.advanceTimersByTimeAsync(800);
   });
 }
 
@@ -41,6 +41,7 @@ function mockActiveMatch(
     startMatch: vi.fn(),
     selectMove: vi.fn(),
     rematch: vi.fn(),
+    onBothMovesRevealed: vi.fn(),
     winTarget: 2,
     timerTotal: 20,
   });
@@ -168,7 +169,7 @@ describe("PracticeGame", () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(700);
+      await vi.advanceTimersByTimeAsync(800);
     });
 
     const rockImage = screen
@@ -238,6 +239,24 @@ describe("battle arena presentation", () => {
     hook.mockRestore();
   });
 
+  it("keeps CPU artwork visible during round result", () => {
+    const hook = mockActiveMatch(createInitialMatchState(), {
+      phase: "round_result",
+      playerMove: "rock",
+      cpuMove: "paper",
+      roundOutcome: "cpu",
+      transitionMessage: "Next round",
+    });
+
+    const { container } = renderWithProviders(<PracticeGame />);
+    const cpuPod = container.querySelector(`.${styles.battlePodCpu}`);
+    expect(cpuPod?.querySelector(`.${styles.concealedMark}`)).toBeNull();
+    expect(
+      cpuPod?.querySelector('img[src="/assets/moves/skins/paper/tier-1.png"]'),
+    ).toBeTruthy();
+    hook.mockRestore();
+  });
+
   it("renders reveal stage with both moves and outcome styling", async () => {
     const hook = mockActiveMatch(createInitialMatchState(), {
       phase: "reveal",
@@ -248,7 +267,7 @@ describe("battle arena presentation", () => {
 
     const { container } = renderWithProviders(<PracticeGame />);
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(400);
+      await vi.advanceTimersByTimeAsync(600);
     });
     expect(container.querySelector(`.${styles.battlePodWin}`)).toBeTruthy();
     expect(container.querySelector(`.${styles.battlePodLoss}`)).toBeTruthy();
@@ -415,7 +434,7 @@ describe("battle arena presentation", () => {
     expect(screen.queryByRole("group", { name: "Choose move" })).toBeNull();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(700);
+      await vi.advanceTimersByTimeAsync(800);
     });
     expect(screen.getByRole("group", { name: "Choose move" })).toBeTruthy();
   });
@@ -632,9 +651,10 @@ describe("match result presentation", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: minmax(0, 1fr) clamp(180px, 20%, 260px)",
+      "grid-template-columns: minmax(0, 1fr) clamp(220px, 24%, 300px)",
     );
     expect(css).toContain(".battleArenaResult");
+    expect(css).toContain("clamp(200px, 22%, 280px)");
   });
 
   it("shows victory cinematic background only on full match victory", () => {
@@ -802,6 +822,7 @@ describe("match result presentation", () => {
         startMatch: vi.fn(),
         selectMove: vi.fn(),
         rematch,
+        onBothMovesRevealed: vi.fn(),
         winTarget: 2,
         timerTotal: 20,
       }));

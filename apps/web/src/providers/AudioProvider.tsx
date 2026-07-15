@@ -10,6 +10,7 @@ type AudioContextValue = {
   unlock: () => void;
   stopAll: () => void;
   stopSelectionCountdown: () => void;
+  stopMoveLockSounds: () => void;
   stopPhaseCues: () => void;
   levels: AudioLevels;
 };
@@ -50,6 +51,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audioEngine.stopSelectionCountdown();
   }, []);
 
+  const stopMoveLockSounds = useCallback(() => {
+    audioEngine.stopMoveLockSounds();
+  }, []);
+
   const stopPhaseCues = useCallback(() => {
     audioEngine.stopPhaseCues();
   }, []);
@@ -60,10 +65,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       unlock,
       stopAll,
       stopSelectionCountdown,
+      stopMoveLockSounds,
       stopPhaseCues,
       levels,
     }),
-    [play, unlock, stopAll, stopSelectionCountdown, stopPhaseCues, levels],
+    [
+      play,
+      unlock,
+      stopAll,
+      stopSelectionCountdown,
+      stopMoveLockSounds,
+      stopPhaseCues,
+      levels,
+    ],
   );
 
   return (

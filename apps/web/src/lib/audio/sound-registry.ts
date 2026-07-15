@@ -3,9 +3,12 @@ export type SoundCategory = "sfx" | "music";
 export type SoundId =
   | "button"
   | "ui_hover"
+  | "practice_hover"
   | "move_hover"
   | "move_selected"
-  | "move_locked"
+  | "move_lock_rock"
+  | "move_lock_paper"
+  | "move_lock_scissors"
   | "waiting_cpu"
   | "reveal_incoming"
   | "countdown"
@@ -35,6 +38,12 @@ export type SoundDefinition = {
   volumeScale?: number;
 };
 
+export const MOVE_LOCK_SOUND: Record<"rock" | "paper" | "scissors", SoundId> = {
+  rock: "move_lock_rock",
+  paper: "move_lock_paper",
+  scissors: "move_lock_scissors",
+};
+
 export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
   button: {
     id: "button",
@@ -52,6 +61,14 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     enabled: true,
     volumeScale: 0.28,
   },
+  practice_hover: {
+    id: "practice_hover",
+    category: "sfx",
+    label: "Practice mode hover",
+    src: "/assets/audio/practice-hover.mp3",
+    enabled: true,
+    volumeScale: 0.55,
+  },
   move_hover: {
     id: "move_hover",
     category: "sfx",
@@ -64,13 +81,29 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     label: "Move selected",
     enabled: false,
   },
-  move_locked: {
-    id: "move_locked",
+  move_lock_rock: {
+    id: "move_lock_rock",
     category: "sfx",
-    label: "Move lock confirmation",
-    frequencies: [560, 720],
+    label: "Rock lock impact",
+    src: "/assets/audio/move-lock-rock.mp3",
     enabled: true,
-    volumeScale: 0.85,
+    volumeScale: 0.72,
+  },
+  move_lock_paper: {
+    id: "move_lock_paper",
+    category: "sfx",
+    label: "Paper lock tear",
+    src: "/assets/audio/move-lock-paper.mp3",
+    enabled: true,
+    volumeScale: 0.72,
+  },
+  move_lock_scissors: {
+    id: "move_lock_scissors",
+    category: "sfx",
+    label: "Scissors lock slash",
+    src: "/assets/audio/move-lock-scissors.mp3",
+    enabled: true,
+    volumeScale: 0.72,
   },
   waiting_cpu: {
     id: "waiting_cpu",
@@ -115,18 +148,18 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
   reveal: {
     id: "reveal",
     category: "sfx",
-    label: "Reveal",
-    frequencies: [640, 780],
+    label: "Reveal impact",
+    src: "/assets/audio/reveal-impact.mp3",
     enabled: true,
-    volumeScale: 0.55,
+    volumeScale: 0.68,
   },
   round_tie: {
     id: "round_tie",
     category: "sfx",
     label: "Round tie",
-    frequencies: [520, 520],
+    src: "/assets/audio/round-tie.mp3",
     enabled: true,
-    volumeScale: 0.4,
+    volumeScale: 0.58,
   },
   round_win: {
     id: "round_win",

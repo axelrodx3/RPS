@@ -48,13 +48,13 @@
 .arenaShell {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(180px, 20%, 260px);
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 24%, 300px);
   gap: var(--space-4);
   align-items: start;
 }
 
 .battleArenaResult {
-  grid-template-columns: minmax(0, 1fr) clamp(180px, 18%, 240px);
+  grid-template-columns: minmax(0, 1fr) clamp(200px, 22%, 280px);
 }
 
 .battleShell {
@@ -768,7 +768,16 @@
 }
 
 .moveRevealEnter {
-  animation: moveSlotEnter 480ms var(--motion-ease) 1 both;
+  animation: moveSlotEnter 620ms cubic-bezier(0.22, 1, 0.36, 1) 1 both;
+}
+
+.moveRevealShown {
+  animation: moveRevealGlow 680ms ease-out 1 both;
+}
+
+.moveRevealShown .moveArtImage {
+  filter: drop-shadow(0 10px 28px rgb(0 0 0 / 50%))
+    drop-shadow(0 0 18px rgb(215 255 67 / 18%));
 }
 
 .moveRevealArt {
@@ -845,7 +854,6 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  white-space: nowrap;
 }
 
 .timelineVs {
@@ -861,11 +869,23 @@
 }
 
 .battlePodReveal.battlePodEnterPlayer {
-  animation: enterFromLeft 520ms var(--motion-ease) forwards;
+  animation: enterFromLeft 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .battlePodReveal.battlePodEnterCpu {
-  animation: enterFromRight 520ms var(--motion-ease) forwards;
+  animation: enterFromRight 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.battlePodImpact {
+  animation: podRevealImpact 450ms ease-out 1;
+}
+
+.stageFieldBothRevealed {
+  filter: brightness(1.04);
+}
+
+.stageFieldBothRevealed .stageSpotlight {
+  opacity: 1;
 }
 
 .battlePodWin {
@@ -1696,6 +1716,7 @@
   position: relative;
   z-index: 1;
   min-height: 0;
+  align-self: stretch;
 }
 
 .roundTimeline {
@@ -1705,8 +1726,13 @@
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-md);
   background: rgb(255 255 255 / 3%);
-  max-height: min(72vh, 720px);
-  overflow: auto;
+  overflow: visible;
+}
+
+@media (min-width: 961px) {
+  .roundTimeline {
+    max-height: none;
+  }
 }
 
 .timelineTitle {
@@ -1734,10 +1760,12 @@
 
 .timelineEntry {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: var(--space-2) var(--space-3);
   align-items: center;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  min-height: 76px;
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 28%);
   border: 1px solid rgb(255 255 255 / 6%);
@@ -1750,18 +1778,44 @@
 }
 
 .timelineRound {
+  grid-column: 1;
+  grid-row: 1;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--color-text-subtle);
 }
 
+.timelineMoves {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
 .timelineBadge {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.timelineAuto {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-self: start;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-brand-500);
 }
 
 .timelineWin {
@@ -1780,13 +1834,6 @@
   background: rgb(108 180 255 / 12%);
   color: var(--color-outcome-tie);
   border: 1px solid rgb(108 180 255 / 20%);
-}
-
-.timelineAuto {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--color-brand-500);
 }
 
 /* Outcome classes used in tests */
@@ -2049,6 +2096,32 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes moveRevealGlow {
+  0% {
+    opacity: 0.82;
+    transform: translateY(6px) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes podRevealImpact {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -2433,6 +2506,8 @@
 [data-reduced-motion="true"] .battleStageImpact,
 [data-reduced-motion="true"] .stageGrid,
 [data-reduced-motion="true"] .moveRevealEnter,
+[data-reduced-motion="true"] .moveRevealShown,
+[data-reduced-motion="true"] .battlePodImpact,
 [data-reduced-motion="true"] .arenaCoreVsImpact,
 [data-reduced-motion="true"] .timelineEntryNew,
 [data-reduced-motion="true"] .stripIdentityPulse,

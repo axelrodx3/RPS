@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   CPU_REVEAL_DELAY_MS,
   CPU_REVEAL_DELAY_REDUCED_MS,
+  REVEAL_IMPACT_MS,
   MOVE_LABELS,
   type Move,
   type RoundOutcome,
@@ -26,6 +27,7 @@ type BattleStageProps = {
   phaseLabel: string;
   round: number;
   reducedMotion: boolean;
+  onBothMovesRevealed?: () => void;
 };
 
 function playerShowsMove(
@@ -42,12 +44,21 @@ function playerShowsMove(
   );
 }
 
+function cpuShowsMove(
+  phase: PracticePhase,
+  cpuRevealVisible: boolean,
+): boolean {
+  if (phase === "round_result") return true;
+  return phase === "reveal" && cpuRevealVisible;
+}
+
 function revealPodClass(
   side: "player" | "cpu",
   outcome: RoundOutcome | null,
   phase: PracticePhase,
   playerMove: Move | null,
   cpuRevealVisible: boolean,
+  revealImpact: boolean,
 ): string {
   const classes = [styles.battlePod];
   if (side === "player") classes.push(styles.battlePodPlayer);
@@ -94,6 +105,10 @@ function revealPodClass(
     if (side === "cpu") classes.push(styles.battlePodConcealed);
   }
 
+  if (revealImpact && cpuRevealVisible && phase === "reveal") {
+    classes.push(styles.battlePodImpact);
+  }
+
   return classes.filter(Boolean).join(" ");
 }
 
@@ -128,6 +143,7 @@ function MoveDisplay({
   side,
   showName = false,
   entering = false,
+  revealed = false,
 }: {
   move: Move | null;
   concealed: boolean;
@@ -135,6 +151,7 @@ function MoveDisplay({
   side: "player" | "cpu";
   showName?: boolean;
   entering?: boolean;
+  revealed?: boolean;
 }) {
   if (concealed || !move) {
     return (
@@ -146,7 +163,13 @@ function MoveDisplay({
 
   return (
     <div
-      className={`${styles.moveRevealArt} ${entering ? styles.moveRevealEnter : ""}`.trim()}
+      className={[
+        styles.moveRevealArt,
+        entering ? styles.moveRevealEnter : "",
+        revealed ? styles.moveRevealShown : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <MoveArt move={move} variant="reveal" label={MOVE_LABELS[move]} />
       {showName ? (
@@ -188,6 +211,63 @@ function stageAtmosphereClass(phase: PracticePhase): string {
   }
 }
 
+type RevealAnimationDriverProps = {
+  round: number;
+  reducedMotion: boolean;
+  bothMovesReady: boolean;
+  onBothMovesRevealed?: () => void;
+  onCpuRevealVisible: (visible: boolean) => void;
+  onRevealImpact: (active: boolean) => void;
+};
+
+function RevealAnimationDriver({
+  round,
+  reducedMotion,
+  bothMovesReady,
+  onBothMovesRevealed,
+  onCpuRevealVisible,
+  onRevealImpact,
+}: RevealAnimationDriverProps) {
+  useEffect(() => {
+    onCpuRevealVisible(false);
+    onRevealImpact(false);
+
+    const revealDelay = reducedMotion
+      ? CPU_REVEAL_DELAY_REDUCED_MS
+      : CPU_REVEAL_DELAY_MS;
+
+    const revealTimer = window.setTimeout(() => {
+      onCpuRevealVisible(true);
+      if (bothMovesReady) {
+        onBothMovesRevealed?.();
+      }
+    }, revealDelay);
+
+    const impactTimer = window.setTimeout(() => {
+      onRevealImpact(true);
+    }, revealDelay + 40);
+
+    const impactEndTimer = window.setTimeout(() => {
+      onRevealImpact(false);
+    }, revealDelay + REVEAL_IMPACT_MS);
+
+    return () => {
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(impactTimer);
+      window.clearTimeout(impactEndTimer);
+    };
+  }, [
+    round,
+    reducedMotion,
+    bothMovesReady,
+    onBothMovesRevealed,
+    onCpuRevealVisible,
+    onRevealImpact,
+  ]);
+
+  return null;
+}
+
 export function BattleStage({
   phase,
   countdown,
@@ -201,52 +281,24 @@ export function BattleStage({
   phaseLabel,
   round,
   reducedMotion,
+  onBothMovesRevealed,
 }: BattleStageProps) {
   const [cpuRevealVisible, setCpuRevealVisible] = useState(false);
   const [revealImpact, setRevealImpact] = useState(false);
 
-  useEffect(() => {
-    if (phase !== "reveal") {
-      const resetTimer = window.setTimeout(() => {
-        setCpuRevealVisible(false);
-        setRevealImpact(false);
-      }, 0);
-      return () => window.clearTimeout(resetTimer);
-    }
-
-    const hideTimer = window.setTimeout(() => {
-      setCpuRevealVisible(false);
-      setRevealImpact(!reducedMotion);
-    }, 0);
-    const revealTimer = window.setTimeout(
-      () => {
-        setCpuRevealVisible(true);
-      },
-      reducedMotion ? CPU_REVEAL_DELAY_REDUCED_MS : CPU_REVEAL_DELAY_MS,
-    );
-    const impactTimer = window.setTimeout(
-      () => {
-        setRevealImpact(false);
-      },
-      reducedMotion
-        ? CPU_REVEAL_DELAY_REDUCED_MS + 420
-        : CPU_REVEAL_DELAY_MS + 420,
-    );
-
-    return () => {
-      window.clearTimeout(hideTimer);
-      window.clearTimeout(revealTimer);
-      window.clearTimeout(impactTimer);
-    };
-  }, [phase, round, reducedMotion]);
+  const effectiveCpuRevealVisible =
+    phase === "round_result" ? true : cpuRevealVisible;
+  const effectiveRevealImpact = phase === "reveal" ? revealImpact : false;
 
   const showResult =
     (phase === "reveal" || phase === "round_result") && roundOutcome;
   const playerVisible = playerShowsMove(phase, playerMove);
-  const cpuVisible =
-    (phase === "reveal" || phase === "round_result") && cpuRevealVisible;
+  const cpuVisible = cpuShowsMove(phase, effectiveCpuRevealVisible);
   const coreMode = phaseCoreMode(phase);
   const playerMoveEntering = phase === "move_locked" && Boolean(playerMove);
+  const movesFullyRevealed =
+    (phase === "reveal" || phase === "round_result") &&
+    effectiveCpuRevealVisible;
 
   const resultText =
     roundOutcome === "tie"
@@ -268,7 +320,7 @@ export function BattleStage({
     styles.battleStage,
     stageAtmosphereClass(phase),
     phase === "reveal_pause" ? styles.battleStageAnticipation : "",
-    revealImpact ? styles.battleStageImpact : "",
+    effectiveRevealImpact ? styles.battleStageImpact : "",
     roundOutcome === "tie" && (phase === "reveal" || phase === "round_result")
       ? styles.battleStageTie
       : "",
@@ -282,12 +334,25 @@ export function BattleStage({
     phase === "reveal" || phase === "round_result"
       ? styles.stageFieldReveal
       : "",
+    movesFullyRevealed ? styles.stageFieldBothRevealed : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
     <div className={stageClass} data-phase={phase}>
+      {phase === "reveal" ? (
+        <RevealAnimationDriver
+          key={round}
+          round={round}
+          reducedMotion={reducedMotion}
+          bothMovesReady={Boolean(playerMove && cpuMove)}
+          onBothMovesRevealed={onBothMovesRevealed}
+          onCpuRevealVisible={setCpuRevealVisible}
+          onRevealImpact={setRevealImpact}
+        />
+      ) : null}
+
       <div className={styles.stageSpotlight} aria-hidden="true" />
       <div className={styles.stageGrid} aria-hidden="true" />
       <div className={styles.stageScanline} aria-hidden="true" />
@@ -300,7 +365,8 @@ export function BattleStage({
             roundOutcome,
             phase,
             playerMove,
-            cpuRevealVisible,
+            effectiveCpuRevealVisible,
+            effectiveRevealImpact,
           )}
         >
           <span className={styles.podLabel}>YOU</span>
@@ -316,6 +382,7 @@ export function BattleStage({
             side="player"
             showName={playerVisible}
             entering={playerMoveEntering}
+            revealed={movesFullyRevealed}
           />
         </div>
 
@@ -326,14 +393,14 @@ export function BattleStage({
             total={timerTotal}
             phaseLabel={phaseLabel}
             countdown={countdown}
-            vsImpact={phase === "reveal" && cpuRevealVisible}
+            vsImpact={movesFullyRevealed && effectiveRevealImpact}
           />
 
           {showResult ? (
             <div
               className={`${styles.roundResultPanel} ${resultClass} ${
                 phase === "round_result" ? styles.roundResultVisible : ""
-              } ${phase === "reveal" && cpuRevealVisible ? styles.roundResultReveal : ""}`.trim()}
+              } ${movesFullyRevealed ? styles.roundResultReveal : ""}`.trim()}
               role="status"
             >
               <p>{resultText}</p>
@@ -350,7 +417,8 @@ export function BattleStage({
             roundOutcome,
             phase,
             playerMove,
-            cpuRevealVisible,
+            effectiveCpuRevealVisible,
+            effectiveRevealImpact,
           )}
         >
           <span className={styles.podLabel}>CPU</span>
@@ -367,6 +435,7 @@ export function BattleStage({
             side="cpu"
             showName={cpuVisible}
             entering={cpuVisible && phase === "reveal"}
+            revealed={movesFullyRevealed}
           />
         </div>
       </div>

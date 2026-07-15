@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card } from "@/design-system/components";
-import { useHoverSound } from "@/lib/audio/use-hover-sound";
+import { usePracticeHoverSound } from "@/lib/audio/use-practice-hover-sound";
 import {
   SELECTION_COUNTDOWN_SECONDS,
   TIMER_WARNING_SECONDS,
@@ -155,10 +155,17 @@ const STRIP_PHASE_LABELS = new Set([
 ]);
 
 export function PracticeGame() {
-  const { state, startMatch, selectMove, rematch, winTarget, timerTotal } =
-    usePracticeGame();
+  const {
+    state,
+    startMatch,
+    selectMove,
+    rematch,
+    onBothMovesRevealed,
+    winTarget,
+    timerTotal,
+  } = usePracticeGame();
   const { settings } = useSettings();
-  const playPracticeHover = useHoverSound(false);
+  const playPracticeHover = usePracticeHoverSound(false);
   const announcement = liveAnnouncement(state);
   const playerScorePulse = useScorePulse(state.playerScore);
   const cpuScorePulse = useScorePulse(state.cpuScore);
@@ -301,6 +308,7 @@ export function PracticeGame() {
                 phaseLabel={label}
                 round={state.round}
                 reducedMotion={settings.reducedMotion}
+                onBothMovesRevealed={onBothMovesRevealed}
               />
 
               {showMoveDock ? (

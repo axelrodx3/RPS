@@ -8,7 +8,7 @@ import {
   MATCH_RESULT_BACKGROUNDS,
   type MatchResultVariant,
 } from "@/features/practice/assets/match-result-backgrounds";
-import { useHoverSound } from "@/lib/audio/use-hover-sound";
+import { usePracticeHoverSound } from "@/lib/audio/use-practice-hover-sound";
 import styles from "../practice-game.module.css";
 
 export type CinematicResultScreenProps = {
@@ -152,8 +152,8 @@ export function CinematicResultScreen({
   const isVictory = variant === "victory";
   const background = MATCH_RESULT_BACKGROUNDS[variant];
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const playHover = useHoverSound(false);
-  const playHoverRematch = useHoverSound(false);
+  const playHover = usePracticeHoverSound(false);
+  const playHoverRematch = usePracticeHoverSound(false);
   const [persistent, setPersistent] = useState(false);
 
   useEffect(() => {

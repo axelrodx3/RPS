@@ -256,7 +256,7 @@ describe("usePracticeGame flow synchronization", () => {
     expect(
       vi
         .mocked(audioEngine.play)
-        .mock.calls.filter(([id]) => id === "move_locked"),
+        .mock.calls.filter(([id]) => id === "move_lock_scissors"),
     ).toHaveLength(1);
     expect(
       vi
