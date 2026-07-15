@@ -271,7 +271,11 @@ describe("battle arena presentation", () => {
     });
     expect(container.querySelector(`.${styles.battlePodWin}`)).toBeTruthy();
     expect(container.querySelector(`.${styles.battlePodLoss}`)).toBeTruthy();
-    expect(container.querySelector(`.${styles.arenaCoreVs}`)).toBeTruthy();
+    expect(
+      container.querySelector('[data-visual-state="player_round_win"]'),
+    ).toBeTruthy();
+    expect(screen.getByText("ROUND WON")).toBeInTheDocument();
+    expect(screen.queryByText("You win the round.")).not.toBeInTheDocument();
     hook.mockRestore();
   });
 

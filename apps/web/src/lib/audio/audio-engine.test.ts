@@ -57,6 +57,8 @@ describe("audioEngine custom assets", () => {
     );
     expect(SOUND_REGISTRY.reveal.src).toBe("/assets/audio/reveal-impact.mp3");
     expect(SOUND_REGISTRY.round_tie.src).toBe("/assets/audio/round-tie.mp3");
+    expect(SOUND_REGISTRY.round_win.src).toBe("/assets/audio/round-win.mp3");
+    expect(SOUND_REGISTRY.round_loss.src).toBe("/assets/audio/round-loss.mp3");
     expect(SOUND_REGISTRY.practice_hover.src).toBe(
       "/assets/audio/practice-hover.mp3",
     );

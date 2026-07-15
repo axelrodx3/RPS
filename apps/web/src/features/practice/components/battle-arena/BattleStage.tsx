@@ -11,6 +11,13 @@ import {
   type PracticePhase,
 } from "@/features/practice/engine/practice-engine";
 import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
+import {
+  getRoundResultAccessibleLabel,
+  getRoundResultPrimaryLabel,
+  getRoundResultSecondaryLabel,
+  resolveArenaCoreVisualState,
+} from "@/features/practice/utils/arena-core-state";
+import { PRACTICE_WIN_TARGET } from "@/features/practice/engine/practice-engine";
 import { ArenaCore } from "./ArenaTimer";
 import styles from "../practice-game.module.css";
 
@@ -23,7 +30,9 @@ type BattleStageProps = {
   cpuMove: Move | null;
   roundOutcome: RoundOutcome | null;
   playerTimedOut: boolean;
-  transitionMessage: string | null;
+  playerScore: number;
+  cpuScore: number;
+  winTarget?: number;
   phaseLabel: string;
   round: number;
   reducedMotion: boolean;
@@ -184,15 +193,6 @@ function MoveDisplay({
   );
 }
 
-function phaseCoreMode(
-  phase: PracticePhase,
-): "countdown" | "timer" | "phase" | "reveal" {
-  if (phase === "countdown") return "countdown";
-  if (phase === "commit") return "timer";
-  if (phase === "reveal" || phase === "round_result") return "reveal";
-  return "phase";
-}
-
 function stageAtmosphereClass(phase: PracticePhase): string {
   switch (phase) {
     case "commit":
@@ -277,7 +277,9 @@ export function BattleStage({
   cpuMove,
   roundOutcome,
   playerTimedOut,
-  transitionMessage,
+  playerScore,
+  cpuScore,
+  winTarget = PRACTICE_WIN_TARGET,
   phaseLabel,
   round,
   reducedMotion,
@@ -290,31 +292,37 @@ export function BattleStage({
     phase === "round_result" ? true : cpuRevealVisible;
   const effectiveRevealImpact = phase === "reveal" ? revealImpact : false;
 
-  const showResult =
-    (phase === "reveal" || phase === "round_result") && roundOutcome;
   const playerVisible = playerShowsMove(phase, playerMove);
   const cpuVisible = cpuShowsMove(phase, effectiveCpuRevealVisible);
-  const coreMode = phaseCoreMode(phase);
   const playerMoveEntering = phase === "move_locked" && Boolean(playerMove);
   const movesFullyRevealed =
     (phase === "reveal" || phase === "round_result") &&
     effectiveCpuRevealVisible;
 
-  const resultText =
-    roundOutcome === "tie"
-      ? "Tie. Replay round."
-      : roundOutcome === "player"
-        ? "You win the round."
-        : roundOutcome === "cpu"
-          ? "CPU wins the round."
-          : "";
+  const visualState = resolveArenaCoreVisualState(
+    phase,
+    roundOutcome,
+    movesFullyRevealed,
+  );
 
-  const resultClass =
-    roundOutcome === "player"
-      ? styles.resultWin
-      : roundOutcome === "cpu"
-        ? styles.resultLoss
-        : styles.resultTie;
+  const outcomeLabels =
+    roundOutcome && movesFullyRevealed
+      ? {
+          primary: getRoundResultPrimaryLabel(roundOutcome),
+          secondary: getRoundResultSecondaryLabel(
+            roundOutcome,
+            playerScore,
+            cpuScore,
+            winTarget,
+          ),
+          accessible: getRoundResultAccessibleLabel(
+            roundOutcome,
+            playerScore,
+            cpuScore,
+            winTarget,
+          ),
+        }
+      : null;
 
   const stageClass = [
     styles.battleStage,
@@ -388,27 +396,24 @@ export function BattleStage({
 
         <div className={styles.stageCenter}>
           <ArenaCore
-            mode={coreMode}
+            visualState={visualState}
             seconds={timerSeconds}
             total={timerTotal}
             phaseLabel={phaseLabel}
             countdown={countdown}
-            vsImpact={movesFullyRevealed && effectiveRevealImpact}
+            vsImpact={
+              visualState === "vs_reveal" &&
+              movesFullyRevealed &&
+              effectiveRevealImpact
+            }
+            primaryLabel={outcomeLabels?.primary ?? null}
+            secondaryLabel={outcomeLabels?.secondary ?? null}
+            outcomeAnimationKey={
+              outcomeLabels ? `${round}-${roundOutcome}` : undefined
+            }
+            reducedMotion={reducedMotion}
+            accessibleLabel={outcomeLabels?.accessible}
           />
-
-          {showResult ? (
-            <div
-              className={`${styles.roundResultPanel} ${resultClass} ${
-                phase === "round_result" ? styles.roundResultVisible : ""
-              } ${movesFullyRevealed ? styles.roundResultReveal : ""}`.trim()}
-              role="status"
-            >
-              <p>{resultText}</p>
-              {phase === "round_result" && transitionMessage ? (
-                <p className={styles.roundResultNext}>{transitionMessage}</p>
-              ) : null}
-            </div>
-          ) : null}
         </div>
 
         <div

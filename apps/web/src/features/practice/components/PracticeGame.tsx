@@ -21,12 +21,12 @@ import { PlayerStrip } from "@/features/practice/components/battle-arena/PlayerS
 import { RoundIntroOverlay } from "@/features/practice/components/battle-arena/RoundIntroOverlay";
 import { RoundTimeline } from "@/features/practice/components/battle-arena/RoundTimeline";
 import { getRoundIntroLabel } from "@/features/practice/utils/round-intro-label";
+import { formatRoundResultAnnouncement } from "@/features/practice/utils/arena-core-state";
 import { useSettings } from "@/providers/SettingsProvider";
 import styles from "./practice-game.module.css";
 
 function phaseLabel(
   phase: ReturnType<typeof usePracticeGame>["state"]["phase"],
-  transitionMessage: string | null,
 ): string {
   switch (phase) {
     case "countdown":
@@ -44,7 +44,7 @@ function phaseLabel(
     case "reveal":
       return "Reveal";
     case "round_result":
-      return transitionMessage ?? "Round result";
+      return "Round result";
     case "match_complete":
       return "Match complete";
     default:
@@ -75,12 +75,11 @@ function liveAnnouncement(
     (state.phase === "reveal" || state.phase === "round_result") &&
     state.roundOutcome
   ) {
-    if (state.roundOutcome === "tie") return "Tie. Replay round.";
-    if (state.roundOutcome === "player") return "You win the round.";
-    return "CPU wins the round.";
-  }
-  if (state.phase === "round_result" && state.transitionMessage) {
-    return state.transitionMessage;
+    return formatRoundResultAnnouncement(
+      state.roundOutcome,
+      state.playerScore,
+      state.cpuScore,
+    );
   }
   if (state.phase === "match_complete" && state.matchWinner) {
     return state.matchWinner === "player" ? "Victory." : "Defeat.";
@@ -215,7 +214,7 @@ export function PracticeGame() {
   const locked = isMoveSelectionLocked(state.phase);
   const tiedRounds = countTiedRounds(state.history);
   const automaticMoves = countAutomaticMoves(state.history);
-  const label = phaseLabel(state.phase, state.transitionMessage);
+  const label = phaseLabel(state.phase);
   const stripPhaseLabel = STRIP_PHASE_LABELS.has(state.phase) ? label : null;
   const showPlayerVictoryConfetti =
     state.phase === "match_complete" && state.matchWinner === "player";
@@ -310,7 +309,9 @@ export function PracticeGame() {
                   cpuMove={state.cpuMove}
                   roundOutcome={state.roundOutcome}
                   playerTimedOut={state.playerTimedOut}
-                  transitionMessage={state.transitionMessage}
+                  playerScore={state.playerScore}
+                  cpuScore={state.cpuScore}
+                  winTarget={winTarget}
                   phaseLabel={label}
                   round={state.round}
                   reducedMotion={settings.reducedMotion}

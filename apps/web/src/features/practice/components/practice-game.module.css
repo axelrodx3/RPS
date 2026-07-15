@@ -910,20 +910,34 @@
 
 .battlePodWin {
   border-color: var(--color-outcome-win);
-  box-shadow: 0 0 28px rgb(61 214 140 / 18%);
-  transform: scale(1.03);
+  box-shadow: 0 0 28px rgb(61 214 140 / 22%);
+  transform: scale(1.04);
+  filter: brightness(1.06);
+  transition:
+    transform 420ms var(--motion-ease),
+    filter 420ms var(--motion-ease),
+    box-shadow 420ms var(--motion-ease),
+    opacity 420ms var(--motion-ease);
 }
 
 .battlePodLoss {
   border-color: var(--color-outcome-loss);
-  opacity: 0.72;
-  transform: scale(0.96);
-  filter: saturate(0.8);
+  opacity: 0.78;
+  transform: scale(0.97) translateY(2px);
+  filter: saturate(0.82) brightness(0.88);
+  transition:
+    transform 420ms var(--motion-ease),
+    filter 420ms var(--motion-ease),
+    opacity 420ms var(--motion-ease);
 }
 
 .battlePodTie {
   border-color: var(--color-outcome-tie);
-  box-shadow: 0 0 20px rgb(108 180 255 / 12%);
+  box-shadow: 0 0 22px rgb(108 180 255 / 16%);
+  transform: scale(1);
+  transition:
+    transform 420ms var(--motion-ease),
+    box-shadow 420ms var(--motion-ease);
 }
 
 .podLabel {
@@ -1142,6 +1156,185 @@
 
 .arenaCoreVsImpact {
   animation: vsImpactPulse 360ms var(--motion-ease) 1;
+}
+
+.arenaCoreWin .arenaTimerTrack {
+  stroke: rgb(215 255 67 / 42%);
+  filter: drop-shadow(0 0 12px rgb(215 255 67 / 35%));
+}
+
+.arenaCoreWin {
+  animation: arenaWinPulse 520ms var(--motion-ease) 1;
+}
+
+.arenaCoreLoss .arenaTimerTrack {
+  stroke: rgb(229 83 83 / 38%);
+  filter: drop-shadow(0 0 10px rgb(229 83 83 / 28%));
+}
+
+.arenaCoreLoss {
+  animation: arenaLossPulse 420ms var(--motion-ease) 1;
+}
+
+.arenaCoreTieState .arenaTimerTrack {
+  stroke: rgb(108 180 255 / 36%);
+  filter: drop-shadow(0 0 10px rgb(108 180 255 / 22%));
+}
+
+.arenaCoreOutcomeStack {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.arenaCoreMark {
+  width: 34px;
+  height: 34px;
+  color: var(--color-brand-500);
+}
+
+.arenaCoreCheck {
+  color: var(--color-outcome-win);
+}
+
+.arenaCoreCheckPath {
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+}
+
+.arenaCoreCheckDraw .arenaCoreCheckPath {
+  animation: checkDraw 480ms var(--motion-ease) forwards;
+}
+
+.arenaCoreCheckStatic .arenaCoreCheckPath {
+  stroke-dashoffset: 0;
+}
+
+.arenaCoreLossMark {
+  color: var(--color-outcome-loss);
+}
+
+.arenaCoreLossEnter {
+  animation: lossMarkEnter 420ms var(--motion-ease) forwards;
+}
+
+.arenaCoreLossStatic {
+  opacity: 1;
+  transform: none;
+}
+
+.arenaCoreTieMark {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-outcome-tie);
+}
+
+.arenaCoreTiePulse {
+  animation: tieMarkPulse 480ms var(--motion-ease) 1;
+}
+
+.arenaCoreTieStatic {
+  opacity: 1;
+}
+
+.arenaCorePrimaryLabel {
+  max-width: 112px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.arenaCoreSecondaryLabel {
+  max-width: 120px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-brand-500);
+  line-height: 1.2;
+}
+
+.arenaCoreWin .arenaCorePrimaryLabel {
+  color: var(--color-outcome-win);
+}
+
+.arenaCoreLoss .arenaCorePrimaryLabel {
+  color: var(--color-outcome-loss);
+}
+
+.arenaCoreTieState .arenaCorePrimaryLabel {
+  color: var(--color-outcome-tie);
+}
+
+@keyframes checkDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lossMarkEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tieMarkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.88;
+  }
+
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes arenaWinPulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  45% {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes arenaLossPulse {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-1px);
+  }
+
+  50% {
+    transform: translateX(1px);
+  }
+
+  75% {
+    transform: translateX(-0.5px);
+  }
 }
 
 .arenaCorePhase {
@@ -2583,6 +2776,11 @@
 [data-reduced-motion="true"] .moveRevealShown,
 [data-reduced-motion="true"] .battlePodImpact,
 [data-reduced-motion="true"] .arenaCoreVsImpact,
+[data-reduced-motion="true"] .arenaCoreWin,
+[data-reduced-motion="true"] .arenaCoreLoss,
+[data-reduced-motion="true"] .arenaCoreCheckDraw,
+[data-reduced-motion="true"] .arenaCoreLossEnter,
+[data-reduced-motion="true"] .arenaCoreTiePulse,
 [data-reduced-motion="true"] .timelineEntryNew,
 [data-reduced-motion="true"] .stripIdentityPulse,
 [data-reduced-motion="true"] .stripIdentityImpact,

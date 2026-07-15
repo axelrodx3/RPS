@@ -10,6 +10,7 @@ import {
   REVEAL_DISPLAY_MS,
   REVEAL_PAUSE_MS,
   ROUND_DISPLAY_COMMIT_DELAY_MS,
+  ROUND_OUTCOME_SOUND_DELAY_MS,
   ROUND_INTRO_MS,
   ROUND_RESULT_DISPLAY_MS,
   WAITING_CPU_MS,
@@ -317,5 +318,130 @@ describe("usePracticeGame flow synchronization", () => {
     expect(state.roundOutcome).toBe("tie");
     expect(state.playerScore).toBe(0);
     expect(state.cpuScore).toBe(0);
+  });
+
+  it("plays round win and round loss sounds once after reveal commit delay", () => {
+    const winRandom = {
+      move: () => "scissors" as (typeof MOVES)[number],
+    };
+
+    const { result: winResult } = renderHook(() => usePracticeGame(winRandom), {
+      wrapper,
+    });
+    reachCommitPhase(winResult);
+    act(() => {
+      winResult.current.selectMove("rock");
+    });
+    act(() => {
+      vi.advanceTimersByTime(MOVE_LOCKED_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(WAITING_CPU_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(REVEAL_PAUSE_MS);
+    });
+    expect(winResult.current.state.phase).toBe("reveal");
+    act(() => {
+      vi.advanceTimersByTime(
+        CPU_REVEAL_DELAY_MS +
+          ROUND_DISPLAY_COMMIT_DELAY_MS +
+          ROUND_OUTCOME_SOUND_DELAY_MS,
+      );
+    });
+    expect(
+      vi
+        .mocked(audioEngine.play)
+        .mock.calls.filter(([id]) => id === "round_win"),
+    ).toHaveLength(1);
+
+    vi.mocked(audioEngine.play).mockClear();
+
+    const lossRandom = {
+      move: () => "rock" as (typeof MOVES)[number],
+    };
+    const { result: lossResult } = renderHook(
+      () => usePracticeGame(lossRandom),
+      { wrapper },
+    );
+    reachCommitPhase(lossResult);
+    act(() => {
+      lossResult.current.selectMove("scissors");
+    });
+    act(() => {
+      vi.advanceTimersByTime(MOVE_LOCKED_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(WAITING_CPU_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(REVEAL_PAUSE_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(
+        CPU_REVEAL_DELAY_MS +
+          ROUND_DISPLAY_COMMIT_DELAY_MS +
+          ROUND_OUTCOME_SOUND_DELAY_MS,
+      );
+    });
+    expect(
+      vi
+        .mocked(audioEngine.play)
+        .mock.calls.filter(([id]) => id === "round_loss"),
+    ).toHaveLength(1);
+  });
+
+  it("suppresses round result sounds when the match completes on the final round", () => {
+    const matchWinRandom = {
+      move: () => "scissors" as (typeof MOVES)[number],
+    };
+    const { result } = renderHook(() => usePracticeGame(matchWinRandom), {
+      wrapper,
+    });
+
+    const finishRoundWin = () => {
+      act(() => {
+        result.current.selectMove("rock");
+      });
+      act(() => {
+        vi.advanceTimersByTime(MOVE_LOCKED_MS);
+      });
+      act(() => {
+        vi.advanceTimersByTime(WAITING_CPU_MS);
+      });
+      act(() => {
+        vi.advanceTimersByTime(REVEAL_PAUSE_MS);
+      });
+      act(() => {
+        vi.advanceTimersByTime(REVEAL_DISPLAY_MS);
+      });
+    };
+
+    reachCommitPhase(result);
+    finishRoundWin();
+    expect(result.current.state.playerScore).toBe(1);
+
+    act(() => {
+      vi.advanceTimersByTime(ROUND_RESULT_DISPLAY_MS);
+    });
+    act(() => {
+      vi.advanceTimersByTime(ROUND_INTRO_MS);
+    });
+    expect(result.current.state.phase).toBe("commit");
+
+    vi.mocked(audioEngine.play).mockClear();
+    finishRoundWin();
+
+    expect(result.current.state.phase).toBe("match_complete");
+    expect(
+      vi
+        .mocked(audioEngine.play)
+        .mock.calls.filter(([id]) => id === "round_win"),
+    ).toHaveLength(0);
+    expect(
+      vi
+        .mocked(audioEngine.play)
+        .mock.calls.filter(([id]) => id === "match_win"),
+    ).toHaveLength(1);
   });
 });

@@ -73,7 +73,7 @@ describe("transition messages", () => {
       playerScore: 0,
       cpuScore: 0,
     };
-    expect(getTransitionMessage(state)).toBe("Tie. Replay round.");
+    expect(getTransitionMessage(state)).toBe("REPLAY ROUND");
   });
 });
 
@@ -114,7 +114,7 @@ describe("practiceReducer", () => {
     expect(state.phase).toBe("reveal_pause");
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL_PAUSE" });
     state = practiceReducer(state, { type: "ADVANCE_FROM_REVEAL" });
-    expect(state.transitionMessage).toBe("Tie. Replay round.");
+    expect(state.transitionMessage).toBe("REPLAY ROUND");
     state = practiceReducer(state, { type: "ADVANCE_FROM_ROUND_RESULT" });
     expect(state.phase).toBe("round_intro");
     expect(state.round).toBe(1);

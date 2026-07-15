@@ -15,6 +15,7 @@ import {
   REVEAL_PAUSE_MS,
   REVEAL_PAUSE_REDUCED_MS,
   ROUND_DISPLAY_COMMIT_DELAY_MS,
+  ROUND_OUTCOME_SOUND_DELAY_MS,
   ROUND_INTRO_MS,
   ROUND_INTRO_REDUCED_MS,
   ROUND_RESULT_DISPLAY_MS,
@@ -335,30 +336,39 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   useEffect(() => {
     if (state.phase !== "reveal" || !state.roundOutcome) return;
     if (roundOutcomeAudioPlayedRef.current) return;
+    if (state.matchWinner) return;
 
     const revealDelay = settings.reducedMotion
       ? CPU_REVEAL_DELAY_REDUCED_MS
       : CPU_REVEAL_DELAY_MS;
 
     roundOutcomeAudioPlayedRef.current = true;
-    window.setTimeout(
-      () => {
-        if (state.roundOutcome === "tie") {
-          play("round_tie");
-        } else if (state.roundOutcome === "player") {
-          play("round_win");
-        } else if (state.roundOutcome === "cpu") {
-          play("round_loss");
-        }
-      },
-      revealDelay + ROUND_DISPLAY_COMMIT_DELAY_MS + 120,
-    );
+    stopPhaseCues();
+    const delayMs =
+      revealDelay +
+      ROUND_DISPLAY_COMMIT_DELAY_MS +
+      ROUND_OUTCOME_SOUND_DELAY_MS;
+    const timeoutId = window.setTimeout(() => {
+      if (state.roundOutcome === "tie") {
+        play("round_tie");
+      } else if (state.roundOutcome === "player") {
+        play("round_win");
+      } else if (state.roundOutcome === "cpu") {
+        play("round_loss");
+      }
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [
     state.phase,
     state.round,
     state.roundOutcome,
+    state.matchWinner,
     play,
     settings.reducedMotion,
+    stopPhaseCues,
   ]);
 
   useEffect(() => {

@@ -88,6 +88,8 @@ export class AudioEngine {
     this.stopSound("reveal_incoming");
     this.stopSound("reveal");
     this.stopSound("round_tie");
+    this.stopSound("round_win");
+    this.stopSound("round_loss");
   }
 
   private resolveVolume(id: SoundId, levels: AudioLevels): number {

@@ -1,3 +1,5 @@
+import { getRoundResultSecondaryLabel } from "@/features/practice/utils/arena-core-state";
+
 export type Move = "rock" | "paper" | "scissors";
 
 export type RoundOutcome = "player" | "cpu" | "tie";
@@ -67,6 +69,7 @@ export const ROUND_INTRO_REDUCED_MS = 500;
 export const CPU_REVEAL_DELAY_MS = 550;
 export const CPU_REVEAL_DELAY_REDUCED_MS = 120;
 export const ROUND_DISPLAY_COMMIT_DELAY_MS = 250;
+export const ROUND_OUTCOME_SOUND_DELAY_MS = 280;
 export const REVEAL_IMPACT_MS = 450;
 
 export const RESULT_VISIBLE_TOTAL_MS =
@@ -150,14 +153,13 @@ export function isMoveSelectionLocked(phase: PracticePhase): boolean {
   );
 }
 
-export function getTransitionMessage(state: PracticeMatchState): string {
-  if (state.roundOutcome === "tie") {
-    return "Tie. Replay round.";
-  }
-  if (state.playerScore === 1 || state.cpuScore === 1) {
-    return "Match point";
-  }
-  return "Next round";
+export function getTransitionMessage(state: PracticeMatchState): string | null {
+  if (!state.roundOutcome) return null;
+  return getRoundResultSecondaryLabel(
+    state.roundOutcome,
+    state.playerScore,
+    state.cpuScore,
+  );
 }
 
 export function formatRoundHistoryAccessibleLabel(record: RoundRecord): string {
