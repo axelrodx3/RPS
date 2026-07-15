@@ -1,7 +1,20 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const sharp = require(path.join(__dirname, "../apps/web/node_modules/sharp"));
+const sharp = (() => {
+  try {
+    return require("sharp");
+  } catch {
+    try {
+      return require(path.join(__dirname, "../apps/web/node_modules/sharp"));
+    } catch {
+      console.error(
+        "sharp is required to run this script. Install it with: npm install --prefix apps/web sharp",
+      );
+      process.exit(1);
+    }
+  }
+})();
 
 const repoRoot = path.join(__dirname, "..");
 
