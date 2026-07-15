@@ -12,7 +12,7 @@ import {
   type RoundOutcome,
 } from "@/features/practice/engine/practice-engine";
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
-import { PracticeStatsPanel } from "@/features/practice/components/PracticeStatsPanel";
+import { LeaderboardPanel } from "@/features/practice/components/LeaderboardPanel";
 import { VictoryConfetti } from "@/features/practice/components/VictoryConfetti";
 import { preloadMatchResultAsset } from "@/features/practice/assets/match-result-backgrounds";
 import { BattleStage } from "@/features/practice/components/battle-arena/BattleStage";
@@ -209,7 +209,7 @@ export function PracticeGame() {
             Start Practice Match
           </Button>
         </Card>
-        <PracticeStatsPanel />
+        <LeaderboardPanel reducedMotion={settings.reducedMotion} />
       </div>
     );
   }
@@ -290,26 +290,35 @@ export function PracticeGame() {
             <>
               {state.phase === "round_intro" ? (
                 <RoundIntroOverlay
+                  key={`round-intro-${state.round}`}
                   label={roundIntroLabel}
                   reducedMotion={settings.reducedMotion}
+                  round={state.round}
                 />
               ) : null}
 
-              <BattleStage
-                phase={state.phase}
-                countdown={state.countdown}
-                timerSeconds={state.timerSeconds}
-                timerTotal={timerTotal}
-                playerMove={state.playerMove}
-                cpuMove={state.cpuMove}
-                roundOutcome={state.roundOutcome}
-                playerTimedOut={state.playerTimedOut}
-                transitionMessage={state.transitionMessage}
-                phaseLabel={label}
-                round={state.round}
-                reducedMotion={settings.reducedMotion}
-                onBothMovesRevealed={onBothMovesRevealed}
-              />
+              <div
+                className={
+                  state.phase === "round_intro" ? styles.battleStageHidden : ""
+                }
+                aria-hidden={state.phase === "round_intro"}
+              >
+                <BattleStage
+                  phase={state.phase}
+                  countdown={state.countdown}
+                  timerSeconds={state.timerSeconds}
+                  timerTotal={timerTotal}
+                  playerMove={state.playerMove}
+                  cpuMove={state.cpuMove}
+                  roundOutcome={state.roundOutcome}
+                  playerTimedOut={state.playerTimedOut}
+                  transitionMessage={state.transitionMessage}
+                  phaseLabel={label}
+                  round={state.round}
+                  reducedMotion={settings.reducedMotion}
+                  onBothMovesRevealed={onBothMovesRevealed}
+                />
+              </div>
 
               {showMoveDock ? (
                 <MoveDock
@@ -323,14 +332,19 @@ export function PracticeGame() {
         </section>
 
         <aside className={styles.timelineAside}>
-          <RoundTimeline
-            history={state.history}
+          {state.phase !== "match_complete" ? (
+            <RoundTimeline
+              history={state.history}
+              reducedMotion={settings.reducedMotion}
+            />
+          ) : null}
+          <LeaderboardPanel
             reducedMotion={settings.reducedMotion}
+            variant="sidebar"
+            showReset={false}
           />
         </aside>
       </div>
-
-      {state.phase === "match_complete" ? <PracticeStatsPanel compact /> : null}
     </div>
   );
 }

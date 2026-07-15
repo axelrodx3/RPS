@@ -1,0 +1,274 @@
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 3%);
+}
+
+.page {
+  padding: var(--space-5);
+}
+
+.sidebar {
+  min-height: 0;
+}
+
+.panelHeader {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.panelKicker {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: clamp(20px, 2.4vw, 24px);
+  letter-spacing: -0.02em;
+}
+
+.tabList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 28%);
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+
+.tabButton {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 180ms var(--motion-ease),
+    color 180ms var(--motion-ease),
+    box-shadow 180ms var(--motion-ease);
+}
+
+.tabButton:hover {
+  color: var(--color-text);
+}
+
+.tabButtonActive {
+  color: var(--color-text);
+  background: rgb(215 255 67 / 12%);
+  box-shadow: inset 0 0 0 1px rgb(215 255 67 / 22%);
+}
+
+.tabPanels {
+  min-height: 0;
+}
+
+.tabPanel {
+  min-height: 0;
+}
+
+.tabPanel[hidden] {
+  display: none;
+}
+
+.leaderboardPlaceholder {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgb(255 255 255 / 10%);
+  background: rgb(0 0 0 / 18%);
+}
+
+.placeholderBadge {
+  justify-self: start;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgb(215 255 67 / 10%);
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.leaderboardPlaceholder h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.leaderboardPlaceholder p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.myStatsPanel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.myStatsHeader {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.myStatsKicker {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.myStatsNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  max-height: min(52vh, 520px);
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(215 255 67 / 28%) transparent;
+}
+
+.metricGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.metricGrid::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: rgb(215 255 67 / 22%);
+}
+
+.metricCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  min-height: 84px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 4%) 0%,
+    rgb(0 0 0 / 18%) 100%
+  );
+  transition:
+    border-color 180ms var(--motion-ease),
+    transform 180ms var(--motion-ease);
+}
+
+.metricCard:hover {
+  border-color: rgb(215 255 67 / 18%);
+  transform: translateY(-1px);
+}
+
+.metricIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgb(215 255 67 / 8%);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.metricCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metricLabel {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  margin: 0;
+  font-size: clamp(20px, 2.4vw, 24px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.resetBlock {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgb(255 255 255 / 6%);
+}
+
+.resetBlock p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.resetActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (min-width: 720px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .metricGrid {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .tabButton {
+    font-size: 12px;
+    padding-inline: var(--space-2);
+  }
+}
+
+@media (max-width: 960px) {
+  .sidebar .metricGrid {
+    max-height: none;
+  }
+}
+
+[data-reduced-motion="true"] .metricCard:hover {
+  transform: none;
+}

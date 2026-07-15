@@ -36,6 +36,7 @@ type SettingsContextValue = {
       playerTimedOut: boolean;
       playerMove: Move;
     }[],
+    matchDurationMs?: number,
   ) => void;
   resetStats: () => void;
   ready: boolean;
@@ -105,9 +106,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         playerTimedOut: boolean;
         playerMove: Move;
       }[],
+      matchDurationMs = 0,
     ) => {
       setStats((current) => {
-        const next = recordPracticeMatchResult(current, winner, history);
+        const next = recordPracticeMatchResult(
+          current,
+          winner,
+          history,
+          matchDurationMs,
+        );
         writePracticeStats(window.localStorage, next);
         return next;
       });

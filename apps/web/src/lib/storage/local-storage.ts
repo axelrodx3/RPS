@@ -31,6 +31,7 @@ export type PracticeStatistics = {
   scissorsSelections: number;
   automaticMoveCount: number;
   mostUsedMove: Move | null;
+  totalMatchDurationMs: number;
 };
 
 export const SETTINGS_STORAGE_KEY = "rps.settings.v2";
@@ -68,6 +69,7 @@ export const DEFAULT_PRACTICE_STATS: PracticeStatistics = {
   scissorsSelections: 0,
   automaticMoveCount: 0,
   mostUsedMove: null,
+  totalMatchDurationMs: 0,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -182,6 +184,7 @@ export function parsePracticeStats(raw: string | null): PracticeStatistics {
           parsed.mostUsedMove === "scissors"
             ? parsed.mostUsedMove
             : null,
+        totalMatchDurationMs: num("totalMatchDurationMs") as number,
       };
       return {
         ...stats,
@@ -260,6 +263,7 @@ export function recordPracticeMatchResult(
   stats: PracticeStatistics,
   winner: "player" | "cpu",
   history: MatchHistoryEntry[],
+  matchDurationMs = 0,
 ): PracticeStatistics {
   const wins = stats.wins + (winner === "player" ? 1 : 0);
   const losses = stats.losses + (winner === "cpu" ? 1 : 0);
@@ -301,6 +305,8 @@ export function recordPracticeMatchResult(
     scissorsSelections,
     automaticMoveCount,
     mostUsedMove: null,
+    totalMatchDurationMs:
+      stats.totalMatchDurationMs + Math.max(0, matchDurationMs),
   };
   next.mostUsedMove = computeMostUsedMove(next);
   return next;

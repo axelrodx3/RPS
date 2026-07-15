@@ -595,11 +595,31 @@
 }
 
 .roundIntroEnter {
-  animation: roundIntroFade 700ms var(--motion-ease) 1;
+  animation: roundIntroOverlayIn var(--round-intro-duration, 800ms)
+    var(--motion-ease) 1 forwards;
 }
 
 .roundIntroReduced {
-  animation: roundIntroFadeReduced 450ms ease-out 1;
+  animation: roundIntroOverlayInReduced var(--round-intro-duration, 500ms)
+    ease-out 1 forwards;
+}
+
+.roundIntroSettled {
+  opacity: 1;
+}
+
+.roundIntroLabelEnter {
+  animation: roundIntroLabelIn var(--round-intro-duration, 800ms)
+    var(--motion-ease) 1 forwards;
+}
+
+.roundIntroLabelSettled {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.battleStageHidden {
+  visibility: hidden;
 }
 
 .roundIntroLabel {
@@ -613,7 +633,7 @@
 }
 
 .roundIntroEnter .roundIntroLabel {
-  animation: roundIntroScale 700ms var(--motion-ease) 1;
+  /* Label animation handled by .roundIntroLabelEnter */
 }
 
 /* ── Battle stage ── */
@@ -1717,6 +1737,8 @@
   z-index: 1;
   min-height: 0;
   align-self: stretch;
+  display: grid;
+  gap: var(--space-4);
 }
 
 .roundTimeline {
@@ -2001,6 +2023,45 @@
 @keyframes pulse {
   50% {
     transform: scale(1.04);
+  }
+}
+
+@keyframes roundIntroOverlayIn {
+  0% {
+    opacity: 0;
+  }
+
+  14%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes roundIntroOverlayInReduced {
+  0% {
+    opacity: 0;
+  }
+
+  18%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes roundIntroLabelIn {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+
+  24% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -2501,6 +2562,9 @@
   transform: none;
 }
 
+[data-reduced-motion="true"] .roundIntroEnter,
+[data-reduced-motion="true"] .roundIntroReduced,
+[data-reduced-motion="true"] .roundIntroLabelEnter,
 [data-reduced-motion="true"] .roundIntroEnter .roundIntroLabel,
 [data-reduced-motion="true"] .battleStageAnticipation .stageSpotlight,
 [data-reduced-motion="true"] .battleStageImpact,

@@ -72,6 +72,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const phaseAudioPlayedRef = useRef<PracticePhase | null>(null);
   const revealImpactAudioPlayedRef = useRef(false);
   const roundOutcomeAudioPlayedRef = useRef(false);
+  const matchStartedAtRef = useRef<number | null>(null);
   const roundKeyRef = useRef<string>("");
 
   const clearTimers = useCallback(() => {
@@ -120,6 +121,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
   const startMatch = useCallback(() => {
     unlock();
     matchRecordedRef.current = false;
+    matchStartedAtRef.current = Date.now();
     timeoutHandledRef.current = false;
     resetAudioGuards();
     clearTimers();
@@ -148,6 +150,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
 
   const rematch = useCallback(() => {
     matchRecordedRef.current = false;
+    matchStartedAtRef.current = Date.now();
     timeoutHandledRef.current = false;
     resetAudioGuards();
     clearTimers();
@@ -460,6 +463,10 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
     if (matchRecordedRef.current) return;
     matchRecordedRef.current = true;
     play(state.matchWinner === "player" ? "match_win" : "match_loss");
+    const matchDurationMs = matchStartedAtRef.current
+      ? Math.max(0, Date.now() - matchStartedAtRef.current)
+      : 0;
+    matchStartedAtRef.current = null;
     recordMatch(
       state.matchWinner,
       state.history.map((round) => ({
@@ -467,6 +474,7 @@ export function usePracticeGame(random: RandomSource = defaultRandom) {
         playerTimedOut: round.playerTimedOut,
         playerMove: round.playerMove,
       })),
+      matchDurationMs,
     );
   }, [state.phase, state.matchWinner, state.history, play, recordMatch]);
 

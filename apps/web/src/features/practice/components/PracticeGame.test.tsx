@@ -417,7 +417,17 @@ describe("battle arena presentation", () => {
     const overlay = screen.getByTestId("round-intro-overlay");
     expect(overlay).toBeInTheDocument();
     expect(overlay).toHaveTextContent("ROUND 1");
+    expect(overlay).toHaveAttribute("data-round", "1");
     hook.mockRestore();
+  });
+
+  it("renders the leaderboard panel with my stats tab on idle", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<PracticeGame />);
+
+    expect(screen.getByTestId("leaderboard-panel")).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "My Stats" }));
+    expect(screen.getByText("Average Match Length")).toBeInTheDocument();
   });
 
   it("begins move timer only after round intro completes", async () => {
