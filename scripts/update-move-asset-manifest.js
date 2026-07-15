@@ -3,15 +3,17 @@ const path = require("node:path");
 
 const repoRoot = path.join(__dirname, "..");
 const manifestPath = path.join(repoRoot, "docs/asset-license-manifest.json");
+const processingReportPath = path.join(
+  repoRoot,
+  "docs/move-skin-asset-processing-report.json",
+);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 
 const filtered = manifest.filter(
   (entry) =>
-    ![
-      "Rock move placeholder icon",
-      "Paper move placeholder icon",
-      "Scissors move placeholder icon",
-    ].includes(entry.assetName),
+    !entry.assetName?.startsWith("Rock move skin tier") &&
+    !entry.assetName?.startsWith("Paper move skin tier") &&
+    !entry.assetName?.startsWith("Scissors move skin tier"),
 );
 
 const configs = [
@@ -48,18 +50,32 @@ const configs = [
   },
 ];
 
+const processingReport = fs.existsSync(processingReportPath)
+  ? JSON.parse(fs.readFileSync(processingReportPath, "utf8"))
+  : [];
+
 const entries = [];
 
 for (const cfg of configs) {
   cfg.files.forEach((sourceFile, index) => {
     const tier = index + 1;
-    const runtime = path.join(
+    const runtimePng = path.join(
       repoRoot,
       "apps/web/public/assets/moves/skins",
       cfg.move,
       `tier-${tier}.png`,
     );
-    const stat = fs.statSync(runtime);
+    const runtimeWebp = path.join(
+      repoRoot,
+      "apps/web/public/assets/moves/skins",
+      cfg.move,
+      `tier-${tier}.webp`,
+    );
+    const pngStat = fs.statSync(runtimePng);
+    const webpStat = fs.statSync(runtimeWebp);
+    const report = processingReport.find(
+      (item) => item.moveType === cfg.move && item.tier === tier,
+    );
 
     entries.push({
       assetName: `${cfg.move[0].toUpperCase()}${cfg.move.slice(1)} move skin tier ${tier}`,
@@ -67,16 +83,22 @@ for (const cfg of configs) {
       tier,
       sourceFile,
       sourceFolder: cfg.folder,
-      filePath: path.relative(repoRoot, runtime).split(path.sep).join("/"),
+      filePath: path.relative(repoRoot, runtimePng).split(path.sep).join("/"),
       runtimePath: `/assets/moves/skins/${cfg.move}/tier-${tier}.png`,
-      format: "PNG RGBA",
-      dimensions: "512x512",
-      fileSizeBytes: stat.size,
+      runtimeWebpPath: `/assets/moves/skins/${cfg.move}/tier-${tier}.webp`,
+      profilePreviewPath: `/assets/moves/skins/${cfg.move}/tier-${tier}.webp`,
+      format: "PNG RGBA + WebP",
+      dimensions: report?.trimmedDimensions ?? "512x512",
+      sourceDimensions: report?.sourceDimensions ?? "512x512",
+      fileSizeBytes: pngStat.size,
+      runtimeWebpSizeBytes: webpStat.size,
       transparencyStatus: "alpha preserved",
       activeStatus: tier === 1 ? "active" : "inactive",
-      defaultStatus: tier === 1 ? "default" : "locked",
+      defaultStatus: tier === 1 ? "default-equipped" : "locked-preview",
       practiceAvailability:
-        tier === 1 ? "available in Practice" : "future unlock only",
+        tier === 1
+          ? "available in Practice"
+          : "profile preview only; future unlock",
       source: "User supplied move artwork",
       author: "Pending project verification",
       sourceUrl: null,
@@ -84,12 +106,12 @@ for (const cfg of configs) {
       attributionRequired: true,
       dateIntegrated: "2026-07-15",
       modifications:
-        tier === 1
-          ? "Copied source PNG to runtime skins path without distortion"
-          : "Preserved for future unlock; registered but not exposed in UI",
-      approvalStatus: tier === 1 ? "approved" : "preserved-future-unlock",
+        "Trimmed excessive transparent padding, exported PNG fallback and WebP derivative for profile unlock previews",
+      approvalStatus:
+        tier === 1 ? "approved" : "approved-profile-preview-locked",
       processingPerformed:
-        "Direct copy to public runtime path; CSS object-fit contain scaling in UI",
+        report?.processingPerformed ??
+        "Trimmed excessive transparent padding from source, exported PNG fallback and WebP derivative",
     });
   });
 }

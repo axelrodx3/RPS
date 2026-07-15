@@ -432,11 +432,19 @@
   gap: var(--space-2);
   justify-items: center;
   padding: var(--space-3);
-  min-height: 148px;
+  min-height: 168px;
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 18%);
   text-align: center;
+}
+
+.cosmeticEquipped {
+  border-color: rgb(215 255 67 / 42%);
+  background: rgb(215 255 67 / 6%);
+  box-shadow:
+    inset 0 0 20px rgb(215 255 67 / 8%),
+    0 0 18px rgb(215 255 67 / 8%);
 }
 
 .cosmeticUnlocked {
@@ -452,17 +460,132 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 72px;
-  height: 72px;
+  width: 88px;
+  height: 88px;
   border-radius: var(--radius-sm);
   border: 1px solid rgb(255 255 255 / 10%);
   background: rgb(255 255 255 / 4%);
   overflow: hidden;
 }
 
-.cosmeticPreviewSilhouette {
-  opacity: 0.35;
-  filter: grayscale(1) brightness(0.7);
+.cosmeticPreviewArt {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--move-preview-padding, 10%);
+  box-sizing: border-box;
+}
+
+.cosmeticPreviewArtLocked {
+  filter: brightness(0.72) saturate(0.82);
+  opacity: 0.58;
+}
+
+.cosmeticPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.moveSkinPreviewFrame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--move-preview-padding, 10%);
+  box-sizing: border-box;
+}
+
+.moveSkinPreviewPicture {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.moveSkinPreviewImage {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: var(--move-preview-max-width, 78%);
+  max-height: var(--move-preview-max-height, 78%);
+  object-fit: contain;
+  object-position: var(--move-preview-object-position, center);
+  transform: scale(var(--move-preview-scale, 1));
+  transform-origin: center center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.moveSkinPreviewFallback {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+.moveSkinPreviewFallbackIcon {
+  font-size: 28px;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.moveSkinPreviewFallbackLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-subtle);
+}
+
+.statusBadgeEquipped {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(215 255 67 / 14%);
+  color: var(--color-brand-500);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 28%);
+  pointer-events: none;
+}
+
+.lockBadge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 62%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
+}
+
+.lockBadgeIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .cosmeticSilhouette {
@@ -489,20 +612,6 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--color-text-subtle);
-}
-
-.lockBadge {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgb(0 0 0 / 48%);
-}
-
-.lockBadgeIcon {
-  font-size: 18px;
-  line-height: 1;
-  filter: grayscale(0.2);
 }
 
 .cosmeticName {

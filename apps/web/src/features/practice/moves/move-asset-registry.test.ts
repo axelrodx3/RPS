@@ -31,12 +31,23 @@ describe("move asset registry", () => {
     expect(getDefaultMoveSkin("rock").paths.png).toBe(
       "/assets/moves/skins/rock/tier-1.png",
     );
+    expect(getDefaultMoveSkin("rock").paths.webp).toBe(
+      "/assets/moves/skins/rock/tier-1.webp",
+    );
     expect(getDefaultMoveSkin("paper").paths.png).toBe(
       "/assets/moves/skins/paper/tier-1.png",
     );
     expect(getDefaultMoveSkin("scissors").paths.png).toBe(
       "/assets/moves/skins/scissors/tier-1.png",
     );
+  });
+
+  it("exposes profile preview paths for every tier", () => {
+    for (const skin of ALL_MOVE_SKINS) {
+      expect(skin.paths.profilePreview).toBe(
+        `/assets/moves/skins/${skin.moveId}/tier-${skin.tier}.webp`,
+      );
+    }
   });
 
   it("marks Tier 1 as active defaults and tiers 2 through 7 as inactive", () => {
@@ -70,6 +81,18 @@ describe("move asset registry", () => {
         `public/assets/moves/skins/${move}/tier-1.png`,
       );
       expect(fs.existsSync(filePath)).toBe(true);
+    }
+  });
+
+  it("ships runtime WebP derivatives for all 21 move skins", () => {
+    for (const move of ["rock", "paper", "scissors"] as const) {
+      for (let tier = 1; tier <= 7; tier += 1) {
+        const filePath = path.resolve(
+          process.cwd(),
+          `public/assets/moves/skins/${move}/tier-${tier}.webp`,
+        );
+        expect(fs.existsSync(filePath)).toBe(true);
+      }
     }
   });
 

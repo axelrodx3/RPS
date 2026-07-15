@@ -24,6 +24,15 @@ export type MoveSkinPaths = {
   reveal: string;
   timeline: string;
   thumbnail: string;
+  profilePreview: string;
+};
+
+export type MoveProfilePreviewPresentation = {
+  scale: number;
+  maxWidth: string;
+  maxHeight: string;
+  objectPosition: string;
+  padding: string;
 };
 
 export type MoveSkin = {
@@ -42,6 +51,7 @@ export type MoveSkin = {
   /** Per-move visual scale for consistent perceived size in UI containers. */
   presentationScale: number;
   accessibleDescription: string;
+  licenseStatus: "pending-verification";
 };
 
 export type MoveAssetSet = {
@@ -93,6 +103,36 @@ export const MOVE_PRESENTATION_SCALE: Record<Move, number> = {
   scissors: 0.96,
 };
 
+/** Profile unlock preview presentation tokens. */
+export const MOVE_PROFILE_PREVIEW_PRESENTATION: Record<
+  Move,
+  MoveProfilePreviewPresentation
+> = {
+  rock: {
+    scale: 1,
+    maxWidth: "78%",
+    maxHeight: "78%",
+    objectPosition: "center",
+    padding: "10%",
+  },
+  paper: {
+    scale: 1,
+    maxWidth: "80%",
+    maxHeight: "82%",
+    objectPosition: "center",
+    padding: "12% 10%",
+  },
+  scissors: {
+    scale: 1,
+    maxWidth: "68%",
+    maxHeight: "68%",
+    objectPosition: "center",
+    padding: "16%",
+  },
+};
+
+export const PROFILE_PREVIEW_CONTAINER_PX = 88;
+
 /** Compact timeline thumbnail scale corrections. */
 export const MOVE_TIMELINE_PRESENTATION_SCALE: Record<Move, number> = {
   rock: 0.92,
@@ -105,9 +145,9 @@ export function getMoveTimelinePresentationScale(move: Move): number {
 }
 
 function skinPaths(moveId: Move, tier: number): MoveSkinPaths {
-  const png = `/assets/moves/skins/${moveId}/tier-${tier}.png`;
-  // WebP paths are reserved for future derivatives; omit until files exist in public/.
-  const webp = null;
+  const base = `/assets/moves/skins/${moveId}/tier-${tier}`;
+  const png = `${base}.png`;
+  const webp = `${base}.webp`;
 
   return {
     png,
@@ -116,6 +156,7 @@ function skinPaths(moveId: Move, tier: number): MoveSkinPaths {
     reveal: png,
     timeline: png,
     thumbnail: png,
+    profilePreview: webp,
   };
 }
 
@@ -149,6 +190,7 @@ function createSkin(
     futureUnlockRequirement: options.futureUnlockRequirement,
     presentationScale: MOVE_PRESENTATION_SCALE[moveId],
     accessibleDescription: `${visibleName} move artwork, tier ${tier}`,
+    licenseStatus: "pending-verification",
   };
 }
 
@@ -210,6 +252,26 @@ export function getMoveAssetSet(move: Move): MoveAssetSet {
 
 export function getMoveSkin(move: Move, tier: number): MoveSkin | undefined {
   return getMoveAssetSet(move).skins.find((skin) => skin.tier === tier);
+}
+
+export function getMoveSkinById(move: Move, skinId: string): MoveSkin {
+  const skin = getMoveAssetSet(move).skins.find(
+    (entry) => entry.skinId === skinId,
+  );
+  if (!skin) {
+    throw new Error(`Unknown move skin: ${move}/${skinId}`);
+  }
+  return skin;
+}
+
+export function getMoveSkinPreviewPresentation(
+  move: Move,
+): MoveProfilePreviewPresentation {
+  return MOVE_PROFILE_PREVIEW_PRESENTATION[move];
+}
+
+export function getMoveSkinPreviewPath(skin: MoveSkin): string {
+  return skin.paths.profilePreview || skin.paths.png;
 }
 
 export function getDefaultMoveSkin(move: Move): MoveSkin {

@@ -3,15 +3,12 @@
 import { useId, useState } from "react";
 import Image from "next/image";
 import { AVATAR_TIERS } from "@/features/identity/avatar-registry";
-import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
-import {
-  getMoveFallbackEmoji,
-  MOVE_ASSET_SETS,
-} from "@/features/practice/moves/move-asset-registry";
 import {
   DEFAULT_LOCAL_PROFILE,
   type LocalProfile,
 } from "@/features/profile/profile-model";
+import { MoveSkinPreview } from "@/features/profile/components/MoveSkinPreview";
+import { MOVE_ASSET_SETS } from "@/features/practice/moves/move-asset-registry";
 import styles from "../profile-panel.module.css";
 
 type ProfileUnlocksTabProps = {
@@ -31,17 +28,50 @@ function isUnlocked(unlockedIds: string[], id: string): boolean {
   return unlockedIds.includes(id);
 }
 
-function getAvatarUnlockRequirement(tier: number): string {
-  if (tier <= 1) return "Unlocked";
+function isEquipped(
+  profile: LocalProfile,
+  move: "rock" | "paper" | "scissors",
+  skinId: string,
+): boolean {
+  if (move === "rock") return profile.equipped.rockSkinId === skinId;
+  if (move === "paper") return profile.equipped.paperSkinId === skinId;
+  return profile.equipped.scissorsSkinId === skinId;
+}
+
+function getAvatarUnlockRequirement(
+  tier: number,
+  unlocked: boolean,
+): string | null {
+  if (unlocked && tier === 1) return "Default unlock";
+  if (unlocked) return null;
   return `Reach Level ${tier + 2}`;
 }
 
 function getMoveUnlockRequirement(
-  description: string | undefined,
   tier: number,
-): string {
+  unlocked: boolean,
+  equipped: boolean,
+  description: string | undefined,
+): string | null {
+  if (equipped) return "Default unlock";
+  if (unlocked) return null;
   if (description) return description;
   return `Unlock at Tier ${tier}`;
+}
+
+function buildMoveAccessibleLabel(
+  displayName: string,
+  tier: number,
+  unlocked: boolean,
+  equipped: boolean,
+): string {
+  if (equipped) {
+    return `${displayName}. Tier ${tier}. Equipped.`;
+  }
+  if (unlocked) {
+    return `${displayName}. Tier ${tier}. Unlocked.`;
+  }
+  return `${displayName}. Tier ${tier}. Locked. Future unlock.`;
 }
 
 export function ProfileUnlocksTab({
@@ -86,12 +116,16 @@ export function ProfileUnlocksTab({
           <div className={styles.cosmeticGrid}>
             {AVATAR_TIERS.map((avatar) => {
               const unlocked = isUnlocked(profile.unlockedAvatarIds, avatar.id);
-              const requirement = getAvatarUnlockRequirement(avatar.tier);
+              const equipped = profile.equipped.avatarId === avatar.id;
+              const requirement = getAvatarUnlockRequirement(
+                avatar.tier,
+                unlocked,
+              );
               return (
                 <article
                   key={avatar.id}
-                  className={`${styles.cosmeticCard} ${unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
-                  aria-label={`${avatar.displayName}, tier ${avatar.tier}${unlocked ? ", unlocked" : ", locked"}`}
+                  className={`${styles.cosmeticCard} ${equipped ? styles.cosmeticEquipped : unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
+                  aria-label={`${avatar.displayName}, tier ${avatar.tier}${equipped ? ", equipped" : unlocked ? ", unlocked" : ", locked"}`}
                 >
                   <div className={styles.cosmeticPreview}>
                     {avatar.previewPath ? (
@@ -102,7 +136,9 @@ export function ProfileUnlocksTab({
                         width={64}
                         height={64}
                         className={
-                          unlocked ? "" : styles.cosmeticPreviewSilhouette
+                          unlocked
+                            ? styles.cosmeticPreviewImage
+                            : styles.cosmeticPreviewArtLocked
                         }
                       />
                     ) : (
@@ -117,14 +153,21 @@ export function ProfileUnlocksTab({
                       </span>
                     )}
                     {!unlocked ? (
-                      <span className={styles.lockBadge} aria-hidden="true">
-                        <span className={styles.lockBadgeIcon}>🔒</span>
+                      <span className={styles.lockOverlay} aria-hidden="true">
+                        <span className={styles.lockBadge}>
+                          <span className={styles.lockBadgeIcon}>🔒</span>
+                        </span>
                       </span>
                     ) : null}
                   </div>
+                  {equipped ? (
+                    <span className={styles.statusBadgeEquipped}>Equipped</span>
+                  ) : null}
                   <p className={styles.cosmeticName}>{avatar.displayName}</p>
                   <p className={styles.cosmeticTier}>Tier {avatar.tier}</p>
-                  <p className={styles.cosmeticRequirement}>{requirement}</p>
+                  {requirement ? (
+                    <p className={styles.cosmeticRequirement}>{requirement}</p>
+                  ) : null}
                 </article>
               );
             })}
@@ -152,41 +195,56 @@ export function ProfileUnlocksTab({
             <div className={styles.cosmeticGrid}>
               {MOVE_ASSET_SETS[move].skins.map((skin) => {
                 const unlocked = isUnlocked(unlockedKey, skin.skinId);
+                const equipped = isEquipped(profile, move, skin.skinId);
                 const requirement = getMoveUnlockRequirement(
-                  skin.futureUnlockRequirement.description,
                   skin.tier,
+                  unlocked,
+                  equipped,
+                  skin.futureUnlockRequirement.description,
                 );
+                const accessibleLabel = buildMoveAccessibleLabel(
+                  skin.displayName,
+                  skin.tier,
+                  unlocked,
+                  equipped,
+                );
+
                 return (
                   <article
                     key={skin.skinId}
-                    className={`${styles.cosmeticCard} ${unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
-                    aria-label={`${skin.displayName}${unlocked ? ", unlocked" : ", locked"}`}
+                    className={`${styles.cosmeticCard} ${equipped ? styles.cosmeticEquipped : unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
+                    aria-label={accessibleLabel}
                   >
                     <div className={styles.cosmeticPreview}>
-                      {skin.active ? (
-                        <MoveArt move={move} variant="arena" />
-                      ) : (
-                        <span
-                          className={styles.cosmeticSilhouette}
-                          aria-hidden="true"
-                        >
-                          <span className={styles.cosmeticSilhouetteIcon}>
-                            {getMoveFallbackEmoji(move)}
-                          </span>
-                          <span className={styles.cosmeticSilhouetteTier}>
-                            T{skin.tier}
-                          </span>
-                        </span>
-                      )}
+                      <div
+                        className={`${styles.cosmeticPreviewArt} ${unlocked ? "" : styles.cosmeticPreviewArtLocked}`.trim()}
+                      >
+                        <MoveSkinPreview
+                          move={move}
+                          skinId={skin.skinId}
+                          accessibleLabel={accessibleLabel}
+                        />
+                      </div>
                       {!unlocked ? (
-                        <span className={styles.lockBadge} aria-hidden="true">
-                          <span className={styles.lockBadgeIcon}>🔒</span>
+                        <span className={styles.lockOverlay} aria-hidden="true">
+                          <span className={styles.lockBadge}>
+                            <span className={styles.lockBadgeIcon}>🔒</span>
+                          </span>
                         </span>
                       ) : null}
                     </div>
+                    {equipped ? (
+                      <span className={styles.statusBadgeEquipped}>
+                        Equipped
+                      </span>
+                    ) : null}
                     <p className={styles.cosmeticName}>{skin.displayName}</p>
                     <p className={styles.cosmeticTier}>Tier {skin.tier}</p>
-                    <p className={styles.cosmeticRequirement}>{requirement}</p>
+                    {requirement ? (
+                      <p className={styles.cosmeticRequirement}>
+                        {requirement}
+                      </p>
+                    ) : null}
                   </article>
                 );
               })}
