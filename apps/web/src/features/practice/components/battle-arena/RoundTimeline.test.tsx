@@ -35,7 +35,7 @@ describe("RoundTimeline", () => {
     cleanup();
   });
 
-  it("renders a compact centered empty timeline state", () => {
+  it("renders a clean centered empty timeline state without placeholder graphics", () => {
     const { container } = renderWithProviders(
       <RoundTimeline history={[]} reducedMotion />,
     );
@@ -47,9 +47,7 @@ describe("RoundTimeline", () => {
     expect(
       container.querySelector(`.${styles.timelineEmptyBody}`),
     ).toBeTruthy();
-    expect(
-      container.querySelector(`.${styles.timelineEmptyIcon}`),
-    ).toBeTruthy();
+    expect(container.querySelector(`.${styles.timelineEmptyIcon}`)).toBeNull();
     expect(
       container.querySelector(`.${styles.roundTimelineScrollable}`),
     ).toBeNull();
@@ -109,7 +107,7 @@ describe("RoundTimeline", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain("min-height: 54px");
-    expect(css).toContain("overflow-x: hidden");
+    expect(css).toContain("overflow-x: visible");
     expect(css).not.toContain("overflow-x: auto");
     expect(css).not.toMatch(/\.timelineEntry[\s\S]*overflow:\s*hidden/);
   });

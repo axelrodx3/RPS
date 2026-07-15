@@ -1,10 +1,5 @@
-import { ComingSoonPage } from "@/components/ComingSoonPage";
+import { ProfilePageContent } from "@/app/profile/ProfilePageContent";
 
 export default function ProfilePage() {
-  return (
-    <ComingSoonPage
-      title="Profile"
-      description="Profiles, presets, and wallet-linked settings will launch with authentication in a later phase."
-    />
-  );
+  return <ProfilePageContent />;
 }

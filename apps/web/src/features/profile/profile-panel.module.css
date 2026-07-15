@@ -1,0 +1,446 @@
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 3%);
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tabList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 28%);
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+
+.tabButton {
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 180ms var(--motion-ease),
+    color 180ms var(--motion-ease),
+    box-shadow 180ms var(--motion-ease);
+}
+
+.tabButton:hover {
+  color: var(--color-text);
+}
+
+.tabButton:focus-visible {
+  outline: 2px solid rgb(215 255 67 / 45%);
+  outline-offset: 2px;
+}
+
+.tabButtonActive {
+  color: var(--color-text);
+  background: rgb(215 255 67 / 12%);
+  box-shadow: inset 0 0 0 1px rgb(215 255 67 / 22%);
+}
+
+.tabPanels {
+  min-height: 0;
+}
+
+.tabPanel[hidden] {
+  display: none;
+}
+
+.sectionKicker {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sectionNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.overviewGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.identityCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 18%);
+}
+
+.identityAvatar {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.identityCopy {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.identityName {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.identityMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.metaPill {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.equippedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.equippedCard,
+.summaryCard {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 4%) 0%,
+    rgb(0 0 0 / 18%) 100%
+  );
+}
+
+.equippedCard h3,
+.summaryCard h3,
+.unlockCategory h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.equippedItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.equippedPreview {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(0 0 0 / 24%);
+}
+
+.equippedLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.equippedTier {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.summaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.summaryMetric {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 18%);
+}
+
+.summaryMetricLabel {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.summaryMetricValue {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.unlockCategory {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.cosmeticGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.cosmeticCard {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  padding: var(--space-3);
+  min-height: 112px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 18%);
+  text-align: center;
+}
+
+.cosmeticPreview {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.cosmeticPlaceholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: rgb(255 255 255 / 6%);
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.cosmeticName {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cosmeticTier {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+}
+
+.cosmeticLocked {
+  opacity: 0.72;
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: rgb(0 0 0 / 42%);
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.progressSection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.xpBlock {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.xpLabelRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.xpTrack {
+  overflow: hidden;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+
+.xpFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgb(61 214 140 / 85%) 0%,
+    var(--color-brand-500) 100%
+  );
+}
+
+.rankLadder {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rankStep {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 16%);
+}
+
+.rankStepCurrent {
+  border-color: rgb(215 255 67 / 28%);
+  background: rgb(215 255 67 / 8%);
+}
+
+.rankTier {
+  width: 28px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-text-subtle);
+}
+
+.rankName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rankBadge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 6%);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.upcomingRewards {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rewardRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgb(255 255 255 / 10%);
+  background: rgb(0 0 0 / 12%);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .equippedGrid,
+  .summaryMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .cosmeticGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .tabList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tabButton {
+    font-size: 10px;
+    padding-inline: var(--space-1);
+  }
+
+  .identityCard {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .identityMeta {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .tabButton {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+}

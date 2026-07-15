@@ -691,7 +691,7 @@ describe("match result presentation", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 200px)",
+      "grid-template-columns: minmax(0, 1fr) minmax(0, clamp(180px, 16vw, 200px))",
     );
     expect(css).toContain(".battleArenaResult");
     expect(css).toContain("clamp(170px, 15vw, 190px)");

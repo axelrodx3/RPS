@@ -1,6 +1,9 @@
 .pageStack {
   display: grid;
   gap: var(--space-6);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .intro h1 {
@@ -48,13 +51,16 @@
 .arenaShell {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 200px);
-  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1fr) minmax(0, clamp(180px, 16vw, 200px));
+  gap: var(--space-4);
   align-items: start;
 }
 
 .battleArenaResult {
-  grid-template-columns: minmax(0, 1fr) clamp(170px, 15vw, 190px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, clamp(170px, 15vw, 190px));
 }
 
 .battleShell {
@@ -1926,7 +1932,11 @@
   position: relative;
   z-index: 1;
   min-height: 0;
+  min-width: 0;
   align-self: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   display: grid;
   gap: var(--space-3);
 }
@@ -1938,50 +1948,30 @@
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-md);
   background: rgb(255 255 255 / 3%);
-  overflow: hidden;
 }
 
 .roundTimelineEmpty {
   padding-block: var(--space-3);
+  min-height: 96px;
+  grid-template-rows: auto 1fr;
 }
 
 .timelineEmptyBody {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
   min-height: 72px;
-  padding-block: var(--space-2);
+  padding-block: var(--space-4);
   text-align: center;
 }
 
-.timelineEmptyIcon {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 4%);
-}
-
-.timelineEmptyIcon::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 4px);
-  width: 28px;
-  height: 1px;
-  background: rgb(255 255 255 / 10%);
-  transform: translateY(-50%);
-}
-
 .roundTimelineFilled {
-  overflow-x: hidden;
+  overflow-x: visible;
 }
 
 .roundTimelineScrollable {
   max-height: min(52vh, 420px);
+  overflow-x: visible;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgb(215 255 67 / 28%) transparent;

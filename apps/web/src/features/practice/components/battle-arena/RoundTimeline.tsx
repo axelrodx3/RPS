@@ -74,7 +74,6 @@ export function RoundTimeline({
       >
         <h2 className={styles.timelineTitle}>Match timeline</h2>
         <div className={styles.timelineEmptyBody} role="status">
-          <span className={styles.timelineEmptyIcon} aria-hidden="true" />
           <p className={styles.timelineEmpty}>No rounds yet.</p>
         </div>
       </div>
