@@ -50,3 +50,12 @@ export function getProfileXpProgress(profile: LocalProfile): number {
   if (profile.xpToNextLevel <= 0) return 100;
   return Math.min(100, Math.round((profile.xp / profile.xpToNextLevel) * 100));
 }
+
+export function getProfileXpRemaining(profile: LocalProfile): number {
+  return Math.max(0, profile.xpToNextLevel - profile.xp);
+}
+
+export const NEXT_REWARD_PREVIEW = {
+  label: "Avatar Tier 2",
+  requirement: "Reach Level 4",
+} as const;

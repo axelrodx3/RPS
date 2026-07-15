@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { usePracticeHoverSound } from "@/lib/audio/use-practice-hover-sound";
 import { ProfileOverviewTab } from "@/features/profile/components/ProfileOverviewTab";
 import { ProfileProgressTab } from "@/features/profile/components/ProfileProgressTab";
 import { ProfileStatsTab } from "@/features/profile/components/ProfileStatsTab";
@@ -25,7 +24,6 @@ export function ProfilePanel({
     defaultTab === "stats",
   );
   const statsTabOpenedRef = useRef(defaultTab === "stats");
-  const playHover = usePracticeHoverSound(false);
 
   const tabs: { id: ProfilePanelTab; label: string }[] = [
     { id: "overview", label: "Overview" },
@@ -83,7 +81,6 @@ export function ProfilePanel({
               aria-controls={panelId}
               tabIndex={selected ? 0 : -1}
               onClick={() => selectTab(tab.id)}
-              onPointerEnter={playHover}
               onKeyDown={(event) => onKeyDown(event, index)}
             >
               {tab.label}

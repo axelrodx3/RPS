@@ -16,12 +16,9 @@ describe("LeaderboardsPageContent", () => {
       screen.getByRole("heading", { level: 1, name: "LEADERBOARDS" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("tab", { name: "Global Ranking" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "My Stats" })).toBeInTheDocument();
-    expect(
       screen.getByText(/Global rankings will appear here/i),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "My Stats" })).toBeNull();
     expect(screen.queryByText(/Wagered leaderboards/i)).toBeNull();
   });
 });

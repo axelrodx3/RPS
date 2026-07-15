@@ -8,7 +8,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ProfilePageContent } from "@/app/profile/ProfilePageContent";
 import { AVATAR_TIERS } from "@/features/identity/avatar-registry";
 import { MOVE_ASSET_SETS } from "@/features/practice/moves/move-asset-registry";
-import { HIGHEST_RANK_ID, RANK_LADDER } from "@/features/profile/rank-registry";
+import {
+  HIGHEST_RANK_ID,
+  RANK_LADDER,
+} from "@/features/profile/rank-registry";
 import { renderWithProviders } from "@/test/render";
 
 describe("ProfilePageContent", () => {
@@ -28,7 +31,7 @@ describe("ProfilePageContent", () => {
     expect(screen.getByRole("tab", { name: "Stats" })).toBeInTheDocument();
   });
 
-  it("shows overview identity and practice summary by default", () => {
+  it("shows overview hero identity and performance snapshot by default", () => {
     renderWithProviders(<ProfilePageContent />);
     const overviewPanel = screen.getByRole("tabpanel", {
       name: "Overview",
@@ -40,14 +43,23 @@ describe("ProfilePageContent", () => {
         name: "Player",
       }),
     ).toBeInTheDocument();
-    expect(within(overviewPanel).getByText("Level 3")).toBeInTheDocument();
+    expect(
+      within(overviewPanel).getAllByText("Level 3").length,
+    ).toBeGreaterThan(0);
     expect(within(overviewPanel).getByText("Bronze")).toBeInTheDocument();
     expect(
-      within(overviewPanel).getByText("Practice performance"),
+      within(overviewPanel).getByText("Equipped loadout"),
+    ).toBeInTheDocument();
+    expect(
+      within(overviewPanel).getByText("Performance snapshot"),
+    ).toBeInTheDocument();
+    expect(within(overviewPanel).getByText("Next reward")).toBeInTheDocument();
+    expect(
+      within(overviewPanel).getByText("180 XP remaining"),
     ).toBeInTheDocument();
   });
 
-  it("lists seven avatars and seven skins per move in unlocks", async () => {
+  it("shows one unlock category at a time with seven tiers each", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Unlocks" }));
@@ -57,12 +69,16 @@ describe("ProfilePageContent", () => {
     expect(MOVE_ASSET_SETS.paper.skins).toHaveLength(7);
     expect(MOVE_ASSET_SETS.scissors.skins).toHaveLength(7);
 
-    expect(screen.getByText("Avatars")).toBeInTheDocument();
-    expect(screen.getByText("Robot")).toBeInTheDocument();
-    expect(screen.getAllByText("Locked").length).toBeGreaterThan(20);
+    const unlocksPanel = screen.getByRole("tabpanel", { name: "Unlocks" });
+    expect(within(unlocksPanel).getByText("Robot")).toBeInTheDocument();
+    expect(within(unlocksPanel).queryByText("Rock Tier 1")).toBeNull();
+
+    await user.click(within(unlocksPanel).getByRole("tab", { name: "Rock" }));
+    expect(within(unlocksPanel).getByText("Rock Tier 1")).toBeInTheDocument();
+    expect(within(unlocksPanel).queryByText("Robot")).toBeNull();
   });
 
-  it("shows champion as the highest rank and excludes master", async () => {
+  it("shows champion as the highest rank and completed ranks before bronze", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Progress" }));
@@ -70,8 +86,20 @@ describe("ProfilePageContent", () => {
     expect(RANK_LADDER).toHaveLength(7);
     expect(HIGHEST_RANK_ID).toBe("champion");
     expect(RANK_LADDER.some((rank) => rank.name === "Master")).toBe(false);
-    expect(screen.getByText("Champion")).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    const progressPanel = screen.getByRole("tabpanel", { name: "Progress" });
+    expect(within(progressPanel).getByText("Champion")).toBeInTheDocument();
+    expect(
+      within(progressPanel).getByRole("progressbar", {
+        name: "Level 3 progress",
+      }),
+    ).toBeInTheDocument();
+    expect(within(progressPanel).getByText("Completed")).toBeInTheDocument();
+    expect(
+      within(progressPanel).getByText("Account progression"),
+    ).toBeInTheDocument();
+    expect(
+      within(progressPanel).getByText("Competitive rank"),
+    ).toBeInTheDocument();
   });
 
   it("reuses the shared practice stats panel in stats tab", async () => {
@@ -81,6 +109,8 @@ describe("ProfilePageContent", () => {
 
     const statsPanel = screen.getByRole("tabpanel", { name: "Stats" });
     expect(within(statsPanel).getByText("Practice stats")).toBeInTheDocument();
+    expect(within(statsPanel).getByText("Match record")).toBeInTheDocument();
+    expect(within(statsPanel).getByText("Move usage")).toBeInTheDocument();
     expect(within(statsPanel).getByText("Wins")).toBeInTheDocument();
     expect(within(statsPanel).getByText("Total Matches")).toBeInTheDocument();
     expect(
@@ -101,6 +131,7 @@ describe("Match timeline layout cleanup", () => {
     );
     expect(css).toContain("width: 100%");
     expect(css).toContain("max-width: 100%");
+    expect(css).toContain("minmax(0, 1fr)");
     expect(css).not.toContain(".timelineEmptyIcon");
     expect(css).not.toMatch(/\.timelineEntry[\s\S]*overflow:\s*hidden/);
   });

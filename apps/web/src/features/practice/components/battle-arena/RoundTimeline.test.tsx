@@ -93,7 +93,7 @@ describe("RoundTimeline", () => {
     );
     const css = readFileSync(cssPath, "utf8");
     expect(css).toContain(
-      "grid-template-columns: 28px 32px 18px 32px minmax(44px, auto)",
+      "grid-template-columns: 28px 32px 18px 32px minmax(0, 1fr)",
     );
     expect(css).toContain(".timelineMoveSlot");
     expect(css).toContain(".timelineOutcome");

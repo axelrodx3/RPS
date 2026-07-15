@@ -27,3 +27,26 @@ export function getRankByTier(tier: number): RankDefinition {
   if (rank) return rank;
   return RANK_LADDER[0]!;
 }
+
+export type RankStepState = "completed" | "current" | "locked" | "highest";
+
+export function getRankStepState(
+  rank: RankDefinition,
+  profileRankId: string,
+): RankStepState {
+  const currentRank = getRankById(profileRankId);
+
+  if (rank.id === profileRankId) {
+    return "current";
+  }
+
+  if (rank.tier < currentRank.tier) {
+    return "completed";
+  }
+
+  if (rank.id === HIGHEST_RANK_ID) {
+    return "highest";
+  }
+
+  return "locked";
+}

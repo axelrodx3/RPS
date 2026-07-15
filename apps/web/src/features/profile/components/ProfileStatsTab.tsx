@@ -16,6 +16,7 @@ export function ProfileStatsTab({
       animate={animate}
       reducedMotion={reducedMotion}
       showReset={false}
+      variant="profile"
     />
   );
 }

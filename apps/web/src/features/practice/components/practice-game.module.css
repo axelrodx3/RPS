@@ -59,6 +59,10 @@
   align-items: start;
 }
 
+.battleArena > * {
+  min-width: 0;
+}
+
 .battleArenaResult {
   grid-template-columns: minmax(0, 1fr) minmax(0, clamp(170px, 15vw, 190px));
 }
@@ -1944,6 +1948,10 @@
 .roundTimeline {
   display: grid;
   gap: var(--space-2);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: var(--space-3);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-md);
@@ -2008,15 +2016,17 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  min-width: 0;
 }
 
 .timelineEntry {
   display: grid;
-  grid-template-columns: 28px 32px 18px 32px minmax(44px, auto);
+  grid-template-columns: 28px 32px 18px 32px minmax(0, 1fr);
   align-items: center;
   column-gap: 4px;
   padding: 5px 6px;
   min-height: 54px;
+  min-width: 0;
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 22%);
   border: 1px solid rgb(255 255 255 / 6%);
@@ -2050,7 +2060,8 @@
   justify-items: center;
   align-content: center;
   gap: 1px;
-  min-width: 44px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .timelineBadge {

@@ -11,11 +11,13 @@ import styles from "@/features/practice/components/practice-game.module.css";
 type PlayerAvatarProps = {
   avatarId?: string;
   className?: string;
+  size?: number;
 };
 
 export function PlayerAvatar({
   avatarId = DEFAULT_PLAYER_AVATAR_ID,
   className = "",
+  size = AVATAR_CONTAINER_SIZE_PX,
 }: PlayerAvatarProps) {
   const avatar = getPlayerAvatar(avatarId);
 
@@ -23,15 +25,15 @@ export function PlayerAvatar({
     <div
       className={`${styles.playerAvatar} ${className}`.trim()}
       style={{
-        width: AVATAR_CONTAINER_SIZE_PX,
-        height: AVATAR_CONTAINER_SIZE_PX,
+        width: size,
+        height: size,
       }}
     >
       <Image
         src={avatar.assetPath}
         alt={avatar.accessibleName}
-        width={AVATAR_CONTAINER_SIZE_PX}
-        height={AVATAR_CONTAINER_SIZE_PX}
+        width={size}
+        height={size}
         className={styles.avatarImage}
       />
     </div>

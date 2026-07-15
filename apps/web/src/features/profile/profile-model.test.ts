@@ -4,6 +4,7 @@ import {
   DEFAULT_LOCAL_PROFILE,
   getProfileRankName,
   getProfileXpProgress,
+  getProfileXpRemaining,
 } from "@/features/profile/profile-model";
 
 describe("profile model", () => {
@@ -25,5 +26,6 @@ describe("profile model", () => {
     expect(DEFAULT_LOCAL_PROFILE.xp).toBeGreaterThan(0);
     expect(getProfileRankName(DEFAULT_LOCAL_PROFILE)).toBe("Bronze");
     expect(getProfileXpProgress(DEFAULT_LOCAL_PROFILE)).toBeGreaterThan(0);
+    expect(getProfileXpRemaining(DEFAULT_LOCAL_PROFILE)).toBe(180);
   });
 });
