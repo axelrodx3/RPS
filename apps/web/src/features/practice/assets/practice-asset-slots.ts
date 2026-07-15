@@ -1,15 +1,20 @@
 import type { Move } from "@/features/practice/engine/practice-engine";
 import { MOVE_EMOJI } from "@/features/practice/engine/practice-engine";
+import {
+  getDefaultMoveSkin,
+  getMoveArtPath,
+} from "@/features/practice/moves/move-asset-registry";
 
-/** Recommended dimensions for future motion-designer deliverables. */
+/** Recommended dimensions for motion-designer deliverables. */
 export const PRACTICE_ASSET_SPECS = {
-  moveSelection: { width: 96, height: 96, format: "SVG or Lottie JSON" },
-  moveReveal: { width: 128, height: 128, format: "SVG or Lottie JSON" },
+  moveSelection: { width: 96, height: 96, format: "PNG RGBA" },
+  moveReveal: { width: 128, height: 128, format: "PNG RGBA" },
+  moveTimeline: { width: 28, height: 28, format: "PNG RGBA" },
   playerAvatar: { width: 64, height: 64, format: "SVG" },
   cpuAvatar: { width: 64, height: 64, format: "SVG" },
   vsEffect: { width: 120, height: 48, format: "SVG or Lottie JSON" },
-  victoryEffect: { width: 480, height: 240, format: "SVG or Lottie JSON" },
-  defeatEffect: { width: 480, height: 240, format: "SVG or Lottie JSON" },
+  victoryEffect: { width: 480, height: 240, format: "PNG/WebP" },
+  defeatEffect: { width: 480, height: 240, format: "PNG/WebP" },
   confetti: {
     width: 609,
     height: 812,
@@ -36,32 +41,32 @@ export const PRACTICE_ASSET_SLOTS: Record<
   { path: string | null; fallback: string; label: string }
 > = {
   rockSelection: {
-    path: "/assets/moves/rock.svg",
+    path: getMoveArtPath("rock", "selection"),
     fallback: MOVE_EMOJI.rock,
     label: "Rock selection art",
   },
   paperSelection: {
-    path: "/assets/moves/paper.svg",
+    path: getMoveArtPath("paper", "selection"),
     fallback: MOVE_EMOJI.paper,
     label: "Paper selection art",
   },
   scissorsSelection: {
-    path: "/assets/moves/scissors.svg",
+    path: getMoveArtPath("scissors", "selection"),
     fallback: MOVE_EMOJI.scissors,
     label: "Scissors selection art",
   },
   rockReveal: {
-    path: null,
+    path: getMoveArtPath("rock", "reveal"),
     fallback: MOVE_EMOJI.rock,
     label: "Rock reveal art",
   },
   paperReveal: {
-    path: null,
+    path: getMoveArtPath("paper", "reveal"),
     fallback: MOVE_EMOJI.paper,
     label: "Paper reveal art",
   },
   scissorsReveal: {
-    path: null,
+    path: getMoveArtPath("scissors", "reveal"),
     fallback: MOVE_EMOJI.scissors,
     label: "Scissors reveal art",
   },
@@ -113,4 +118,8 @@ export function getMoveRevealAsset(move: Move) {
     scissors: PRACTICE_ASSET_SLOTS.scissorsReveal,
   } as const;
   return slotMap[move];
+}
+
+export function getDefaultMoveSkinPaths(move: Move) {
+  return getDefaultMoveSkin(move).paths;
 }

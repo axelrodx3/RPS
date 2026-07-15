@@ -154,7 +154,7 @@ describe("PracticeGame", () => {
     expect(state.matchWinner).toBe("player");
   });
 
-  it("shows move dock controls during commit phase", async () => {
+  it("renders PNG artwork in move dock controls during commit phase", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithProviders(<PracticeGame />);
 
@@ -168,12 +168,10 @@ describe("PracticeGame", () => {
       await vi.advanceTimersByTimeAsync(700);
     });
 
-    expect(screen.getByRole("group", { name: "Choose move" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Choose Rock/i })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /Choose Paper/i })).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: /Choose Scissors/i }),
-    ).toBeEnabled();
+    const rockImage = screen
+      .getByRole("button", { name: /Choose Rock/i })
+      .querySelector('img[src="/assets/moves/skins/rock/tier-1.png"]');
+    expect(rockImage).toBeTruthy();
   });
 
   it("uses a valid automatic move when the timer expires", () => {
@@ -270,13 +268,17 @@ describe("battle arena presentation", () => {
       ],
     });
 
-    renderWithProviders(<PracticeGame />);
+    const { container } = renderWithProviders(<PracticeGame />);
     const historyItem = screen.getByRole("listitem");
     expect(historyItem).toHaveAttribute("aria-label");
     expect(historyItem.getAttribute("aria-label")).toContain(
       "Player chose Paper",
     );
-    expect(screen.getByText(/✋ VS ✊/)).toBeInTheDocument();
+    expect(
+      container.querySelector(
+        'img[src="/assets/moves/skins/paper/tier-1.png"]',
+      ),
+    ).toBeTruthy();
     expect(screen.getByText("WIN")).toBeInTheDocument();
     hook.mockRestore();
   });
@@ -313,8 +315,10 @@ describe("battle arena presentation", () => {
 
       renderWithProviders(<PracticeGame />);
       expect(screen.getAllByText(statusText).length).toBeGreaterThan(0);
-      expect(screen.getByLabelText("Rock")).toBeInTheDocument();
-      expect(screen.getAllByText("✊").length).toBeGreaterThan(0);
+      expect(screen.getByTestId(`move-art-rock-reveal`)).toBeInTheDocument();
+      expect(
+        screen.getByTestId(`move-art-rock-reveal`).querySelector("img"),
+      ).toHaveAttribute("src", "/assets/moves/skins/rock/tier-1.png");
       hook.mockRestore();
     },
   );
@@ -330,7 +334,7 @@ describe("battle arena presentation", () => {
       const { container } = renderWithProviders(<PracticeGame />);
       const cpuPod = container.querySelector(`.${styles.battlePodCpu}`);
       expect(cpuPod?.querySelector(`.${styles.concealedMark}`)).toBeTruthy();
-      expect(screen.getByLabelText("Paper")).toBeInTheDocument();
+      expect(screen.getByTestId("move-art-paper-reveal")).toBeInTheDocument();
       hook.mockRestore();
     },
   );

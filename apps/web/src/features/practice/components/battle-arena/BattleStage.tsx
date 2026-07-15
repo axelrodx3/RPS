@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import {
-  MOVE_EMOJI,
   MOVE_LABELS,
   type Move,
   type RoundOutcome,
   type PracticePhase,
 } from "@/features/practice/engine/practice-engine";
+import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
 import { ArenaCore } from "./ArenaTimer";
 import styles from "../practice-game.module.css";
 
@@ -144,9 +144,7 @@ function MoveDisplay({
     <div
       className={`${styles.moveRevealArt} ${entering ? styles.moveRevealEnter : ""}`.trim()}
     >
-      <strong aria-label={MOVE_LABELS[move]}>
-        <span aria-hidden="true">{MOVE_EMOJI[move]}</span>
-      </strong>
+      <MoveArt move={move} variant="reveal" label={MOVE_LABELS[move]} />
       {showName ? (
         <span className={styles.moveRevealName} aria-hidden="true">
           {MOVE_LABELS[move]}

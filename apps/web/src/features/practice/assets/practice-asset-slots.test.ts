@@ -12,6 +12,9 @@ import {
 
 describe("practice asset slots", () => {
   it("defines all replaceable battle arena slots", () => {
+    expect(PRACTICE_ASSET_SLOTS.rockSelection.path).toBe(
+      "/assets/moves/skins/rock/tier-1.png",
+    );
     expect(PRACTICE_ASSET_SLOTS.rockSelection.fallback).toBe("✊");
     expect(PRACTICE_ASSET_SLOTS.confetti.path).toBe(
       "/assets/animations/confetti-victory.svg",
@@ -26,7 +29,10 @@ describe("practice asset slots", () => {
   });
 
   it("resolves move-specific selection and reveal slots", () => {
-    expect(getMoveSelectionAsset("paper").label).toContain("Paper");
+    expect(getMoveSelectionAsset("paper").path).toContain("/paper/tier-1.png");
+    expect(getMoveRevealAsset("scissors").path).toContain(
+      "/scissors/tier-1.png",
+    );
     expect(getMoveRevealAsset("scissors").fallback).toBe("✌️");
   });
 

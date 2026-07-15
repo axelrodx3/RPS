@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  MOVE_EMOJI,
   MOVE_LABELS,
   formatRoundHistoryAccessibleLabel,
   type RoundOutcome,
 } from "@/features/practice/engine/practice-engine";
+import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
 import type { PracticeMatchState } from "@/features/practice/engine/practice-engine";
 import styles from "../practice-game.module.css";
 
@@ -95,7 +95,9 @@ export function RoundTimeline({
                 R{chronologicalRound}
               </span>
               <span className={styles.timelineMoves} aria-hidden="true">
-                {MOVE_EMOJI[round.playerMove]} VS {MOVE_EMOJI[round.cpuMove]}
+                <MoveArt move={round.playerMove} variant="timeline" />
+                <span className={styles.timelineVs}>VS</span>
+                <MoveArt move={round.cpuMove} variant="timeline" />
               </span>
               <span
                 className={`${styles.timelineBadge} ${timelineBadgeClass(round.outcome)}`.trim()}

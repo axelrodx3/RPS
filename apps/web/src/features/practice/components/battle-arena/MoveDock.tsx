@@ -1,6 +1,7 @@
 "use client";
 
 import type { Move } from "@/features/practice/engine/practice-engine";
+import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
 import { MOVE_LIST } from "@/features/practice/moves/move-metadata";
 import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import { useAudio } from "@/providers/AudioProvider";
@@ -38,18 +39,15 @@ export function MoveDock({ selectedMove, locked, onSelect }: MoveDockProps) {
                 .filter(Boolean)
                 .join(" ")}
               disabled={disabled}
-              aria-label={`Choose ${move.label}. ${move.description}`}
+              aria-label={`Choose ${move.label}`}
               aria-pressed={selected}
-              title={move.description}
               onClick={() => onSelect(move.id)}
               onPointerEnter={playHover}
               onFocus={() => {
                 if (!disabled) unlock();
               }}
             >
-              <span className={styles.moveDockIcon} aria-hidden="true">
-                {move.icon}
-              </span>
+              <MoveArt move={move.id} variant="selection" />
               <span className={styles.moveDockLabel}>{move.label}</span>
             </button>
           );
