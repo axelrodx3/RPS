@@ -1,0 +1,12 @@
+.page {
+  display: grid;
+  gap: var(--space-6);
+  width: min(100%, 960px);
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .page {
+    width: 100%;
+  }
+}

@@ -421,13 +421,9 @@ describe("battle arena presentation", () => {
     hook.mockRestore();
   });
 
-  it("renders the leaderboard panel with my stats tab on idle", async () => {
-    const user = userEvent.setup();
+  it("does not render the leaderboard panel on the practice idle screen", () => {
     renderWithProviders(<PracticeGame />);
-
-    expect(screen.getByTestId("leaderboard-panel")).toBeInTheDocument();
-    await user.click(screen.getByRole("tab", { name: "My Stats" }));
-    expect(screen.getByText("Average Match Length")).toBeInTheDocument();
+    expect(screen.queryByTestId("leaderboard-panel")).toBeNull();
   });
 
   it("begins move timer only after round intro completes", async () => {

@@ -12,7 +12,6 @@ import {
   type RoundOutcome,
 } from "@/features/practice/engine/practice-engine";
 import { usePracticeGame } from "@/features/practice/hooks/usePracticeGame";
-import { LeaderboardPanel } from "@/features/practice/components/LeaderboardPanel";
 import { VictoryConfetti } from "@/features/practice/components/VictoryConfetti";
 import { preloadMatchResultAsset } from "@/features/practice/assets/match-result-backgrounds";
 import { BattleStage } from "@/features/practice/components/battle-arena/BattleStage";
@@ -209,7 +208,6 @@ export function PracticeGame() {
             Start Practice Match
           </Button>
         </Card>
-        <LeaderboardPanel reducedMotion={settings.reducedMotion} />
       </div>
     );
   }
@@ -332,16 +330,9 @@ export function PracticeGame() {
         </section>
 
         <aside className={styles.timelineAside}>
-          {state.phase !== "match_complete" ? (
-            <RoundTimeline
-              history={state.history}
-              reducedMotion={settings.reducedMotion}
-            />
-          ) : null}
-          <LeaderboardPanel
+          <RoundTimeline
+            history={state.history}
             reducedMotion={settings.reducedMotion}
-            variant="sidebar"
-            showReset={false}
           />
         </aside>
       </div>

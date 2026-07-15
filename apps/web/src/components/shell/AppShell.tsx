@@ -15,7 +15,7 @@ const NAV_ITEMS: { href: string; label: string; soon?: boolean }[] = [
   { href: "/", label: "Home" },
   { href: "/play", label: "Play" },
   { href: "/watch", label: "Watch", soon: true },
-  { href: "/leaderboards", label: "Leaderboards", soon: true },
+  { href: "/leaderboards", label: "Leaderboards" },
   { href: "/history", label: "History", soon: true },
   { href: "/guide", label: "Guide" },
   { href: "/profile", label: "Profile", soon: true },

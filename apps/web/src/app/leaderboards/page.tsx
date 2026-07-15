@@ -1,10 +1,5 @@
-import { ComingSoonPage } from "@/components/ComingSoonPage";
+import { LeaderboardsPageContent } from "@/app/leaderboards/LeaderboardsPageContent";
 
 export default function LeaderboardsPage() {
-  return (
-    <ComingSoonPage
-      title="Leaderboards"
-      description="Finalized wager statistics will appear after real-value play is enabled and audited. Practice stats stay local."
-    />
-  );
+  return <LeaderboardsPageContent />;
 }
