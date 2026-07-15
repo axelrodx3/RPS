@@ -28,9 +28,8 @@ describe("audioEngine custom assets", () => {
 
   it("registers custom file paths for wired sounds", () => {
     expect(SOUND_REGISTRY.button.src).toBe("/assets/audio/ui-click.mp3");
-    expect(SOUND_REGISTRY.countdown_warning.src).toBe(
-      "/assets/audio/countdown-warning.mp3",
-    );
+    expect(SOUND_REGISTRY.countdown_warning.enabled).toBe(false);
+    expect(SOUND_REGISTRY.selection_countdown_tick.frequencies?.length).toBe(1);
     expect(SOUND_REGISTRY.match_win.src).toBe(
       "/assets/audio/match-victory.mp3",
     );
@@ -98,9 +97,42 @@ describe("audioEngine custom assets", () => {
     expect(window.HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
   });
 
-  it("scales playback with volume settings", () => {
-    audioEngine.play("countdown_warning", { ...levels, sfxVolume: 0.5 });
-    expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
+  it("registers generated phase transition cues", () => {
+    expect(SOUND_REGISTRY.waiting_cpu.frequencies?.length).toBeGreaterThan(0);
+    expect(SOUND_REGISTRY.reveal_incoming.frequencies?.length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("scales generated selection countdown ticks with volume settings", () => {
+    const start = vi.fn();
+    const connect = vi.fn();
+    const gain = {
+      gain: {
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      connect,
+    };
+    const osc = {
+      type: "sine",
+      frequency: { value: 0 },
+      connect,
+      start,
+      stop: vi.fn(),
+      onended: null as (() => void) | null,
+    };
+
+    vi.spyOn(audioEngine, "ensureContext").mockReturnValue({
+      state: "running",
+      currentTime: 0,
+      createOscillator: vi.fn(() => osc),
+      createGain: vi.fn(() => gain),
+      destination: {},
+    } as unknown as AudioContext);
+
+    audioEngine.play("selection_countdown_tick", { ...levels, sfxVolume: 0.5 });
+    expect(start).toHaveBeenCalled();
   });
 
   it("plays match victory and defeat only through dedicated ids", () => {

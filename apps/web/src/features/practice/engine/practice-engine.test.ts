@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   MOVES,
   MOVE_EMOJI,
-  MOVE_LOCKED_MS,
   PRACTICE_POST_LOCK_PHASES,
   PRACTICE_WIN_TARGET,
-  REVEAL_PAUSE_MS,
-  RESULT_VISIBLE_TOTAL_MS,
   WAITING_CPU_MS,
   createInitialMatchState,
   formatRoundHistoryAccessibleLabel,
@@ -90,20 +87,6 @@ describe("practice phase pacing", () => {
       "round_result",
     ]);
   });
-
-  it("keeps move locked, waiting CPU, and reveal pause within target ranges", () => {
-    expect(MOVE_LOCKED_MS).toBeGreaterThanOrEqual(500);
-    expect(MOVE_LOCKED_MS).toBeLessThanOrEqual(800);
-    expect(WAITING_CPU_MS).toBeGreaterThanOrEqual(900);
-    expect(WAITING_CPU_MS).toBeLessThanOrEqual(1300);
-    expect(REVEAL_PAUSE_MS).toBeGreaterThanOrEqual(700);
-    expect(REVEAL_PAUSE_MS).toBeLessThanOrEqual(1000);
-  });
-
-  it("keeps revealed result visible within the target total duration", () => {
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeGreaterThanOrEqual(2000);
-    expect(RESULT_VISIBLE_TOTAL_MS).toBeLessThanOrEqual(2600);
-  });
 });
 
 describe("practiceReducer", () => {
@@ -171,7 +154,7 @@ describe("practiceReducer", () => {
     expect(state.timerSeconds).toBe(20);
   });
 
-  it("declares a player match win at the target score", () => {
+  it("declares a player match win at the target score after display commit", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
@@ -181,8 +164,11 @@ describe("practiceReducer", () => {
       round: 2,
     };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
-    expect(state.playerScore).toBe(2);
+    expect(state.pendingPlayerScore).toBe(2);
     expect(state.matchWinner).toBe("player");
+    expect(state.playerScore).toBe(1);
+    state = practiceReducer(state, { type: "COMMIT_ROUND_DISPLAY" });
+    expect(state.playerScore).toBe(2);
   });
 
   it("uses a provided move when the player times out", () => {

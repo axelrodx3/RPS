@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
+  CPU_REVEAL_DELAY_MS,
+  CPU_REVEAL_DELAY_REDUCED_MS,
   MOVE_LABELS,
   type Move,
   type RoundOutcome,
@@ -25,8 +27,6 @@ type BattleStageProps = {
   round: number;
   reducedMotion: boolean;
 };
-
-const CPU_REVEAL_DELAY_MS = 380;
 
 function playerShowsMove(
   phase: PracticePhase,
@@ -102,16 +102,20 @@ function podStatusLabel(
   phase: PracticePhase,
 ): string | null {
   if (side === "player") {
-    if (phase === "move_locked") return "LOCKED IN";
+    if (phase === "move_locked") return "Locked in";
     if (phase === "waiting_cpu" || phase === "reveal_pause") {
       return "Your move is ready";
     }
   }
 
   if (side === "cpu") {
-    if (phase === "move_locked") return "CPU locked";
-    if (phase === "waiting_cpu") return "Waiting for CPU";
-    if (phase === "reveal_pause") return "Reveal incoming";
+    if (
+      phase === "move_locked" ||
+      phase === "waiting_cpu" ||
+      phase === "reveal_pause"
+    ) {
+      return phase === "reveal_pause" ? "Move concealed" : "Concealed";
+    }
   }
 
   return null;
@@ -166,13 +170,6 @@ function phaseCoreMode(
   return "phase";
 }
 
-function phaseCoreSubLabel(phase: PracticePhase): string | undefined {
-  if (phase === "move_locked") return "Locked in";
-  if (phase === "waiting_cpu") return "Waiting for CPU";
-  if (phase === "reveal_pause") return "Reveal incoming";
-  return undefined;
-}
-
 function stageAtmosphereClass(phase: PracticePhase): string {
   switch (phase) {
     case "commit":
@@ -225,13 +222,15 @@ export function BattleStage({
       () => {
         setCpuRevealVisible(true);
       },
-      reducedMotion ? 0 : CPU_REVEAL_DELAY_MS,
+      reducedMotion ? CPU_REVEAL_DELAY_REDUCED_MS : CPU_REVEAL_DELAY_MS,
     );
     const impactTimer = window.setTimeout(
       () => {
         setRevealImpact(false);
       },
-      reducedMotion ? 0 : CPU_REVEAL_DELAY_MS + 420,
+      reducedMotion
+        ? CPU_REVEAL_DELAY_REDUCED_MS + 420
+        : CPU_REVEAL_DELAY_MS + 420,
     );
 
     return () => {
@@ -326,7 +325,6 @@ export function BattleStage({
             seconds={timerSeconds}
             total={timerTotal}
             phaseLabel={phaseLabel}
-            subLabel={phaseCoreSubLabel(phase)}
             countdown={countdown}
             vsImpact={phase === "reveal" && cpuRevealVisible}
           />

@@ -11,6 +11,7 @@ export type AudioLevels = {
 
 const activeOscillators = new Set<OscillatorNode>();
 const activeElements = new Set<HTMLAudioElement>();
+const activeElementsBySound = new Map<SoundId, HTMLAudioElement>();
 
 export class AudioEngine {
   private context: AudioContext | null = null;
@@ -58,6 +59,28 @@ export class AudioEngine {
       element.currentTime = 0;
     }
     activeElements.clear();
+    activeElementsBySound.clear();
+  }
+
+  stopSound(id: SoundId): void {
+    const element = activeElementsBySound.get(id);
+    if (element) {
+      element.pause();
+      element.currentTime = 0;
+      activeElements.delete(element);
+      activeElementsBySound.delete(id);
+    }
+  }
+
+  stopSelectionCountdown(): void {
+    this.stopSound("countdown_warning");
+    this.stopSound("selection_countdown_tick");
+  }
+
+  stopPhaseCues(): void {
+    this.stopSound("waiting_cpu");
+    this.stopSound("reveal_incoming");
+    this.stopSound("reveal");
   }
 
   private resolveVolume(id: SoundId, levels: AudioLevels): number {
@@ -98,13 +121,21 @@ export class AudioEngine {
     });
   }
 
-  private playFile(src: string, volume: number): void {
+  private playFile(id: SoundId, src: string, volume: number): void {
+    this.stopSound(id);
     const element = new Audio(src);
     element.volume = Math.min(1, Math.max(0, volume));
     activeElements.add(element);
-    element.onended = () => activeElements.delete(element);
+    activeElementsBySound.set(id, element);
+    element.onended = () => {
+      activeElements.delete(element);
+      if (activeElementsBySound.get(id) === element) {
+        activeElementsBySound.delete(id);
+      }
+    };
     void element.play().catch(() => {
       activeElements.delete(element);
+      activeElementsBySound.delete(id);
     });
   }
 
@@ -120,7 +151,7 @@ export class AudioEngine {
     this.lastPlayed.set(id, nowMs);
 
     if (def.src) {
-      this.playFile(def.src, volume);
+      this.playFile(id, def.src, volume);
       return;
     }
 

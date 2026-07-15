@@ -87,7 +87,7 @@ describe("PracticeGame", () => {
           name: new RegExp(`Choose ${label}`, "i"),
         }),
       );
-      expect(screen.getAllByText("Move locked").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Move locked").length).toBe(1);
     },
   );
 
@@ -123,11 +123,12 @@ describe("PracticeGame", () => {
     expect(state.phase).toBe("commit");
   });
 
-  it("updates the score after a resolved round", () => {
+  it("updates the score after display commit", () => {
     let state = createInitialMatchState();
-    state = practiceReducer(state, { type: "START_MATCH" });
     state = { ...state, phase: "waiting_cpu", playerMove: "rock" };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "scissors" });
+    expect(state.playerScore).toBe(0);
+    state = practiceReducer(state, { type: "COMMIT_ROUND_DISPLAY" });
     expect(state.playerScore).toBe(1);
     expect(state.cpuScore).toBe(0);
   });
@@ -141,7 +142,7 @@ describe("PracticeGame", () => {
     expect(state.roundOutcome).toBe("tie");
   });
 
-  it("ends the match when either side reaches two wins", () => {
+  it("ends the match when either side reaches two wins after commit", () => {
     let state = createInitialMatchState();
     state = {
       ...state,
@@ -150,8 +151,10 @@ describe("PracticeGame", () => {
       playerScore: 1,
     };
     state = practiceReducer(state, { type: "CPU_REVEAL", move: "paper" });
-    expect(state.playerScore).toBe(2);
+    expect(state.pendingPlayerScore).toBe(2);
     expect(state.matchWinner).toBe("player");
+    state = practiceReducer(state, { type: "COMMIT_ROUND_DISPLAY" });
+    expect(state.playerScore).toBe(2);
   });
 
   it("renders PNG artwork in move dock controls during commit phase", async () => {
@@ -302,7 +305,7 @@ describe("battle arena presentation", () => {
   });
 
   it.each([
-    ["move_locked", "LOCKED IN"],
+    ["move_locked", "Locked in"],
     ["waiting_cpu", "Your move is ready"],
     ["reveal_pause", "Your move is ready"],
   ] as const)(
@@ -319,6 +322,32 @@ describe("battle arena presentation", () => {
       expect(
         screen.getByTestId(`move-art-rock-reveal`).querySelector("img"),
       ).toHaveAttribute("src", "/assets/moves/skins/rock/tier-1.png");
+      hook.mockRestore();
+    },
+  );
+
+  it.each(["move_locked", "waiting_cpu", "reveal_pause"] as const)(
+    "keeps timeline private during %s",
+    (phase) => {
+      const hook = mockActiveMatch(createInitialMatchState(), {
+        phase,
+        playerMove: "rock",
+        cpuMove: "scissors",
+        roundOutcome: "player",
+        pendingRound: {
+          round: 1,
+          playerMove: "rock",
+          cpuMove: "scissors",
+          outcome: "player",
+          playerTimedOut: false,
+          cpuTimedOut: false,
+        },
+        history: [],
+      });
+
+      renderWithProviders(<PracticeGame />);
+      expect(screen.queryByRole("listitem")).toBeNull();
+      expect(screen.queryByText("WIN")).toBeNull();
       hook.mockRestore();
     },
   );

@@ -6,8 +6,11 @@ export type SoundId =
   | "move_hover"
   | "move_selected"
   | "move_locked"
+  | "waiting_cpu"
+  | "reveal_incoming"
   | "countdown"
   | "countdown_warning"
+  | "selection_countdown_tick"
   | "reveal"
   | "round_tie"
   | "round_win"
@@ -69,6 +72,22 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
     enabled: true,
     volumeScale: 0.85,
   },
+  waiting_cpu: {
+    id: "waiting_cpu",
+    category: "sfx",
+    label: "Waiting on CPU pulse",
+    frequencies: [420],
+    enabled: true,
+    volumeScale: 0.32,
+  },
+  reveal_incoming: {
+    id: "reveal_incoming",
+    category: "sfx",
+    label: "Reveal incoming riser",
+    frequencies: [520, 640, 760],
+    enabled: true,
+    volumeScale: 0.38,
+  },
   countdown: {
     id: "countdown",
     category: "sfx",
@@ -80,10 +99,18 @@ export const SOUND_REGISTRY: Record<SoundId, SoundDefinition> = {
   countdown_warning: {
     id: "countdown_warning",
     category: "sfx",
-    label: "Timer warning",
+    label: "Timer warning (legacy file — disabled in Practice)",
     src: "/assets/audio/countdown-warning.mp3",
-    enabled: true,
+    enabled: false,
     volumeScale: 0.75,
+  },
+  selection_countdown_tick: {
+    id: "selection_countdown_tick",
+    category: "sfx",
+    label: "Selection timer final countdown tick",
+    frequencies: [620],
+    enabled: true,
+    volumeScale: 0.62,
   },
   reveal: {
     id: "reveal",

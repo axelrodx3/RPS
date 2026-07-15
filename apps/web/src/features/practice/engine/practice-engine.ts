@@ -39,24 +39,35 @@ export type PracticeMatchState = {
   matchWinner: "player" | "cpu" | null;
   playerTimedOut: boolean;
   roundResolved: boolean;
+  /** Resolved round data held until arena reveal commits display. */
+  pendingRound: RoundRecord | null;
+  pendingPlayerScore: number | null;
+  pendingCpuScore: number | null;
 };
 
 export const PRACTICE_WIN_TARGET = 2;
 export const PRACTICE_TIMER_SECONDS = 20;
 export const PRACTICE_COUNTDOWN_SECONDS = 3;
-export const TIMER_WARNING_SECONDS = 5;
-export const MOVE_LOCKED_MS = 650;
-export const MOVE_LOCKED_REDUCED_MS = 500;
-export const WAITING_CPU_MS = 1100;
-export const WAITING_CPU_REDUCED_MS = 800;
-export const REVEAL_PAUSE_MS = 850;
-export const REVEAL_PAUSE_REDUCED_MS = 500;
-export const REVEAL_DISPLAY_MS = 1000;
-export const REVEAL_DISPLAY_REDUCED_MS = 650;
-export const ROUND_RESULT_DISPLAY_MS = 1300;
-export const ROUND_RESULT_DISPLAY_REDUCED_MS = 950;
+/** Final selection countdown ticks begin at 3 seconds remaining. */
+export const TIMER_WARNING_SECONDS = 3;
+export const SELECTION_COUNTDOWN_SECONDS = 3;
+
+export const MOVE_LOCKED_MS = 1050;
+export const MOVE_LOCKED_REDUCED_MS = 900;
+export const WAITING_CPU_MS = 1450;
+export const WAITING_CPU_REDUCED_MS = 1200;
+export const REVEAL_PAUSE_MS = 1200;
+export const REVEAL_PAUSE_REDUCED_MS = 1000;
+export const REVEAL_DISPLAY_MS = 575;
+export const REVEAL_DISPLAY_REDUCED_MS = 400;
+export const ROUND_RESULT_DISPLAY_MS = 2800;
+export const ROUND_RESULT_DISPLAY_REDUCED_MS = 2400;
 export const ROUND_INTRO_MS = 700;
 export const ROUND_INTRO_REDUCED_MS = 450;
+export const CPU_REVEAL_DELAY_MS = 400;
+export const CPU_REVEAL_DELAY_REDUCED_MS = 0;
+export const ROUND_DISPLAY_COMMIT_DELAY_MS = 120;
+
 export const RESULT_VISIBLE_TOTAL_MS =
   REVEAL_DISPLAY_MS + ROUND_RESULT_DISPLAY_MS;
 
@@ -99,6 +110,9 @@ export function createInitialMatchState(): PracticeMatchState {
     matchWinner: null,
     playerTimedOut: false,
     roundResolved: false,
+    pendingRound: null,
+    pendingPlayerScore: null,
+    pendingCpuScore: null,
   };
 }
 
@@ -166,12 +180,24 @@ export type PracticeAction =
   | { type: "TIMEOUT_PLAYER"; move: Move }
   | { type: "ADVANCE_FROM_MOVE_LOCKED" }
   | { type: "CPU_REVEAL"; move: Move }
+  | { type: "COMMIT_ROUND_DISPLAY" }
   | { type: "ADVANCE_FROM_REVEAL_PAUSE" }
   | { type: "ADVANCE_FROM_REVEAL" }
   | { type: "ADVANCE_FROM_ROUND_RESULT" }
   | { type: "ADVANCE_FROM_ROUND_INTRO" }
   | { type: "REMATCH" }
   | { type: "ABORT" };
+
+function computePendingScores(
+  state: PracticeMatchState,
+  outcome: RoundOutcome,
+): { playerScore: number; cpuScore: number } {
+  let playerScore = state.playerScore;
+  let cpuScore = state.cpuScore;
+  if (outcome === "player") playerScore += 1;
+  if (outcome === "cpu") cpuScore += 1;
+  return { playerScore, cpuScore };
+}
 
 export function practiceReducer(
   state: PracticeMatchState,
@@ -231,10 +257,7 @@ export function practiceReducer(
       )
         return state;
       const outcome = resolveRound(state.playerMove, action.move);
-      let playerScore = state.playerScore;
-      let cpuScore = state.cpuScore;
-      if (outcome === "player") playerScore += 1;
-      if (outcome === "cpu") cpuScore += 1;
+      const { playerScore, cpuScore } = computePendingScores(state, outcome);
 
       const record: RoundRecord = {
         round: state.round,
@@ -256,12 +279,25 @@ export function practiceReducer(
         ...state,
         cpuMove: action.move,
         roundOutcome: outcome,
-        playerScore,
-        cpuScore,
-        history: [...state.history, record],
+        pendingRound: record,
+        pendingPlayerScore: playerScore,
+        pendingCpuScore: cpuScore,
         phase: "reveal_pause",
         matchWinner,
         roundResolved: true,
+      };
+    }
+
+    case "COMMIT_ROUND_DISPLAY": {
+      if (!state.pendingRound) return state;
+      return {
+        ...state,
+        history: [...state.history, state.pendingRound],
+        playerScore: state.pendingPlayerScore ?? state.playerScore,
+        cpuScore: state.pendingCpuScore ?? state.cpuScore,
+        pendingRound: null,
+        pendingPlayerScore: null,
+        pendingCpuScore: null,
       };
     }
 
@@ -269,19 +305,23 @@ export function practiceReducer(
       if (state.phase !== "reveal_pause") return state;
       return { ...state, phase: "reveal" };
 
-    case "ADVANCE_FROM_REVEAL":
+    case "ADVANCE_FROM_REVEAL": {
       if (state.phase !== "reveal") return state;
-      if (state.matchWinner) {
-        return { ...state, phase: "match_complete" };
+      const committed = state.pendingRound
+        ? practiceReducer(state, { type: "COMMIT_ROUND_DISPLAY" })
+        : state;
+      if (committed.matchWinner) {
+        return { ...committed, phase: "match_complete" };
       }
       return {
-        ...state,
+        ...committed,
         phase: "round_result",
         transitionMessage: getTransitionMessage({
-          ...state,
+          ...committed,
           phase: "round_result",
         }),
       };
+    }
 
     case "ADVANCE_FROM_ROUND_INTRO":
       if (state.phase !== "round_intro") return state;
@@ -305,6 +345,9 @@ export function practiceReducer(
         transitionMessage: null,
         playerTimedOut: false,
         roundResolved: false,
+        pendingRound: null,
+        pendingPlayerScore: null,
+        pendingCpuScore: null,
       };
     }
 

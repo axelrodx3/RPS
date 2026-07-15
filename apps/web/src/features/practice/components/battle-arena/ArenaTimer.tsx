@@ -10,7 +10,6 @@ type ArenaCoreProps = {
   seconds: number;
   total: number;
   phaseLabel: string;
-  subLabel?: string;
   countdown?: number;
   vsImpact?: boolean;
 };
@@ -23,26 +22,34 @@ export function ArenaCore({
   seconds,
   total,
   phaseLabel,
-  subLabel,
   countdown = 0,
   vsImpact = false,
 }: ArenaCoreProps) {
   const showProgress = mode === "timer";
   const progress = showProgress ? seconds / total : 0;
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
-  const warning = showProgress && seconds <= TIMER_WARNING_SECONDS;
+  const warning =
+    showProgress && seconds <= TIMER_WARNING_SECONDS && seconds > 0;
+  const urgencyClass =
+    warning && seconds === 1
+      ? styles.arenaTimerUrgent
+      : warning && seconds === 2
+        ? styles.arenaTimerHigh
+        : warning
+          ? styles.arenaTimerWarning
+          : "";
   const revealActive = mode === "reveal";
 
   return (
     <div
-      className={`${styles.arenaCore} ${warning ? styles.arenaTimerWarning : ""} ${revealActive ? styles.arenaCoreReveal : ""} ${vsImpact ? styles.arenaCoreVsImpact : ""}`.trim()}
+      className={`${styles.arenaCore} ${urgencyClass} ${revealActive ? styles.arenaCoreReveal : ""} ${vsImpact ? styles.arenaCoreVsImpact : ""}`.trim()}
       role={showProgress ? "timer" : undefined}
       aria-label={
         showProgress
-          ? `${seconds} seconds remaining. ${phaseLabel}`
-          : subLabel
-            ? `${phaseLabel}. ${subLabel}`
-            : phaseLabel
+          ? warning
+            ? `${seconds} seconds remaining. Choose now. ${phaseLabel}`
+            : `${seconds} seconds remaining. ${phaseLabel}`
+          : phaseLabel
       }
     >
       <svg
@@ -75,7 +82,11 @@ export function ArenaCore({
         ) : null}
 
         {mode === "timer" ? (
-          <span className={styles.arenaTimerValue}>{seconds}</span>
+          <span
+            className={`${styles.arenaTimerValue} ${warning ? styles.arenaTimerValueWarning : ""}`.trim()}
+          >
+            {seconds}
+          </span>
         ) : null}
 
         {mode === "reveal" ? (
@@ -89,12 +100,8 @@ export function ArenaCore({
         ) : null}
 
         {mode === "timer" ? (
-          <span className={styles.arenaTimerLabel}>{phaseLabel}</span>
-        ) : null}
-
-        {mode === "reveal" || mode === "phase" ? (
-          <span className={styles.arenaCoreSubLabel}>
-            {subLabel ?? (mode === "reveal" ? phaseLabel : "")}
+          <span className={styles.arenaTimerLabel}>
+            {warning ? "Choose now" : phaseLabel}
           </span>
         ) : null}
       </div>

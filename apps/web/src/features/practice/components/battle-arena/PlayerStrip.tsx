@@ -95,7 +95,9 @@ export function PlayerStrip({
 
       <div className={styles.stripCenter}>
         <span className={styles.stripRound}>ROUND {round}</span>
-        <span className={styles.stripPhase}>{phaseLabel}</span>
+        {phaseLabel ? (
+          <span className={styles.stripPhase}>{phaseLabel}</span>
+        ) : null}
         {matchPointLabel ? (
           <span className={styles.matchPointBadge}>{matchPointLabel}</span>
         ) : null}

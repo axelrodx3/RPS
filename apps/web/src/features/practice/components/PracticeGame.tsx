@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Card } from "@/design-system/components";
 import { useHoverSound } from "@/lib/audio/use-hover-sound";
 import {
+  SELECTION_COUNTDOWN_SECONDS,
   TIMER_WARNING_SECONDS,
   countAutomaticMoves,
   countTiedRounds,
@@ -55,9 +56,19 @@ function phaseLabel(
 function liveAnnouncement(
   state: ReturnType<typeof usePracticeGame>["state"],
 ): string {
+  if (state.phase === "move_locked") return "Move locked.";
+  if (state.phase === "waiting_cpu") return "Waiting on CPU.";
+  if (state.phase === "reveal_pause") return "Reveal incoming.";
   if (
     state.phase === "commit" &&
-    state.timerSeconds === TIMER_WARNING_SECONDS
+    state.timerSeconds <= SELECTION_COUNTDOWN_SECONDS &&
+    state.timerSeconds > 0
+  ) {
+    return `Choose now. ${state.timerSeconds} seconds remaining.`;
+  }
+  if (
+    state.phase === "commit" &&
+    state.timerSeconds === TIMER_WARNING_SECONDS + 1
   ) {
     return `${state.timerSeconds} seconds remaining`;
   }
@@ -136,6 +147,13 @@ const MOVE_DOCK_PHASES = new Set([
   "reveal_pause",
 ]);
 
+const STRIP_PHASE_LABELS = new Set([
+  "countdown",
+  "round_intro",
+  "round_result",
+  "match_complete",
+]);
+
 export function PracticeGame() {
   const { state, startMatch, selectMove, rematch, winTarget, timerTotal } =
     usePracticeGame();
@@ -193,6 +211,7 @@ export function PracticeGame() {
   const tiedRounds = countTiedRounds(state.history);
   const automaticMoves = countAutomaticMoves(state.history);
   const label = phaseLabel(state.phase, state.transitionMessage);
+  const stripPhaseLabel = STRIP_PHASE_LABELS.has(state.phase) ? label : null;
   const showPlayerVictoryConfetti =
     state.phase === "match_complete" && state.matchWinner === "player";
   const victoryMatchKey = `win-${state.playerScore}-${state.cpuScore}-${state.history.length}`;
@@ -243,7 +262,7 @@ export function PracticeGame() {
             cpuScore={state.cpuScore}
             round={state.round}
             winTarget={winTarget}
-            phaseLabel={label}
+            phaseLabel={stripPhaseLabel ?? ""}
             playerScorePulse={playerScorePulse}
             cpuScorePulse={cpuScorePulse}
             playerIdentityPulse={scoreImpact === "player"}

@@ -1031,6 +1031,44 @@
   color: var(--color-brand-500);
 }
 
+.arenaTimerHigh .arenaTimerProgress {
+  stroke: var(--color-brand-500);
+  filter: drop-shadow(0 0 18px rgb(215 255 67 / 65%));
+}
+
+.arenaTimerHigh .arenaTimerValue,
+.arenaTimerValueWarning {
+  color: var(--color-brand-500);
+}
+
+.arenaTimerUrgent .arenaTimerProgress {
+  stroke: var(--color-brand-400);
+  filter: drop-shadow(0 0 22px rgb(215 255 67 / 75%));
+}
+
+.arenaTimerUrgent .arenaTimerValue {
+  color: var(--color-brand-400);
+}
+
+.arenaTimerValueWarning {
+  animation: timerWarningPulse 900ms ease-in-out infinite;
+}
+
+[data-reduced-motion="true"] .arenaTimerValueWarning {
+  animation: none;
+}
+
+@keyframes timerWarningPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+}
+
 .arenaTimerCore {
   position: absolute;
   inset: 0;
