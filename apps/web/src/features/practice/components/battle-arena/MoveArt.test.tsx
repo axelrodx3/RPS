@@ -15,6 +15,13 @@ describe("MoveArt", () => {
     expect(image).toHaveAttribute("src", "/assets/moves/skins/rock/tier-1.png");
   });
 
+  it("uses timeline presentation scale tokens for timeline thumbnails", () => {
+    render(<MoveArt move="paper" variant="timeline" />);
+
+    const frame = screen.getByTestId("move-art-paper-timeline");
+    expect(frame).toHaveStyle({ "--move-art-scale": "0.86" });
+  });
+
   it("falls back to emoji when image loading fails", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 

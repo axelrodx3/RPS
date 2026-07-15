@@ -121,19 +121,25 @@ export function RoundTimeline({
               <span className={styles.timelineRound}>
                 R{chronologicalRound}
               </span>
-              <span className={styles.timelineMoves} aria-hidden="true">
+              <span className={styles.timelineMoveSlot} aria-hidden="true">
                 <MoveArt move={round.playerMove} variant="timeline" />
-                <span className={styles.timelineVs}>VS</span>
+              </span>
+              <span className={styles.timelineVs} aria-hidden="true">
+                VS
+              </span>
+              <span className={styles.timelineMoveSlot} aria-hidden="true">
                 <MoveArt move={round.cpuMove} variant="timeline" />
               </span>
-              <span
-                className={`${styles.timelineBadge} ${timelineBadgeClass(round.outcome)}`.trim()}
-              >
-                {timelineOutcomeShort(round.outcome)}
+              <span className={styles.timelineOutcome}>
+                <span
+                  className={`${styles.timelineBadge} ${timelineBadgeClass(round.outcome)}`.trim()}
+                >
+                  {timelineOutcomeShort(round.outcome)}
+                </span>
+                {round.playerTimedOut ? (
+                  <span className={styles.timelineAuto}>AUTO</span>
+                ) : null}
               </span>
-              {round.playerTimedOut ? (
-                <span className={styles.timelineAuto}>AUTO</span>
-              ) : null}
               <span className={styles.srOnly}>
                 {MOVE_LABELS[round.playerMove]} versus{" "}
                 {MOVE_LABELS[round.cpuMove]}

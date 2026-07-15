@@ -847,8 +847,9 @@
 }
 
 .moveArtTimeline {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
 }
 
 .moveArtTimeline .moveArtImage {
@@ -870,17 +871,13 @@
   color: var(--color-text);
 }
 
-.timelineMoves {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .timelineVs {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--color-text-subtle);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .battlePodConcealed {
@@ -2024,15 +2021,15 @@
 }
 
 .timelineEntry {
-  display: flex;
+  display: grid;
+  grid-template-columns: 28px 32px 18px 32px minmax(44px, auto);
   align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
+  column-gap: 4px;
+  padding: 5px 6px;
   min-height: 54px;
   border-radius: var(--radius-sm);
   background: rgb(0 0 0 / 22%);
   border: 1px solid rgb(255 255 255 / 6%);
-  overflow: hidden;
 }
 
 .timelineEntryNew {
@@ -2042,39 +2039,52 @@
 }
 
 .timelineRound {
-  flex: 0 0 auto;
-  min-width: 22px;
+  justify-self: center;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--color-text-subtle);
+  white-space: nowrap;
 }
 
-.timelineMoves {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 0;
-  overflow: hidden;
+.timelineMoveSlot {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.timelineOutcome {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
+  min-width: 44px;
 }
 
 .timelineBadge {
-  flex: 0 0 auto;
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 40px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: var(--radius-pill);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
   white-space: nowrap;
 }
 
 .timelineAuto {
-  flex: 0 0 auto;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  line-height: 1;
   color: var(--color-brand-500);
   white-space: nowrap;
 }
@@ -2639,6 +2649,26 @@
 
   .roundTimelineScrollable {
     max-height: min(36vh, 300px);
+  }
+
+  .timelineEntry {
+    grid-template-columns: 26px 30px 16px 30px minmax(42px, auto);
+    column-gap: 3px;
+    padding: 5px 5px;
+  }
+
+  .timelineMoveSlot,
+  .moveArtTimeline {
+    width: 30px;
+    height: 30px;
+  }
+
+  .timelineOutcome {
+    min-width: 42px;
+  }
+
+  .timelineBadge {
+    min-width: 38px;
   }
 }
 

@@ -93,6 +93,17 @@ export const MOVE_PRESENTATION_SCALE: Record<Move, number> = {
   scissors: 0.96,
 };
 
+/** Compact timeline thumbnail scale corrections. */
+export const MOVE_TIMELINE_PRESENTATION_SCALE: Record<Move, number> = {
+  rock: 0.92,
+  paper: 0.86,
+  scissors: 0.92,
+};
+
+export function getMoveTimelinePresentationScale(move: Move): number {
+  return MOVE_TIMELINE_PRESENTATION_SCALE[move];
+}
+
 function skinPaths(moveId: Move, tier: number): MoveSkinPaths {
   const png = `/assets/moves/skins/${moveId}/tier-${tier}.png`;
   // WebP paths are reserved for future derivatives; omit until files exist in public/.

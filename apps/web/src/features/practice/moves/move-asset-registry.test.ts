@@ -4,11 +4,13 @@ import { describe, expect, it } from "vitest";
 import {
   ALL_MOVE_SKINS,
   MOVE_ASSET_SETS,
+  MOVE_TIMELINE_PRESENTATION_SCALE,
   TIER_ONE_SOURCE_FILENAMES,
   getActiveMoveSkins,
   getDefaultMoveSkin,
   getFutureMoveSkins,
   getMoveArtPath,
+  getMoveTimelinePresentationScale,
 } from "@/features/practice/moves/move-asset-registry";
 
 describe("move asset registry", () => {
@@ -69,5 +71,12 @@ describe("move asset registry", () => {
       );
       expect(fs.existsSync(filePath)).toBe(true);
     }
+  });
+
+  it("exposes centralized timeline presentation scale tokens", () => {
+    expect(MOVE_TIMELINE_PRESENTATION_SCALE.rock).toBe(0.92);
+    expect(MOVE_TIMELINE_PRESENTATION_SCALE.paper).toBe(0.86);
+    expect(MOVE_TIMELINE_PRESENTATION_SCALE.scissors).toBe(0.92);
+    expect(getMoveTimelinePresentationScale("rock")).toBe(0.92);
   });
 });

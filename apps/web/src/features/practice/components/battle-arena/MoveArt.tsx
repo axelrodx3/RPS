@@ -5,6 +5,7 @@ import type { Move } from "@/features/practice/engine/practice-engine";
 import {
   getMoveAccessibleLabel,
   getMoveFallbackEmoji,
+  getMoveTimelinePresentationScale,
   resolveMoveSkin,
   type MoveArtVariant,
 } from "@/features/practice/moves/move-asset-registry";
@@ -63,8 +64,13 @@ export function MoveArt({
     );
   }
 
+  const presentationScale =
+    variant === "timeline"
+      ? getMoveTimelinePresentationScale(move)
+      : skin.presentationScale;
+
   const scaleStyle = {
-    "--move-art-scale": skin.presentationScale,
+    "--move-art-scale": presentationScale,
   } as React.CSSProperties;
 
   const imageClass = [styles.moveArtImage, VARIANT_CLASS[variant], className]
