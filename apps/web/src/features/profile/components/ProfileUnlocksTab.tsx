@@ -1,21 +1,17 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import { AVATAR_TIERS } from "@/features/identity/avatar-registry";
-import { AvatarPreview } from "@/features/profile/components/AvatarPreview";
-import {
-  DEFAULT_LOCAL_PROFILE,
-  type LocalProfile,
-} from "@/features/profile/profile-model";
-import { MoveSkinPreview } from "@/features/profile/components/MoveSkinPreview";
+import { CosmeticCard } from "@/features/profile/components/CosmeticCard";
+import type { UnlockCategory } from "@/features/profile/profile-navigation";
 import { MOVE_ASSET_SETS } from "@/features/practice/moves/move-asset-registry";
+import { useProfile } from "@/providers/ProfileProvider";
 import styles from "../profile-panel.module.css";
 
 type ProfileUnlocksTabProps = {
-  profile?: LocalProfile;
+  activeCategory: UnlockCategory;
+  onCategoryChange: (category: UnlockCategory) => void;
 };
-
-type UnlockCategory = "avatars" | "rock" | "paper" | "scissors";
 
 const UNLOCK_CATEGORIES: {
   id: UnlockCategory;
@@ -28,173 +24,57 @@ const UNLOCK_CATEGORIES: {
   { id: "scissors", label: "Scissors", icon: "✂" },
 ];
 
-function isUnlocked(unlockedIds: string[], id: string): boolean {
-  return unlockedIds.includes(id);
-}
-
-function isEquipped(
-  profile: LocalProfile,
-  move: "rock" | "paper" | "scissors",
-  skinId: string,
-): boolean {
-  if (move === "rock") return profile.equipped.rockSkinId === skinId;
-  if (move === "paper") return profile.equipped.paperSkinId === skinId;
-  return profile.equipped.scissorsSkinId === skinId;
-}
-
-function buildAvatarAccessibleLabel(
+function buildAccessibleLabel(
   displayName: string,
   tier: number,
   unlocked: boolean,
   equipped: boolean,
 ): string {
-  if (equipped) {
-    return `${displayName}. Tier ${tier}. Equipped.`;
-  }
-  if (unlocked) {
-    return `${displayName}. Tier ${tier}. Unlocked.`;
-  }
+  if (equipped) return `${displayName}. Tier ${tier}. Equipped.`;
+  if (unlocked) return `${displayName}. Tier ${tier}. Unlocked.`;
   return `${displayName}. Tier ${tier}. Locked.`;
-}
-
-function buildMoveAccessibleLabel(
-  displayName: string,
-  tier: number,
-  unlocked: boolean,
-  equipped: boolean,
-): string {
-  if (equipped) {
-    return `${displayName}. Tier ${tier}. Equipped.`;
-  }
-  if (unlocked) {
-    return `${displayName}. Tier ${tier}. Unlocked.`;
-  }
-  return `${displayName}. Tier ${tier}. Locked.`;
-}
-
-function getActiveCategoryLabel(category: UnlockCategory): string {
-  return UNLOCK_CATEGORIES.find((entry) => entry.id === category)?.label ?? "";
 }
 
 export function ProfileUnlocksTab({
-  profile = DEFAULT_LOCAL_PROFILE,
+  activeCategory,
+  onCategoryChange,
 }: ProfileUnlocksTabProps) {
   const baseId = useId();
-  const [activeCategory, setActiveCategory] =
-    useState<UnlockCategory>("avatars");
+  const {
+    isAvatarUnlocked,
+    isMoveSkinUnlocked,
+    isAvatarEquipped,
+    isMoveSkinEquipped,
+  } = useProfile();
 
-  const renderAvatarGrid = () => (
-    <div className={styles.cosmeticGrid}>
-      {AVATAR_TIERS.map((avatar) => {
-        const unlocked = isUnlocked(profile.unlockedAvatarIds, avatar.id);
-        const equipped = profile.equipped.avatarId === avatar.id;
-        const accessibleLabel = buildAvatarAccessibleLabel(
-          avatar.displayName,
-          avatar.tier,
-          unlocked,
-          equipped,
-        );
-
-        return (
-          <article
-            key={avatar.id}
-            className={`${styles.cosmeticCard} ${equipped ? styles.cosmeticEquipped : unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
-            aria-label={accessibleLabel}
-          >
-            <div className={styles.cosmeticPreview}>
-              <div
-                className={`${styles.cosmeticPreviewArt} ${unlocked ? "" : styles.cosmeticPreviewArtLocked}`.trim()}
-              >
-                <AvatarPreview
-                  avatarId={avatar.id}
-                  accessibleLabel={accessibleLabel}
-                  locked={!unlocked}
-                />
-              </div>
-              {!unlocked ? (
-                <span className={styles.lockOverlay} aria-hidden="true">
-                  <span className={styles.lockBadge}>
-                    <span className={styles.lockBadgeIcon}>🔒</span>
-                  </span>
-                </span>
-              ) : null}
-            </div>
-            {equipped ? (
-              <span className={styles.statusBadgeEquipped}>Equipped</span>
-            ) : null}
-            {!unlocked ? (
-              <span className={styles.statusBadgeLocked}>Locked</span>
-            ) : null}
-            <p className={styles.cosmeticName}>{avatar.displayName}</p>
-            <p className={styles.cosmeticTier}>Tier {avatar.tier}</p>
-          </article>
-        );
-      })}
-    </div>
-  );
-
-  const renderMoveGrid = (move: "rock" | "paper" | "scissors") => {
-    const unlockedKey =
-      move === "rock"
-        ? profile.unlockedRockSkinIds
-        : move === "paper"
-          ? profile.unlockedPaperSkinIds
-          : profile.unlockedScissorsSkinIds;
-
-    return (
-      <div className={styles.cosmeticGrid}>
-        {MOVE_ASSET_SETS[move].skins.map((skin) => {
-          const unlocked = isUnlocked(unlockedKey, skin.skinId);
-          const equipped = isEquipped(profile, move, skin.skinId);
-          const accessibleLabel = buildMoveAccessibleLabel(
-            skin.displayName,
-            skin.tier,
-            unlocked,
-            equipped,
-          );
-
-          return (
-            <article
-              key={skin.skinId}
-              className={`${styles.cosmeticCard} ${equipped ? styles.cosmeticEquipped : unlocked ? styles.cosmeticUnlocked : styles.cosmeticLocked}`.trim()}
-              aria-label={accessibleLabel}
-            >
-              <div className={styles.cosmeticPreview}>
-                <div
-                  className={`${styles.cosmeticPreviewArt} ${unlocked ? "" : styles.cosmeticPreviewArtLocked}`.trim()}
-                >
-                  <MoveSkinPreview
-                    move={move}
-                    skinId={skin.skinId}
-                    accessibleLabel={accessibleLabel}
-                  />
-                </div>
-                {!unlocked ? (
-                  <span className={styles.lockOverlay} aria-hidden="true">
-                    <span className={styles.lockBadge}>
-                      <span className={styles.lockBadgeIcon}>🔒</span>
-                    </span>
-                  </span>
-                ) : null}
-              </div>
-              {equipped ? (
-                <span className={styles.statusBadgeEquipped}>Equipped</span>
-              ) : null}
-              {!unlocked && !equipped ? (
-                <span className={styles.statusBadgeLocked}>Locked</span>
-              ) : null}
-              <p className={styles.cosmeticName}>{skin.displayName}</p>
-              <p className={styles.cosmeticTier}>Tier {skin.tier}</p>
-            </article>
-          );
-        })}
-      </div>
-    );
-  };
+  const activeLabel =
+    UNLOCK_CATEGORIES.find((entry) => entry.id === activeCategory)?.label ?? "";
 
   return (
     <div className={styles.unlocksLayout}>
       <nav className={styles.categorySidebar} aria-label="Cosmetic categories">
+        <label
+          className={styles.categoryMobileLabel}
+          htmlFor={`${baseId}-mobile-category`}
+        >
+          Category
+        </label>
+        <select
+          id={`${baseId}-mobile-category`}
+          className={styles.categoryMobileSelect}
+          value={activeCategory}
+          onChange={(event) =>
+            onCategoryChange(event.target.value as UnlockCategory)
+          }
+          aria-label="Unlock category"
+        >
+          {UNLOCK_CATEGORIES.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+
         <div
           className={styles.categorySidebarList}
           role="tablist"
@@ -212,7 +92,7 @@ export function ProfileUnlocksTab({
                 className={`${styles.categorySidebarButton} ${selected ? styles.categorySidebarButtonActive : ""}`.trim()}
                 aria-selected={selected}
                 aria-controls={`${baseId}-panel-${category.id}`}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => onCategoryChange(category.id)}
               >
                 <span className={styles.categorySidebarIcon} aria-hidden="true">
                   {category.icon}
@@ -225,29 +105,79 @@ export function ProfileUnlocksTab({
       </nav>
 
       <div className={styles.unlocksContent}>
-        {UNLOCK_CATEGORIES.map((category) => {
-          if (activeCategory !== category.id) return null;
+        <section
+          id={`${baseId}-panel-${activeCategory}`}
+          className={styles.unlockCategory}
+          role="tabpanel"
+          aria-labelledby={`${baseId}-category-${activeCategory}`}
+          aria-label={activeLabel}
+        >
+          <div className={styles.unlockCategoryHeader}>
+            <h2 className={styles.unlockCategoryTitle}>{activeLabel}</h2>
+          </div>
 
-          return (
-            <section
-              key={category.id}
-              id={`${baseId}-panel-${category.id}`}
-              className={styles.unlockCategory}
-              role="tabpanel"
-              aria-labelledby={`${baseId}-category-${category.id}`}
-              aria-label={category.label}
-            >
-              <div className={styles.unlockCategoryHeader}>
-                <h2 className={styles.unlockCategoryTitle}>
-                  {getActiveCategoryLabel(category.id)}
-                </h2>
-              </div>
-              {category.id === "avatars"
-                ? renderAvatarGrid()
-                : renderMoveGrid(category.id)}
-            </section>
-          );
-        })}
+          {activeCategory === "avatars" ? (
+            <div className={styles.cosmeticGrid}>
+              {AVATAR_TIERS.map((avatar) => {
+                const unlocked = isAvatarUnlocked(avatar.id);
+                const equipped = isAvatarEquipped(avatar.id);
+                return (
+                  <CosmeticCard
+                    key={avatar.id}
+                    target={{
+                      kind: "avatar",
+                      itemId: avatar.id,
+                      category: "avatars",
+                    }}
+                    displayName={avatar.displayName}
+                    tier={avatar.tier}
+                    unlocked={unlocked}
+                    equipped={equipped}
+                    accessibleLabel={buildAccessibleLabel(
+                      avatar.displayName,
+                      avatar.tier,
+                      unlocked,
+                      equipped,
+                    )}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className={styles.cosmeticGrid}>
+              {MOVE_ASSET_SETS[activeCategory].skins.map((skin) => {
+                const unlocked = isMoveSkinUnlocked(
+                  activeCategory,
+                  skin.skinId,
+                );
+                const equipped = isMoveSkinEquipped(
+                  activeCategory,
+                  skin.skinId,
+                );
+                return (
+                  <CosmeticCard
+                    key={skin.skinId}
+                    target={{
+                      kind: activeCategory,
+                      itemId: skin.skinId,
+                      category: activeCategory,
+                    }}
+                    displayName={skin.displayName}
+                    tier={skin.tier}
+                    unlocked={unlocked}
+                    equipped={equipped}
+                    accessibleLabel={buildAccessibleLabel(
+                      skin.displayName,
+                      skin.tier,
+                      unlocked,
+                      equipped,
+                    )}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

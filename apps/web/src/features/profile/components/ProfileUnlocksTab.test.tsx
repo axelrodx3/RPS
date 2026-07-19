@@ -3,13 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { cleanup, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AVATAR_FANART_SOURCE_FILES,
   AVATAR_TIERS,
 } from "@/features/identity/avatar-registry";
-import { DEFAULT_LOCAL_PROFILE } from "@/features/profile/profile-model";
 import { ProfileUnlocksTab } from "@/features/profile/components/ProfileUnlocksTab";
 import {
   MOVE_ASSET_SETS,
@@ -19,13 +17,18 @@ import {
 } from "@/features/practice/moves/move-asset-registry";
 import { renderWithProviders } from "@/test/render";
 
+const defaultProps = {
+  activeCategory: "avatars" as const,
+  onCategoryChange: vi.fn(),
+};
+
 describe("ProfileUnlocksTab avatars", () => {
   afterEach(() => {
     cleanup();
   });
 
   it("renders seven avatar tiers with real preview assets", () => {
-    renderWithProviders(<ProfileUnlocksTab />);
+    renderWithProviders(<ProfileUnlocksTab {...defaultProps} />);
     const avatarPanel = screen.getByRole("tabpanel", { name: "Avatars" });
     const previews = within(avatarPanel).getAllByTestId(/avatar-preview-/);
     expect(previews).toHaveLength(7);
@@ -34,7 +37,7 @@ describe("ProfileUnlocksTab avatars", () => {
   });
 
   it("shows tier 1 equipped and tiers 2 through 7 locked with artwork visible", () => {
-    renderWithProviders(<ProfileUnlocksTab profile={DEFAULT_LOCAL_PROFILE} />);
+    renderWithProviders(<ProfileUnlocksTab {...defaultProps} />);
     const avatarPanel = screen.getByRole("tabpanel", { name: "Avatars" });
 
     expect(within(avatarPanel).getAllByText("Equipped")).toHaveLength(1);
@@ -71,10 +74,10 @@ describe("ProfileUnlocksTab move skins", () => {
     expect(css).toMatch(/\.categoryFilterList[\s\S]*display:\s*none/);
   });
 
-  it("renders seven rock tiers with real preview assets in order", async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<ProfileUnlocksTab />);
-    await user.click(screen.getByRole("tab", { name: "Rock" }));
+  it("renders seven rock tiers with real preview assets in order", () => {
+    renderWithProviders(
+      <ProfileUnlocksTab {...defaultProps} activeCategory="rock" />,
+    );
 
     const rockPanel = screen.getByRole("tabpanel", { name: "Rock" });
     const previews = within(rockPanel).getAllByTestId(
@@ -87,10 +90,9 @@ describe("ProfileUnlocksTab move skins", () => {
   });
 
   it("renders seven paper and scissors tiers with lock overlays on tiers 2 through 7", async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<ProfileUnlocksTab />);
-
-    await user.click(screen.getByRole("tab", { name: "Paper" }));
+    renderWithProviders(
+      <ProfileUnlocksTab {...defaultProps} activeCategory="paper" />,
+    );
     const paperPanel = screen.getByRole("tabpanel", { name: "Paper" });
     expect(
       within(paperPanel).getAllByTestId(/move-skin-preview-paper-/),
@@ -98,7 +100,10 @@ describe("ProfileUnlocksTab move skins", () => {
     expect(within(paperPanel).getAllByText("Equipped")).toHaveLength(1);
     expect(within(paperPanel).getAllByText("Locked")).toHaveLength(6);
 
-    await user.click(screen.getByRole("tab", { name: "Scissors" }));
+    cleanup();
+    renderWithProviders(
+      <ProfileUnlocksTab {...defaultProps} activeCategory="scissors" />,
+    );
     const scissorsPanel = screen.getByRole("tabpanel", { name: "Scissors" });
     expect(
       within(scissorsPanel).getAllByTestId(/move-skin-preview-scissors-/),

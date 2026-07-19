@@ -326,6 +326,21 @@
     "approvalStatus": "approved-preview"
   },
   {
+    "assetName": "Profile UI progress bar (Aseprite source)",
+    "sourceFile": "animations/spr_ui_progress.aseprite",
+    "filePath": "animations/spr_ui_progress.aseprite",
+    "intendedUse": "Source project for Profile XP progress bar artwork awaiting Aseprite export",
+    "format": "Aseprite",
+    "dimensions": "Awaiting export",
+    "source": "Project animation asset",
+    "author": "RPS project",
+    "license": "Pending project verification",
+    "attributionRequired": false,
+    "dateIntegrated": "2026-07-19",
+    "modifications": "Preserved unchanged. Runtime CSS fallback used until export is available.",
+    "approvalStatus": "awaiting-export"
+  },
+  {
     "assetName": "Avatar Tier 2 fan art",
     "sourceFile": "animations/AvatarSixFanArt/1.png",
     "filePath": "apps/web/public/assets/avatars/tier-2.webp",

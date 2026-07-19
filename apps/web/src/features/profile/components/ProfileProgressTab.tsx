@@ -1,22 +1,25 @@
 "use client";
 
+import { AvatarPreview } from "@/features/profile/components/AvatarPreview";
+import { MoveSkinPreview } from "@/features/profile/components/MoveSkinPreview";
+import { ProfileProgressBar } from "@/features/profile/components/ProfileProgressBar";
 import {
-  DEFAULT_LOCAL_PROFILE,
   getProfileRankName,
-  getProfileXpProgress,
   getProfileXpRemaining,
   NEXT_REWARD_PREVIEW,
   PROFILE_REWARD_ROADMAP,
-  type LocalProfile,
 } from "@/features/profile/profile-model";
 import {
   getRankStepState,
   RANK_LADDER,
 } from "@/features/profile/rank-registry";
+import type { ProfileNavigationState } from "@/features/profile/profile-navigation";
+import { useProfile } from "@/providers/ProfileProvider";
 import styles from "../profile-panel.module.css";
 
 type ProfileProgressTabProps = {
-  profile?: LocalProfile;
+  reducedMotion: boolean;
+  onNavigationChange: (navigation: ProfileNavigationState) => void;
 };
 
 function rankBadgeLabel(state: ReturnType<typeof getRankStepState>): string {
@@ -46,9 +49,10 @@ function rankBadgeClass(state: ReturnType<typeof getRankStepState>): string {
 }
 
 export function ProfileProgressTab({
-  profile = DEFAULT_LOCAL_PROFILE,
+  reducedMotion,
+  onNavigationChange,
 }: ProfileProgressTabProps) {
-  const xpProgress = getProfileXpProgress(profile);
+  const { profile, openPreview, navigateToUnlockItem } = useProfile();
   const xpRemaining = getProfileXpRemaining(profile);
   const currentRank = getProfileRankName(profile);
 
@@ -92,58 +96,107 @@ export function ProfileProgressTab({
               {profile.xp} / {profile.xpToNextLevel} XP
             </span>
           </div>
-          <div
-            className={styles.xpTrack}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={profile.xpToNextLevel}
-            aria-valuenow={profile.xp}
-            aria-label={`Level ${profile.level} progress`}
-          >
-            <div
-              className={styles.xpFill}
-              style={{ width: `${xpProgress}%` }}
-            />
-          </div>
+          <ProfileProgressBar
+            value={profile.xp}
+            max={profile.xpToNextLevel}
+            label={`Level ${profile.level} progress`}
+            reducedMotion={reducedMotion}
+          />
         </div>
 
-        <aside className={styles.nextRewardCard} aria-label="Next reward">
+        <aside className={styles.nextRewardPanel} aria-label="Next reward">
           <p className={styles.nextRewardKicker}>Next reward</p>
-          <p className={styles.nextRewardName}>{NEXT_REWARD_PREVIEW.label}</p>
-          <p className={styles.nextRewardRemaining}>
-            {xpRemaining} XP remaining
-          </p>
-          <div
-            className={styles.nextRewardTrack}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={profile.xpToNextLevel}
-            aria-valuenow={profile.xp}
-            aria-label="Progress to next reward"
+          <button
+            type="button"
+            className={styles.nextRewardPreviewButton}
+            onClick={() =>
+              onNavigationChange(
+                navigateToUnlockItem(
+                  NEXT_REWARD_PREVIEW.category,
+                  NEXT_REWARD_PREVIEW.itemId,
+                ),
+              )
+            }
           >
-            <div
-              className={styles.nextRewardFill}
-              style={{ width: `${xpProgress}%` }}
-            />
-          </div>
+            <div className={styles.nextRewardArt}>
+              <AvatarPreview
+                avatarId={NEXT_REWARD_PREVIEW.itemId}
+                accessibleLabel={NEXT_REWARD_PREVIEW.label}
+                locked
+              />
+            </div>
+            <div className={styles.nextRewardCopy}>
+              <p className={styles.nextRewardName}>
+                {NEXT_REWARD_PREVIEW.label}
+              </p>
+              <p className={styles.nextRewardRemaining}>
+                {xpRemaining} XP remaining
+              </p>
+              <ProfileProgressBar
+                value={profile.xp}
+                max={profile.xpToNextLevel}
+                label="Progress to next reward"
+                reducedMotion={reducedMotion}
+                compact
+              />
+            </div>
+          </button>
         </aside>
 
-        <div className={styles.rewardRoadmap} aria-label="Reward roadmap">
-          <p className={styles.sectionKicker}>Reward roadmap</p>
-          {PROFILE_REWARD_ROADMAP.map((milestone) => (
-            <div key={milestone.level} className={styles.rewardRoadmapStep}>
-              <span className={styles.rewardRoadmapLevel}>
-                Level {milestone.level}
-              </span>
-              <span
-                className={styles.rewardRoadmapConnector}
-                aria-hidden="true"
-              />
-              <span className={styles.rewardRoadmapReward}>
-                {milestone.reward}
-              </span>
-            </div>
-          ))}
+        <div className={styles.rewardTrack} aria-label="Reward roadmap">
+          <p className={styles.sectionKicker}>Reward track</p>
+          {PROFILE_REWARD_ROADMAP.map((milestone, index) => {
+            const upcoming = profile.level < milestone.level;
+            const previewKind =
+              milestone.category === "avatars" ? "avatar" : milestone.category;
+            return (
+              <button
+                key={milestone.level}
+                type="button"
+                className={styles.rewardTrackStep}
+                onClick={() =>
+                  openPreview({
+                    kind: previewKind,
+                    itemId: milestone.itemId,
+                    category: milestone.category,
+                  })
+                }
+              >
+                <span className={styles.rewardTrackLevel}>
+                  Level {milestone.level}
+                </span>
+                <span className={styles.rewardTrackArt}>
+                  {milestone.category === "avatars" ? (
+                    <AvatarPreview
+                      avatarId={milestone.itemId}
+                      accessibleLabel={milestone.reward}
+                      locked={upcoming}
+                    />
+                  ) : (
+                    <MoveSkinPreview
+                      move={milestone.category}
+                      skinId={milestone.itemId}
+                      accessibleLabel={milestone.reward}
+                    />
+                  )}
+                </span>
+                <span className={styles.rewardTrackCopy}>
+                  <span className={styles.rewardTrackName}>
+                    {milestone.reward}
+                  </span>
+                  <span className={styles.rewardTrackState}>
+                    {upcoming ? "Upcoming" : "Preview"}
+                  </span>
+                </span>
+                {index < PROFILE_REWARD_ROADMAP.length - 1 ? (
+                  <span
+                    className={styles.rewardTrackConnector}
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -157,7 +210,6 @@ export function ProfileProgressTab({
           </h2>
           <p className={styles.sectionNote}>
             Competitive ranking becomes available with online competitive play.
-            Rank shown here is a local preview only.
           </p>
         </div>
 
@@ -166,21 +218,22 @@ export function ProfileProgressTab({
           <p className={styles.currentRankValue}>{currentRank}</p>
         </div>
 
-        <div className={styles.rankLadder} aria-label="Rank ladder">
+        <div className={styles.rankLadderCompact} aria-label="Rank ladder">
           {RANK_LADDER.map((rank) => {
             const state = getRankStepState(rank, profile.rankId);
-            const stepClass = [
-              styles.rankStep,
-              state === "current" ? styles.rankStepCurrent : "",
-              state === "completed" ? styles.rankStepCompleted : "",
-              state === "locked" ? styles.rankStepLocked : "",
-              state === "highest" ? styles.rankStepHighest : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-
             return (
-              <div key={rank.id} className={stepClass}>
+              <div
+                key={rank.id}
+                className={[
+                  styles.rankStepCompact,
+                  state === "current" ? styles.rankStepCurrent : "",
+                  state === "completed" ? styles.rankStepCompleted : "",
+                  state === "locked" ? styles.rankStepLocked : "",
+                  state === "highest" ? styles.rankStepHighest : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
                 <span className={styles.rankTier}>#{rank.tier}</span>
                 <p className={styles.rankName}>{rank.name}</p>
                 <span

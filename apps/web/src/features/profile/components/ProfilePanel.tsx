@@ -5,25 +5,28 @@ import { ProfileOverviewTab } from "@/features/profile/components/ProfileOvervie
 import { ProfileProgressTab } from "@/features/profile/components/ProfileProgressTab";
 import { ProfileStatsTab } from "@/features/profile/components/ProfileStatsTab";
 import { ProfileUnlocksTab } from "@/features/profile/components/ProfileUnlocksTab";
+import type {
+  ProfileNavigationState,
+  ProfilePanelTab,
+} from "@/features/profile/profile-navigation";
 import styles from "../profile-panel.module.css";
-
-type ProfilePanelTab = "overview" | "unlocks" | "progress" | "stats";
 
 type ProfilePanelProps = {
   reducedMotion: boolean;
-  defaultTab?: ProfilePanelTab;
+  navigation: ProfileNavigationState;
+  onNavigationChange: (navigation: ProfileNavigationState) => void;
 };
 
 export function ProfilePanel({
   reducedMotion,
-  defaultTab = "overview",
+  navigation,
+  onNavigationChange,
 }: ProfilePanelProps) {
   const baseId = useId();
-  const [activeTab, setActiveTab] = useState<ProfilePanelTab>(defaultTab);
   const [statsAnimationActive, setStatsAnimationActive] = useState(
-    defaultTab === "stats",
+    navigation.tab === "stats",
   );
-  const statsTabOpenedRef = useRef(defaultTab === "stats");
+  const statsTabOpenedRef = useRef(navigation.tab === "stats");
 
   const tabs: { id: ProfilePanelTab; label: string }[] = [
     { id: "overview", label: "Overview" },
@@ -37,7 +40,11 @@ export function ProfilePanel({
       statsTabOpenedRef.current = true;
       setStatsAnimationActive(true);
     }
-    setActiveTab(tab);
+    onNavigationChange({
+      ...navigation,
+      tab,
+      itemId: tab === "unlocks" ? navigation.itemId : null,
+    });
   };
 
   const onKeyDown = (
@@ -67,7 +74,7 @@ export function ProfilePanel({
         aria-label="Profile sections"
       >
         {tabs.map((tab, index) => {
-          const selected = activeTab === tab.id;
+          const selected = navigation.tab === tab.id;
           const tabId = `${baseId}-tab-${tab.id}`;
           const panelId = `${baseId}-panel-${tab.id}`;
           return (
@@ -94,38 +101,55 @@ export function ProfilePanel({
           id={`${baseId}-panel-overview`}
           role="tabpanel"
           aria-labelledby={`${baseId}-tab-overview`}
-          hidden={activeTab !== "overview"}
+          hidden={navigation.tab !== "overview"}
         >
-          <ProfileOverviewTab />
+          <ProfileOverviewTab
+            reducedMotion={reducedMotion}
+            onNavigationChange={onNavigationChange}
+          />
         </section>
 
         <section
           id={`${baseId}-panel-unlocks`}
           role="tabpanel"
           aria-labelledby={`${baseId}-tab-unlocks`}
-          hidden={activeTab !== "unlocks"}
+          hidden={navigation.tab !== "unlocks"}
         >
-          <ProfileUnlocksTab />
+          <ProfileUnlocksTab
+            activeCategory={navigation.category}
+            onCategoryChange={(category) =>
+              onNavigationChange({
+                ...navigation,
+                tab: "unlocks",
+                category,
+                itemId: null,
+              })
+            }
+          />
         </section>
 
         <section
           id={`${baseId}-panel-progress`}
           role="tabpanel"
           aria-labelledby={`${baseId}-tab-progress`}
-          hidden={activeTab !== "progress"}
+          hidden={navigation.tab !== "progress"}
         >
-          <ProfileProgressTab />
+          <ProfileProgressTab
+            reducedMotion={reducedMotion}
+            onNavigationChange={onNavigationChange}
+          />
         </section>
 
         <section
           id={`${baseId}-panel-stats`}
           role="tabpanel"
           aria-labelledby={`${baseId}-tab-stats`}
-          hidden={activeTab !== "stats"}
+          hidden={navigation.tab !== "stats"}
         >
           <ProfileStatsTab
             animate={statsAnimationActive}
             reducedMotion={reducedMotion}
+            onNavigationChange={onNavigationChange}
           />
         </section>
       </div>

@@ -58,11 +58,41 @@ export function getProfileXpRemaining(profile: LocalProfile): number {
 export const NEXT_REWARD_PREVIEW = {
   label: "Avatar Tier 2",
   requirement: "Reach Level 4",
+  level: 4,
+  itemId: "avatar-tier-2",
+  category: "avatars" as const,
 } as const;
 
 export const PROFILE_REWARD_ROADMAP = [
-  { level: 4, reward: "Avatar Tier 2" },
-  { level: 8, reward: "Rock Tier 2" },
-  { level: 12, reward: "Paper Tier 2" },
-  { level: 16, reward: "Scissors Tier 2" },
+  {
+    level: 4,
+    reward: "Avatar Tier 2",
+    itemId: "avatar-tier-2",
+    category: "avatars" as const,
+  },
+  {
+    level: 8,
+    reward: "Rock Tier 2",
+    itemId: "rock-tier-2",
+    category: "rock" as const,
+  },
+  {
+    level: 12,
+    reward: "Paper Tier 2",
+    itemId: "paper-tier-2",
+    category: "paper" as const,
+  },
+  {
+    level: 16,
+    reward: "Scissors Tier 2",
+    itemId: "scissors-tier-2",
+    category: "scissors" as const,
+  },
+] as const;
+
+export const OVERVIEW_SUMMARY_METRIC_IDS = [
+  "matches",
+  "win-rate",
+  "best-streak",
+  "favorite",
 ] as const;

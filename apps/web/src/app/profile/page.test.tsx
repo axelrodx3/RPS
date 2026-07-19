@@ -4,12 +4,19 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProfilePageContent } from "@/app/profile/ProfilePageContent";
 import { AVATAR_TIERS } from "@/features/identity/avatar-registry";
 import { MOVE_ASSET_SETS } from "@/features/practice/moves/move-asset-registry";
 import { HIGHEST_RANK_ID, RANK_LADDER } from "@/features/profile/rank-registry";
 import { renderWithProviders } from "@/test/render";
+
+const profileSearchParams = new URLSearchParams();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn() }),
+  useSearchParams: () => profileSearchParams,
+}));
 
 describe("ProfilePageContent", () => {
   afterEach(() => {
@@ -55,8 +62,8 @@ describe("ProfilePageContent", () => {
       within(overviewPanel).getByText("180 XP remaining"),
     ).toBeInTheDocument();
     expect(
-      within(overviewPanel).getAllByTestId("avatar-preview-1").length,
-    ).toBeGreaterThan(0);
+      within(overviewPanel).getByText("Local profile"),
+    ).toBeInTheDocument();
   });
 
   it("shows one unlock category at a time with vertical category navigation", async () => {
@@ -64,6 +71,10 @@ describe("ProfilePageContent", () => {
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Unlocks" }));
 
+    expect(screen.getByRole("tab", { name: "Unlocks" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(AVATAR_TIERS).toHaveLength(7);
     expect(MOVE_ASSET_SETS.rock.skins).toHaveLength(7);
 
@@ -84,6 +95,10 @@ describe("ProfilePageContent", () => {
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Progress" }));
 
+    expect(screen.getByRole("tab", { name: "Progress" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(RANK_LADDER).toHaveLength(7);
     expect(HIGHEST_RANK_ID).toBe("champion");
     expect(RANK_LADDER.some((rank) => rank.name === "Master")).toBe(false);
@@ -101,13 +116,13 @@ describe("ProfilePageContent", () => {
     expect(
       within(progressPanel).getByText("Competitive rank"),
     ).toBeInTheDocument();
-    expect(
-      within(progressPanel).getByText("Reward roadmap"),
-    ).toBeInTheDocument();
+    expect(within(progressPanel).getByText("Reward track")).toBeInTheDocument();
     expect(
       within(progressPanel).getAllByText("Avatar Tier 2").length,
     ).toBeGreaterThan(0);
-    expect(within(progressPanel).getByText("Rock Tier 2")).toBeInTheDocument();
+    expect(
+      within(progressPanel).getAllByText("Rock Tier 2").length,
+    ).toBeGreaterThan(0);
   });
 
   it("reuses the shared practice stats panel in stats tab", async () => {
@@ -115,6 +130,10 @@ describe("ProfilePageContent", () => {
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Stats" }));
 
+    expect(screen.getByRole("tab", { name: "Stats" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     const statsPanel = screen.getByRole("tabpanel", { name: "Stats" });
     expect(within(statsPanel).getByText("Practice stats")).toBeInTheDocument();
     expect(within(statsPanel).getByText("Match record")).toBeInTheDocument();

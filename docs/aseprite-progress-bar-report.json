@@ -1,0 +1,19 @@
+{
+  "sourceFile": "animations/spr_ui_progress.aseprite",
+  "asepriteCliAvailable": false,
+  "inspectionStatus": "awaiting-export",
+  "inspectionNotes": [
+    "Aseprite CLI was not found on PATH or in common install locations.",
+    "The original .aseprite source file is preserved unchanged.",
+    "Document dimensions, layers, frames, tags, and slices could not be inspected without Aseprite.",
+    "Profile UI uses the shared CSS progress bar fallback via ProfileProgressBar.",
+    "Runtime asset slots are reserved for future export: profile-progress-frame.webp, profile-progress-fill.webp, profile-progress-shine.webp"
+  ],
+  "preferredRuntimeAssets": [
+    "apps/web/public/assets/profile/profile-progress-frame.webp",
+    "apps/web/public/assets/profile/profile-progress-fill.webp",
+    "apps/web/public/assets/profile/profile-progress-shine.webp"
+  ],
+  "fallbackBehavior": "CSS gradient fill controlled by XP percentage with aria progress semantics",
+  "dateAssessed": "2026-07-19"
+}

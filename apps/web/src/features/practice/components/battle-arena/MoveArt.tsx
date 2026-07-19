@@ -9,6 +9,10 @@ import {
   resolveMoveSkin,
   type MoveArtVariant,
 } from "@/features/practice/moves/move-asset-registry";
+import {
+  resolveEquippedMoveSkin,
+  useProfileOptional,
+} from "@/providers/ProfileProvider";
 import styles from "../practice-game.module.css";
 
 type MoveArtProps = {
@@ -35,7 +39,28 @@ export function MoveArt({
   showFallbackEmoji = true,
   label,
 }: MoveArtProps) {
-  const skin = resolveMoveSkin(move, skinId);
+  const profileContext = useProfileOptional();
+  const equippedSkinId =
+    skinId ??
+    (profileContext
+      ? profileContext.profile.equipped[
+          move === "rock"
+            ? "rockSkinId"
+            : move === "paper"
+              ? "paperSkinId"
+              : "scissorsSkinId"
+        ]
+      : null);
+  const unlockedIds = profileContext
+    ? move === "rock"
+      ? profileContext.profile.unlockedRockSkinIds
+      : move === "paper"
+        ? profileContext.profile.unlockedPaperSkinIds
+        : profileContext.profile.unlockedScissorsSkinIds
+    : [];
+  const skin = profileContext
+    ? resolveEquippedMoveSkin(move, equippedSkinId, unlockedIds)
+    : resolveMoveSkin(move, skinId);
   const [failed, setFailed] = useState(false);
   const accessibleLabel = label ?? getMoveAccessibleLabel(move);
 

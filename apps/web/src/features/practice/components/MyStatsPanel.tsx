@@ -8,6 +8,9 @@ import {
   mapPracticeStatsToViewModel,
 } from "@/features/practice/stats/map-practice-stats";
 import type { StatsMetric } from "@/features/practice/stats/stats-view-model";
+import type { ProfileNavigationState } from "@/features/profile/profile-navigation";
+import { MoveSkinPreview } from "@/features/profile/components/MoveSkinPreview";
+import { getDefaultMoveSkin } from "@/features/practice/moves/move-asset-registry";
 import { useSettings } from "@/providers/SettingsProvider";
 import profileStyles from "@/features/profile/profile-panel.module.css";
 import styles from "./leaderboard-panel.module.css";
@@ -17,6 +20,7 @@ type MyStatsPanelProps = {
   reducedMotion: boolean;
   showReset?: boolean;
   variant?: "default" | "profile";
+  onNavigationChange?: (navigation: ProfileNavigationState) => void;
 };
 
 const PROFILE_STAT_GROUPS: {
@@ -58,7 +62,7 @@ function AnimatedMetricValue({
   metric: StatsMetric;
   animate: boolean;
   reducedMotion: boolean;
-  variant?: "default" | "profile";
+  variant?: "default" | "profile" | "profile-compact";
 }) {
   const numericValue = metric.numericValue ?? 0;
   const animatedValue = useCountUpAnimation({
@@ -68,7 +72,11 @@ function AnimatedMetricValue({
   });
 
   const valueClass =
-    variant === "profile" ? profileStyles.statsMetricValue : styles.metricValue;
+    variant === "profile" || variant === "profile-compact"
+      ? variant === "profile-compact"
+        ? profileStyles.statsMetricTileValue
+        : profileStyles.statsMetricValue
+      : styles.metricValue;
 
   if (metric.numericValue === undefined) {
     return <span className={valueClass}>{metric.value}</span>;
@@ -79,6 +87,66 @@ function AnimatedMetricValue({
   }
 
   return <span className={valueClass}>{animatedValue}</span>;
+}
+
+function ProfileMetricTile({
+  metric,
+  animate,
+  reducedMotion,
+  favoriteMoveKey,
+  onFavoriteClick,
+}: {
+  metric: StatsMetric;
+  animate: boolean;
+  reducedMotion: boolean;
+  favoriteMoveKey: ReturnType<
+    typeof mapPracticeStatsToViewModel
+  >["favoriteMoveKey"];
+  onFavoriteClick?: () => void;
+}) {
+  if (metric.id === "favorite" && favoriteMoveKey) {
+    const skin = getDefaultMoveSkin(favoriteMoveKey);
+    return (
+      <button
+        type="button"
+        className={profileStyles.statsMetricTile}
+        onClick={onFavoriteClick}
+        aria-label={`Favorite move ${metric.value}. Open ${favoriteMoveKey} unlocks.`}
+      >
+        <span className={profileStyles.statsMetricTileArt}>
+          <MoveSkinPreview
+            move={favoriteMoveKey}
+            skinId={skin.skinId}
+            accessibleLabel={`Favorite move ${metric.value}`}
+          />
+        </span>
+        <AnimatedMetricValue
+          metric={metric}
+          animate={animate}
+          reducedMotion={reducedMotion}
+          variant="profile-compact"
+        />
+        <p className={profileStyles.statsMetricTileLabel}>{metric.label}</p>
+      </button>
+    );
+  }
+
+  return (
+    <article className={profileStyles.statsMetricTile}>
+      <span
+        className={profileStyles.statsMetricIcon}
+        data-icon={metric.iconKey}
+        aria-hidden="true"
+      />
+      <AnimatedMetricValue
+        metric={metric}
+        animate={animate}
+        reducedMotion={reducedMotion}
+        variant="profile-compact"
+      />
+      <p className={profileStyles.statsMetricTileLabel}>{metric.label}</p>
+    </article>
+  );
 }
 
 function MetricCard({
@@ -138,6 +206,7 @@ export function MyStatsPanel({
   reducedMotion,
   showReset = true,
   variant = "default",
+  onNavigationChange,
 }: MyStatsPanelProps) {
   const { stats, resetStats } = useSettings();
   const [confirmReset, setConfirmReset] = useState(false);
@@ -162,17 +231,27 @@ export function MyStatsPanel({
         {PROFILE_STAT_GROUPS.map((group) => (
           <section key={group.id} className={profileStyles.statsGroup}>
             <h3 className={profileStyles.statsGroupTitle}>{group.title}</h3>
-            <div className={profileStyles.statsMetricGrid}>
+            <div className={profileStyles.statsMetricTileGrid}>
               {group.metricIds.map((metricId) => {
                 const metric = metricsById[metricId];
                 if (!metric) return null;
                 return (
-                  <MetricCard
+                  <ProfileMetricTile
                     key={metric.id}
                     metric={metric}
                     animate={animate}
                     reducedMotion={reducedMotion}
-                    variant={variant}
+                    favoriteMoveKey={viewModel.favoriteMoveKey}
+                    onFavoriteClick={
+                      metric.id === "favorite" && viewModel.favoriteMoveKey
+                        ? () =>
+                            onNavigationChange?.({
+                              tab: "unlocks",
+                              category: viewModel.favoriteMoveKey!,
+                              itemId: null,
+                            })
+                        : undefined
+                    }
                   />
                 );
               })}

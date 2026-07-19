@@ -1303,3 +1303,494 @@
   transform: scale(var(--avatar-preview-scale, 1))
     scale(var(--move-preview-scale, 1));
 }
+
+/* ── Compact overview ── */
+.overviewCompact {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.overviewTopRow,
+.overviewBottomRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: var(--space-3);
+}
+
+.identityPanel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 18%);
+}
+
+.identityAvatarButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.identityCopy {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.localProfileLabel {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nextRewardPanel {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid rgb(215 255 67 / 18%);
+  border-radius: var(--radius-sm);
+  background: rgb(215 255 67 / 5%);
+}
+
+.nextRewardPreviewButton {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nextRewardArt {
+  width: 72px;
+  height: 72px;
+}
+
+.nextRewardCopy {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.nextRewardRequirement {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loadoutCard {
+  cursor: pointer;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(0 0 0 / 22%);
+  color: inherit;
+  font: inherit;
+}
+
+.snapshotMetricsCompact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.snapshotMetricCompact {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 20%);
+  border: 1px solid rgb(255 255 255 / 6%);
+  text-align: center;
+}
+
+.snapshotMetricCompact .statsMetricIcon {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+}
+
+/* ── Shared progress bar ── */
+.profileProgressRoot {
+  width: 100%;
+}
+
+.profileProgressTrack,
+.profileProgressTrackCompact {
+  overflow: hidden;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+.profileProgressTrackCompact {
+  height: 8px;
+}
+
+.profileProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgb(61 214 140 / 90%) 0%,
+    var(--color-brand-500) 100%
+  );
+  box-shadow: 0 0 14px rgb(215 255 67 / 35%);
+  transition: width 420ms var(--motion-ease);
+}
+
+.profileProgressReducedMotion .profileProgressFill {
+  transition: none;
+}
+
+.profileProgressAssetTrack {
+  position: relative;
+  overflow: hidden;
+  height: 12px;
+  border-radius: var(--radius-pill);
+}
+
+.profileProgressFrame,
+.profileProgressFillAsset,
+.profileProgressShine {
+  image-rendering: pixelated;
+}
+
+.profileProgressAssetFillMask {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* ── Cosmetic cards ── */
+.cosmeticCardTopRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.cosmeticTierBadge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 8%);
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cosmeticCardButton {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cosmeticPreviewAction {
+  opacity: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(215 255 67 / 12%);
+  color: var(--color-brand-500);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: opacity 180ms var(--motion-ease);
+}
+
+.cosmeticCard:hover .cosmeticPreviewAction,
+.cosmeticCard:focus-within .cosmeticPreviewAction {
+  opacity: 1;
+}
+
+.statusBadgeUnlocked {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(61 214 140 / 12%);
+  color: var(--color-outcome-win);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.categoryMobileLabel {
+  display: none;
+  margin: 0 0 4px;
+  color: var(--color-text-subtle);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.categoryMobileSelect {
+  display: none;
+  min-height: 44px;
+  width: 100%;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: rgb(0 0 0 / 28%);
+  color: var(--color-text);
+}
+
+/* ── Reward track ── */
+.rewardTrack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 901px) {
+  .rewardTrack {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.rewardTrackStep {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  padding: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 16%);
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.rewardTrackArt {
+  width: 72px;
+  height: 72px;
+}
+
+.rewardTrackLevel {
+  color: var(--color-brand-500);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rewardTrackName {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rewardTrackState {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rewardTrackCopy {
+  display: grid;
+  gap: 2px;
+}
+
+.rankLadderCompact {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.rankStepCompact {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: var(--space-2);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 16%);
+  text-align: center;
+}
+
+/* ── Compact stats tiles ── */
+.statsMetricTileGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.statsMetricTile {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: var(--space-3);
+  min-height: 112px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 18%);
+  text-align: center;
+}
+
+.statsMetricTileArt {
+  width: 48px;
+  height: 48px;
+}
+
+.statsMetricTileValue {
+  margin: 0;
+  font-size: clamp(22px, 2.5vw, 28px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.statsMetricTileLabel {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Preview dialog ── */
+.previewDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  background: rgb(0 0 0 / 72%);
+}
+
+.previewDialogPanel {
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 420px);
+  max-height: min(92vh, 720px);
+  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: var(--radius-md);
+  background: rgb(12 12 12 / 96%);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 45%);
+}
+
+.previewDialogHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.previewDialogKicker {
+  margin: 0;
+  color: var(--color-brand-500);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.previewDialogTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.previewDialogClose {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 8%);
+  color: var(--color-text);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.previewDialogArtFrame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: min(40vh, 280px);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.previewDialogMeta {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.previewDialogTierBadge {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 8%);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.previewDialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 900px) {
+  .overviewTopRow,
+  .overviewBottomRow {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryMobileLabel,
+  .categoryMobileSelect {
+    display: block;
+  }
+
+  .categorySidebarList {
+    display: none;
+  }
+
+  .rankLadderCompact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statsMetricTileGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .identityPanel {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .statsMetricTileGrid,
+  .snapshotMetricsCompact {
+    grid-template-columns: 1fr;
+  }
+}

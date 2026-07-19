@@ -23,6 +23,7 @@ export function mapPracticeStatsToViewModel(
     favoriteMove: stats.mostUsedMove
       ? MOVE_LABELS[stats.mostUsedMove]
       : "None yet",
+    favoriteMoveKey: stats.mostUsedMove,
     automaticPicks: stats.automaticMoveCount,
     totalMatches: stats.matchesPlayed,
     averageMatchLengthSeconds,

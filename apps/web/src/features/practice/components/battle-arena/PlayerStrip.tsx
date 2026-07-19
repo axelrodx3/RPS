@@ -3,6 +3,7 @@
 import { BotAvatar } from "@/features/identity/components/BotAvatar";
 import { PlayerAvatar } from "@/features/identity/components/PlayerAvatar";
 import { getMatchPointLabel } from "@/features/practice/utils/match-point-label";
+import { useEquippedLoadout } from "@/providers/ProfileProvider";
 import styles from "../practice-game.module.css";
 
 type PlayerStripProps = {
@@ -56,6 +57,7 @@ export function PlayerStrip({
   playerIdentityPulse = false,
   playerIdentityImpact = false,
 }: PlayerStripProps) {
+  const equipped = useEquippedLoadout();
   const matchPointLabel = getMatchPointLabel(playerScore, cpuScore, winTarget);
   const playerMarkerPulse =
     playerScorePulse && playerScore > 0 ? playerScore - 1 : null;
@@ -73,7 +75,7 @@ export function PlayerStrip({
             .filter(Boolean)
             .join(" ")}
         >
-          <PlayerAvatar />
+          <PlayerAvatar avatarId={equipped.avatarId} />
           <div className={styles.stripMeta}>
             <span className={styles.stripLabel}>YOU</span>
             <span className={styles.srOnly}>Score {playerScore}</span>

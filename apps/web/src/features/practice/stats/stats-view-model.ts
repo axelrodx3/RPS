@@ -1,3 +1,5 @@
+import type { Move } from "@/features/practice/engine/practice-engine";
+
 export type StatsSource = "practice-local" | "account";
 
 export type PlayerStatsViewModel = {
@@ -11,6 +13,7 @@ export type PlayerStatsViewModel = {
   paperUsed: number;
   scissorsUsed: number;
   favoriteMove: string;
+  favoriteMoveKey: Move | null;
   automaticPicks: number;
   totalMatches: number;
   averageMatchLengthSeconds: number | null;
