@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   AVATAR_CONTAINER_SIZE_PX,
   DEFAULT_PLAYER_AVATAR_ID,
+  getAvatarPreviewPresentation,
   getPlayerAvatar,
 } from "@/features/identity/avatar-registry";
 import styles from "@/features/practice/components/practice-game.module.css";
@@ -20,6 +21,14 @@ export function PlayerAvatar({
   size = AVATAR_CONTAINER_SIZE_PX,
 }: PlayerAvatarProps) {
   const avatar = getPlayerAvatar(avatarId);
+  const presentation = getAvatarPreviewPresentation(avatar.tier);
+  const presentationStyle = {
+    "--avatar-preview-scale": presentation.previewScale,
+    "--avatar-preview-max-width": presentation.maxWidth,
+    "--avatar-preview-max-height": presentation.maxHeight,
+    "--avatar-preview-object-position": presentation.objectPosition,
+    "--avatar-preview-padding": presentation.internalPadding,
+  } as React.CSSProperties;
 
   return (
     <div
@@ -27,6 +36,7 @@ export function PlayerAvatar({
       style={{
         width: size,
         height: size,
+        ...presentationStyle,
       }}
     >
       <Image

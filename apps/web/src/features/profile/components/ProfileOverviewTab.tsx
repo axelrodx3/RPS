@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { PlayerAvatar } from "@/features/identity/components/PlayerAvatar";
 import { getPlayerAvatar } from "@/features/identity/avatar-registry";
-import { MoveArt } from "@/features/practice/components/battle-arena/MoveArt";
+import { AvatarPreview } from "@/features/profile/components/AvatarPreview";
+import { MoveSkinPreview } from "@/features/profile/components/MoveSkinPreview";
 import { resolveMoveSkin } from "@/features/practice/moves/move-asset-registry";
 import {
   buildStatsMetrics,
@@ -23,6 +23,14 @@ import styles from "../profile-panel.module.css";
 type ProfileOverviewTabProps = {
   profile?: LocalProfile;
 };
+
+function buildAvatarAccessibleLabel(displayName: string, tier: number): string {
+  return `${displayName}. Tier ${tier}. Equipped.`;
+}
+
+function buildMoveAccessibleLabel(displayName: string, tier: number): string {
+  return `${displayName}. Tier ${tier}. Equipped.`;
+}
 
 export function ProfileOverviewTab({
   profile = DEFAULT_LOCAL_PROFILE,
@@ -50,17 +58,28 @@ export function ProfileOverviewTab({
       label: "Avatar",
       name: avatar.displayName,
       tier: avatar.tier,
-      content: <PlayerAvatar avatarId={profile.equipped.avatarId} size={72} />,
+      content: (
+        <AvatarPreview
+          avatarId={profile.equipped.avatarId}
+          accessibleLabel={buildAvatarAccessibleLabel(
+            avatar.displayName,
+            avatar.tier,
+          )}
+        />
+      ),
     },
     {
       label: "Rock",
       name: rockSkin.displayName,
       tier: rockSkin.tier,
       content: (
-        <MoveArt
+        <MoveSkinPreview
           move="rock"
-          variant="arena"
           skinId={profile.equipped.rockSkinId}
+          accessibleLabel={buildMoveAccessibleLabel(
+            rockSkin.displayName,
+            rockSkin.tier,
+          )}
         />
       ),
     },
@@ -69,10 +88,13 @@ export function ProfileOverviewTab({
       name: paperSkin.displayName,
       tier: paperSkin.tier,
       content: (
-        <MoveArt
+        <MoveSkinPreview
           move="paper"
-          variant="arena"
           skinId={profile.equipped.paperSkinId}
+          accessibleLabel={buildMoveAccessibleLabel(
+            paperSkin.displayName,
+            paperSkin.tier,
+          )}
         />
       ),
     },
@@ -81,10 +103,13 @@ export function ProfileOverviewTab({
       name: scissorsSkin.displayName,
       tier: scissorsSkin.tier,
       content: (
-        <MoveArt
+        <MoveSkinPreview
           move="scissors"
-          variant="arena"
           skinId={profile.equipped.scissorsSkinId}
+          accessibleLabel={buildMoveAccessibleLabel(
+            scissorsSkin.displayName,
+            scissorsSkin.tier,
+          )}
         />
       ),
     },
@@ -92,16 +117,32 @@ export function ProfileOverviewTab({
 
   return (
     <div className={styles.overviewGrid}>
-      <section className={styles.heroCard} aria-label="Player identity">
+      <section
+        className={styles.heroCard}
+        aria-label="Player identity"
+        data-rank={profile.rankId}
+      >
         <div className={styles.heroMain}>
-          <div className={styles.heroAvatarFrame}>
-            <PlayerAvatar avatarId={profile.avatarId} size={112} />
+          <div
+            className={styles.heroAvatarFrame}
+            data-rank-glow={profile.rankId}
+          >
+            <AvatarPreview
+              avatarId={profile.avatarId}
+              accessibleLabel={`${profile.username} equipped avatar`}
+            />
           </div>
           <div className={styles.heroIdentity}>
+            <p className={styles.heroEyebrow}>Player identity</p>
             <h2 className={styles.heroName}>{profile.username}</h2>
             <div className={styles.heroMeta}>
               <span className={styles.heroMetaPill}>Level {profile.level}</span>
-              <span className={styles.heroMetaPill}>{rankName}</span>
+              <span
+                className={styles.heroRankBadge}
+                aria-label={`Competitive rank ${rankName}`}
+              >
+                {rankName}
+              </span>
               <span className={styles.heroMetaPill}>{profile.xp} XP</span>
             </div>
             <div className={styles.heroXpBlock}>
@@ -163,11 +204,12 @@ export function ProfileOverviewTab({
           <div className={styles.loadoutGrid}>
             {loadoutCards.map((card) => (
               <article key={card.label} className={styles.loadoutCard}>
+                <p className={styles.loadoutLabel}>{card.label}</p>
                 <div className={styles.loadoutArt}>{card.content}</div>
                 <div className={styles.loadoutCopy}>
-                  <p className={styles.loadoutLabel}>{card.label}</p>
                   <p className={styles.loadoutName}>{card.name}</p>
                   <p className={styles.loadoutTier}>Tier {card.tier}</p>
+                  <span className={styles.loadoutEquippedBadge}>Equipped</span>
                 </div>
               </article>
             ))}

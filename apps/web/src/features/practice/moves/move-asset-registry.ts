@@ -210,10 +210,7 @@ function buildMoveSet(
       unlockedByDefault: isTierOne,
       futureUnlockRequirement: isTierOne
         ? { type: "default" }
-        : {
-            type: "reward",
-            description: "Future unlock — not available in Practice yet",
-          },
+        : { type: "reward" },
     });
   });
 

@@ -8,10 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ProfilePageContent } from "@/app/profile/ProfilePageContent";
 import { AVATAR_TIERS } from "@/features/identity/avatar-registry";
 import { MOVE_ASSET_SETS } from "@/features/practice/moves/move-asset-registry";
-import {
-  HIGHEST_RANK_ID,
-  RANK_LADDER,
-} from "@/features/profile/rank-registry";
+import { HIGHEST_RANK_ID, RANK_LADDER } from "@/features/profile/rank-registry";
 import { renderWithProviders } from "@/test/render";
 
 describe("ProfilePageContent", () => {
@@ -57,21 +54,25 @@ describe("ProfilePageContent", () => {
     expect(
       within(overviewPanel).getByText("180 XP remaining"),
     ).toBeInTheDocument();
+    expect(
+      within(overviewPanel).getAllByTestId("avatar-preview-1").length,
+    ).toBeGreaterThan(0);
   });
 
-  it("shows one unlock category at a time with seven tiers each", async () => {
+  it("shows one unlock category at a time with vertical category navigation", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ProfilePageContent />);
     await user.click(screen.getByRole("tab", { name: "Unlocks" }));
 
     expect(AVATAR_TIERS).toHaveLength(7);
     expect(MOVE_ASSET_SETS.rock.skins).toHaveLength(7);
-    expect(MOVE_ASSET_SETS.paper.skins).toHaveLength(7);
-    expect(MOVE_ASSET_SETS.scissors.skins).toHaveLength(7);
 
     const unlocksPanel = screen.getByRole("tabpanel", { name: "Unlocks" });
     expect(within(unlocksPanel).getByText("Robot")).toBeInTheDocument();
     expect(within(unlocksPanel).queryByText("Rock Tier 1")).toBeNull();
+    expect(
+      screen.queryByText("Future unlock — not available in Practice yet"),
+    ).toBeNull();
 
     await user.click(within(unlocksPanel).getByRole("tab", { name: "Rock" }));
     expect(within(unlocksPanel).getByText("Rock Tier 1")).toBeInTheDocument();
@@ -100,6 +101,13 @@ describe("ProfilePageContent", () => {
     expect(
       within(progressPanel).getByText("Competitive rank"),
     ).toBeInTheDocument();
+    expect(
+      within(progressPanel).getByText("Reward roadmap"),
+    ).toBeInTheDocument();
+    expect(
+      within(progressPanel).getAllByText("Avatar Tier 2").length,
+    ).toBeGreaterThan(0);
+    expect(within(progressPanel).getByText("Rock Tier 2")).toBeInTheDocument();
   });
 
   it("reuses the shared practice stats panel in stats tab", async () => {

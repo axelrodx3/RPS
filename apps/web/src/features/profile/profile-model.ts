@@ -59,3 +59,10 @@ export const NEXT_REWARD_PREVIEW = {
   label: "Avatar Tier 2",
   requirement: "Reach Level 4",
 } as const;
+
+export const PROFILE_REWARD_ROADMAP = [
+  { level: 4, reward: "Avatar Tier 2" },
+  { level: 8, reward: "Rock Tier 2" },
+  { level: 12, reward: "Paper Tier 2" },
+  { level: 16, reward: "Scissors Tier 2" },
+] as const;

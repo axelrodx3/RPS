@@ -6,6 +6,7 @@ import {
   getProfileXpProgress,
   getProfileXpRemaining,
   NEXT_REWARD_PREVIEW,
+  PROFILE_REWARD_ROADMAP,
   type LocalProfile,
 } from "@/features/profile/profile-model";
 import {
@@ -65,7 +66,7 @@ export function ProfileProgressTab({
             Account progression
           </h2>
           <p className={styles.sectionNote}>
-            Placeholder progression values only. XP earning is not active yet.
+            Preview progression values only. XP earning is not active yet.
           </p>
         </div>
 
@@ -127,20 +128,22 @@ export function ProfileProgressTab({
           </div>
         </aside>
 
-        <div className={styles.upcomingRewards}>
-          <p className={styles.sectionKicker}>Upcoming cosmetic rewards</p>
-          <div className={styles.rewardRow}>
-            <span>Level 4</span>
-            <span>Avatar Tier 2 unlock preview</span>
-          </div>
-          <div className={styles.rewardRow}>
-            <span>Silver rank</span>
-            <span>Rock Tier 2 unlock preview</span>
-          </div>
-          <div className={styles.rewardRow}>
-            <span>Gold rank</span>
-            <span>Paper Tier 2 unlock preview</span>
-          </div>
+        <div className={styles.rewardRoadmap} aria-label="Reward roadmap">
+          <p className={styles.sectionKicker}>Reward roadmap</p>
+          {PROFILE_REWARD_ROADMAP.map((milestone) => (
+            <div key={milestone.level} className={styles.rewardRoadmapStep}>
+              <span className={styles.rewardRoadmapLevel}>
+                Level {milestone.level}
+              </span>
+              <span
+                className={styles.rewardRoadmapConnector}
+                aria-hidden="true"
+              />
+              <span className={styles.rewardRoadmapReward}>
+                {milestone.reward}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -153,8 +156,8 @@ export function ProfileProgressTab({
             Competitive rank
           </h2>
           <p className={styles.sectionNote}>
-            Competitive ranking unlocks later with online play. Rank shown here
-            is a local preview only.
+            Competitive ranking becomes available with online competitive play.
+            Rank shown here is a local preview only.
           </p>
         </div>
 
